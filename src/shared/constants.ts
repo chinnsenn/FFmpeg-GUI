@@ -46,6 +46,12 @@ export const IPC_CHANNELS = {
   TASK_COMPLETED: 'task:completed',
   TASK_FAILED: 'task:failed',
   TASK_CANCELLED: 'task:cancelled',
+
+  // 日志相关
+  LOG_GET_DIR: 'log:get-dir',
+  LOG_GET_FILE: 'log:get-file',
+  LOG_READ: 'log:read',
+  LOG_CLEAR: 'log:clear',
 } as const;
 
 // FFmpeg 下载源配置

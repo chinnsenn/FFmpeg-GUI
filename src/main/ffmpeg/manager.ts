@@ -2,6 +2,7 @@ import { spawn, ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 import type { Task, TaskStatus, TaskManagerStatus } from '@shared/types';
 import { FFmpegParser } from './parser';
+import { logger } from '../utils/logger';
 
 /**
  * 任务事件接口
@@ -39,6 +40,7 @@ export class FFmpegManager extends EventEmitter {
   constructor(ffmpegPath: string) {
     super();
     this.ffmpegPath = ffmpegPath;
+    logger.info('FFmpegManager', 'Manager initialized', { ffmpegPath, maxConcurrent: this.maxConcurrent });
   }
 
   /**
@@ -46,6 +48,8 @@ export class FFmpegManager extends EventEmitter {
    */
   async addTask(command: string[], priority = 0): Promise<string> {
     const taskId = this.generateId();
+    logger.info('FFmpegManager', 'Adding task', { taskId, priority, commandLength: command.length });
+
     const task: InternalTask = {
       id: taskId,
       command,
@@ -67,6 +71,7 @@ export class FFmpegManager extends EventEmitter {
     this.emit('taskAdded', this.sanitizeTask(task));
     this.processQueue();
 
+    logger.debug('FFmpegManager', 'Task added to queue', { taskId, queueLength: this.queue.length });
     return taskId;
   }
 
@@ -88,6 +93,8 @@ export class FFmpegManager extends EventEmitter {
     task.startedAt = new Date();
     this.running.set(task.id, task);
     this.emit('taskStarted', this.sanitizeTask(task));
+
+    logger.info('FFmpegManager', 'Task started', { taskId: task.id });
 
     try {
       const process = spawn(this.ffmpegPath, task.command);
@@ -132,6 +139,7 @@ export class FFmpegManager extends EventEmitter {
           const error = task.parser.parseError(output);
           if (error) {
             task.error = error;
+            logger.warn('FFmpegManager', 'Task error detected', { taskId: task.id, error });
           }
         }
       });
@@ -143,9 +151,11 @@ export class FFmpegManager extends EventEmitter {
 
       // 进程错误事件
       process.on('error', (error: Error) => {
+        logger.error('FFmpegManager', 'Process error', { taskId: task.id, error });
         this.handleTaskError(task, error);
       });
     } catch (error) {
+      logger.error('FFmpegManager', 'Failed to execute task', { taskId: task.id, error });
       this.handleTaskError(task, error as Error);
     }
   }
