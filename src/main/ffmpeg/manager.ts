@@ -115,7 +115,8 @@ export class FFmpegManager extends EventEmitter {
           const progressInfo = task.parser.parseProgress(output);
           if (progressInfo) {
             task.progress = progressInfo.percent;
-            this.emit('taskProgress', task.id, progressInfo.percent);
+            task.progressInfo = progressInfo; // 保存完整的进度信息
+            this.emit('taskProgress', task.id, progressInfo.percent, progressInfo);
           }
 
           // 检查错误

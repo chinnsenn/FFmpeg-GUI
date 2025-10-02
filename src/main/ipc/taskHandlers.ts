@@ -38,10 +38,14 @@ async function initializeManager(): Promise<FFmpegManager> {
       });
     });
 
-    manager.on('taskProgress', (taskId, progress) => {
+    manager.on('taskProgress', (taskId, progress, progressInfo) => {
       const windows = require('electron').BrowserWindow.getAllWindows();
       windows.forEach((window) => {
-        window.webContents.send(IPC_CHANNELS.TASK_PROGRESS, { taskId, progress });
+        window.webContents.send(IPC_CHANNELS.TASK_PROGRESS, {
+          taskId,
+          progress,
+          progressInfo // 传递完整的进度信息
+        });
       });
     });
 

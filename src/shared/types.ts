@@ -48,6 +48,7 @@ export interface Task {
   command: string[];
   status: TaskStatus;
   progress: number;
+  progressInfo?: FFmpegProgress; // 详细的进度信息
   error?: string;
   createdAt: Date;
   startedAt?: Date;

@@ -2,13 +2,13 @@
 
 **项目开始日期**：2025-10-02
 **当前阶段**：阶段三 - 核心功能
-**总体进度**：13/22 任务完成
+**总体进度**：14/22 任务完成
 
 ---
 
 ## 当前任务
 
-**Task-14**: 实时进度显示UI
+**Task-15**: 性能优化（内存、速度）
 **状态**: ⏳ 待开始
 **开始时间**: -
 
@@ -45,7 +45,7 @@
 | Task-11 | 格式转换功能实现 | ✅ 已完成 | 2025-10-02 | 50+格式支持 + 快速预设 + 转换任务提交完成 |
 | Task-12 | 视频压缩功能 | ✅ 已完成 | 2025-10-02 | 压缩预设 + CompressConfig 组件 + Compress 页面完成 |
 | Task-13 | 任务队列管理系统 | ✅ 已完成 | 2025-10-02 | TaskCard 组件 + Queue 页面 + 实时更新完成 |
-| Task-14 | 实时进度显示UI | ⏳ 待开始 | - | |
+| Task-14 | 实时进度显示UI | ✅ 已完成 | 2025-10-02 | 详细进度信息显示（速度、ETA、FPS、文件大小、比特率）|
 
 ---
 
@@ -433,4 +433,35 @@
 
 ---
 
-**最后更新时间**: 2025-10-02 23:45
+**Task-14: 实时进度显示UI** ✅
+- ✅ 更新 Task 类型定义（src/shared/types.ts）
+  - 添加 `progressInfo?: FFmpegProgress` 字段
+  - 保存完整的 FFmpeg 进度信息（frame、fps、bitrate、totalSize、currentTime、speed、percent）
+- ✅ 更新 FFmpegManager 传递完整进度信息（src/main/ffmpeg/manager.ts）
+  - 在 stderr 数据处理中保存 progressInfo 到任务对象
+  - 更新 taskProgress 事件，传递完整的 progressInfo 对象（第三个参数）
+- ✅ 更新任务管理 IPC 处理器（src/main/ipc/taskHandlers.ts）
+  - 修改 taskProgress 事件监听器，接收 progressInfo 参数
+  - 通过 IPC 将完整的进度信息传递到渲染进程
+- ✅ 增强 TaskCard 组件（src/renderer/src/components/TaskCard/TaskCard.tsx）
+  - 添加 getETA() 函数：计算剩余时间（基于当前进度和速度）
+  - 添加 formatSpeed() 函数：格式化处理速度（如 1.87x）
+  - 添加 formatSize() 函数：格式化文件大小（KB/MB/GB）
+  - 添加 formatBitrate() 函数：格式化比特率（bps/kbps）
+  - 创建详细进度信息网格显示：
+    - 速度（Speed）
+    - 剩余时间（ETA）
+    - 帧率（FPS）
+    - 文件大小（Size）
+    - 比特率（Bitrate）
+- ✅ 更新 Queue 页面（src/renderer/src/pages/Queue.tsx）
+  - 修改 taskProgress 事件处理器，接收并保存 progressInfo
+  - 将 progressInfo 更新到任务状态中
+- ✅ 验收测试通过：
+  - TypeScript 类型检查通过
+  - 进度信息完整传递（Main → IPC → Renderer）
+  - 详细进度指标正确显示（速度、ETA、FPS、大小、比特率）
+
+---
+
+**最后更新时间**: 2025-10-02 23:52

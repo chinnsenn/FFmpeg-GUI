@@ -119,6 +119,45 @@ export function TaskCard({ task, onPause, onResume, onCancel, onRetry }: TaskCar
     return `${hours}小时${minutes}分`;
   };
 
+  // 计算剩余时间
+  const getETA = (): string => {
+    if (!task.progressInfo || !task.startedAt) return '-';
+
+    const { speed, percent } = task.progressInfo;
+    if (speed <= 0 || percent <= 0 || percent >= 100) return '-';
+
+    const elapsed = (new Date().getTime() - new Date(task.startedAt).getTime()) / 1000; // 秒
+    const estimatedTotal = elapsed / (percent / 100);
+    const remaining = estimatedTotal - elapsed;
+
+    if (remaining < 60) return `${Math.floor(remaining)}秒`;
+    if (remaining < 3600) {
+      const minutes = Math.floor(remaining / 60);
+      const seconds = Math.floor(remaining % 60);
+      return `${minutes}分${seconds}秒`;
+    }
+    const hours = Math.floor(remaining / 3600);
+    const minutes = Math.floor((remaining % 3600) / 60);
+    return `${hours}小时${minutes}分`;
+  };
+
+  // 格式化速度
+  const formatSpeed = (speed: number): string => {
+    return `${speed.toFixed(2)}x`;
+  };
+
+  // 格式化文件大小
+  const formatSize = (sizeKB: number): string => {
+    if (sizeKB < 1024) return `${sizeKB} KB`;
+    if (sizeKB < 1024 * 1024) return `${(sizeKB / 1024).toFixed(2)} MB`;
+    return `${(sizeKB / (1024 * 1024)).toFixed(2)} GB`;
+  };
+
+  // 格式化比特率
+  const formatBitrate = (bitrate: string): string => {
+    return bitrate.replace('bits/s', 'bps').replace('kbits/s', 'kbps');
+  };
+
   return (
     <div className={`rounded-lg border-2 ${statusInfo.bgColor} p-4 transition-all`}>
       <div className="flex items-start justify-between mb-3">
@@ -151,15 +190,31 @@ export function TaskCard({ task, onPause, onResume, onCancel, onRetry }: TaskCar
             </div>
           </div>
 
-          {/* 进度条 */}
+          {/* 进度条和详细信息 */}
           {task.status === 'running' && task.progress !== undefined && (
-            <div className="mt-3">
+            <div className="mt-3 space-y-2">
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
                   className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${task.progress}%` }}
                 />
               </div>
+              {/* 详细进度信息 */}
+              {task.progressInfo && (
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
+                  <div>速度: {formatSpeed(task.progressInfo.speed)}</div>
+                  <div>剩余: {getETA()}</div>
+                  {task.progressInfo.fps > 0 && (
+                    <div>FPS: {task.progressInfo.fps.toFixed(1)}</div>
+                  )}
+                  {task.progressInfo.totalSize > 0 && (
+                    <div>大小: {formatSize(task.progressInfo.totalSize)}</div>
+                  )}
+                  {task.progressInfo.bitrate && task.progressInfo.bitrate !== '0' && (
+                    <div className="col-span-2">比特率: {formatBitrate(task.progressInfo.bitrate)}</div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

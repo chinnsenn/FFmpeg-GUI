@@ -56,10 +56,10 @@ export function Queue() {
     // 任务进度
     const unsubTaskProgress = window.electronAPI.on(
       IPC_CHANNELS.TASK_PROGRESS,
-      ({ taskId, progress }: { taskId: string; progress: number }) => {
+      ({ taskId, progress, progressInfo }: { taskId: string; progress: number; progressInfo?: any }) => {
         setTasks(prev =>
           prev.map(t =>
-            t.id === taskId ? { ...t, progress } : t
+            t.id === taskId ? { ...t, progress, progressInfo } : t
           )
         );
       }
