@@ -1,11 +1,36 @@
-// Shared types between main and renderer processes
+// IPC 通信数据类型定义
 
-export interface ElectronAPI {
-  platform: string;
+/**
+ * 系统信息接口
+ */
+export interface SystemInfo {
+  platform: NodeJS.Platform;
+  arch: string;
+  version: string;
+  appVersion: string;
 }
 
-declare global {
-  interface Window {
-    electron: ElectronAPI;
-  }
+/**
+ * 文件信息接口
+ */
+export interface FileInfo {
+  name: string;
+  path: string;
+  size: number;
+  ext: string;
+  duration?: number;
+  width?: number;
+  height?: number;
+  codec?: string;
+}
+
+/**
+ * 应用配置接口
+ */
+export interface AppConfig {
+  ffmpegPath?: string;
+  outputPath?: string;
+  theme: 'light' | 'dark' | 'system';
+  language: 'zh-CN' | 'en-US';
+  maxConcurrentTasks: number;
 }
