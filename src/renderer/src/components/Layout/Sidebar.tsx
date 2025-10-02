@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home,
   RefreshCw,
@@ -23,7 +23,7 @@ const menuItems = [
 ];
 
 export function Sidebar() {
-  const [activeItem, setActiveItem] = useState('/');
+  const location = useLocation();
 
   return (
     <aside className="flex w-64 flex-col border-r bg-muted/40">
@@ -36,14 +36,17 @@ export function Sidebar() {
       <nav className="flex-1 space-y-1 p-4">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activeItem === item.path;
+          const isActive =
+            item.path === '/'
+              ? location.pathname === '/'
+              : location.pathname.startsWith(item.path);
 
           return (
-            <button
+            <NavLink
               key={item.path}
-              onClick={() => setActiveItem(item.path)}
+              to={item.path}
               className={cn(
-                'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                 isActive
                   ? 'bg-primary text-primary-foreground'
                   : 'hover:bg-muted'
@@ -51,7 +54,7 @@ export function Sidebar() {
             >
               <Icon className="h-4 w-4" />
               <span>{item.label}</span>
-            </button>
+            </NavLink>
           );
         })}
       </nav>

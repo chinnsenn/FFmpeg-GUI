@@ -1,31 +1,86 @@
 // Global type declarations for TypeScript
 
-import type { SystemInfo, FileInfo, AppConfig } from '../../shared/types';
+import type {
+  SystemInfo,
+  FileInfo,
+  AppConfig,
+  Task,
+  TaskManagerStatus,
+  MediaFileInfo,
+  ConvertOptions,
+  CompressOptions,
+} from '../../shared/types';
 
 /**
- * Electron API ��I
+ * FFmpeg 信息
  */
-export interface ElectronAPI {
-  // ���s
-  getSystemInfo: () => Promise<SystemInfo>;
-  getPath: (name: 'home' | 'appData' | 'userData' | 'downloads' | 'documents') => Promise<string>;
-
-  // ���s
-  selectFile: (filters?: { name: string; extensions: string[] }[]) => Promise<string | null>;
-  getFileInfo: (filePath: string) => Promise<FileInfo>;
-  openFolder: (folderPath: string) => Promise<void>;
-
-  // Mn�s
-  getConfig: () => Promise<AppConfig>;
-  setConfig: (config: Partial<AppConfig>) => Promise<void>;
+export interface FFmpegInfo {
+  isInstalled: boolean;
+  path?: string;
+  version?: string;
+  isVersionValid?: boolean;
 }
 
 /**
- * iU Window ��
+ * Electron API 接口定义
+ */
+export interface ElectronAPI {
+  // 系统相关
+  getSystemInfo: () => Promise<SystemInfo>;
+  getPath: (name: 'home' | 'appData' | 'userData' | 'downloads' | 'documents') => Promise<string>;
+
+  // 文件相关
+  selectFile: (filters?: { name: string; extensions: string[] }[]) => Promise<string | null>;
+  selectFiles: (filters?: { name: string; extensions: string[] }[]) => Promise<FileInfo[]>;
+  getFileInfo: (filePath: string) => Promise<FileInfo>;
+  openFolder: (folderPath: string) => Promise<void>;
+
+  // 配置相关
+  getConfig: () => Promise<AppConfig>;
+  setConfig: (config: Partial<AppConfig>) => Promise<void>;
+
+  // FFmpeg 相关
+  ffmpeg: {
+    detect: () => Promise<FFmpegInfo>;
+    download: () => Promise<void>;
+    getMediaInfo: (filePath: string) => Promise<MediaFileInfo>;
+  };
+
+  // 任务管理相关
+  task: {
+    add: (command: string[], priority?: number) => Promise<string>;
+    addConvert: (options: ConvertOptions, priority?: number) => Promise<string>;
+    addCompress: (options: CompressOptions, priority?: number) => Promise<string>;
+    cancel: (taskId: string) => Promise<boolean>;
+    pause: (taskId: string) => Promise<boolean>;
+    resume: (taskId: string) => Promise<boolean>;
+    get: (taskId: string) => Promise<Task | undefined>;
+    getAll: () => Promise<Task[]>;
+    getQueued: () => Promise<Task[]>;
+    getRunning: () => Promise<Task[]>;
+    getCompleted: () => Promise<Task[]>;
+    clearCompleted: () => Promise<void>;
+    setMaxConcurrent: (max: number) => Promise<void>;
+    getStatus: () => Promise<TaskManagerStatus>;
+  };
+
+  // 事件监听
+  on: (channel: string, callback: (...args: any[]) => void) => () => void;
+}
+
+/**
+ * 扩展 Window 对象
  */
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
+  }
+
+  /**
+   * 扩展 File 接口以支持 Electron 的 path 属性
+   */
+  interface File {
+    path?: string;
   }
 }
 

@@ -4,6 +4,12 @@ import electron from 'vite-plugin-electron';
 import renderer from 'vite-plugin-electron-renderer';
 import { resolve } from 'path';
 
+const aliasConfig = {
+  '@main': resolve(__dirname, 'src/main'),
+  '@renderer': resolve(__dirname, 'src/renderer/src'),
+  '@shared': resolve(__dirname, 'src/shared'),
+};
+
 export default defineConfig({
   root: resolve(__dirname, 'src/renderer'),
   publicDir: resolve(__dirname, 'public'),
@@ -13,6 +19,9 @@ export default defineConfig({
       {
         entry: resolve(__dirname, 'src/main/index.ts'),
         vite: {
+          resolve: {
+            alias: aliasConfig,
+          },
           build: {
             outDir: resolve(__dirname, 'dist-electron'),
           },
@@ -24,6 +33,9 @@ export default defineConfig({
           options.reload();
         },
         vite: {
+          resolve: {
+            alias: aliasConfig,
+          },
           build: {
             outDir: resolve(__dirname, 'dist-electron'),
           },
@@ -33,11 +45,7 @@ export default defineConfig({
     renderer(),
   ],
   resolve: {
-    alias: {
-      '@main': resolve(__dirname, 'src/main'),
-      '@renderer': resolve(__dirname, 'src/renderer/src'),
-      '@shared': resolve(__dirname, 'src/shared'),
-    },
+    alias: aliasConfig,
   },
   base: './',
   build: {

@@ -1,12 +1,8 @@
-import { Layout } from './components/Layout/Layout';
-import { IPCTest } from './pages/IPCTest';
+import { Router } from './router';
+import './index.css';
 
 function App() {
-  return (
-    <Layout>
-      <IPCTest />
-    </Layout>
-  );
+  return <Router />;
 }
 
 export default App;
