@@ -33,6 +33,7 @@ export class FFmpegManager extends EventEmitter {
   private running: Map<string, InternalTask> = new Map();
   private completed: Map<string, InternalTask> = new Map();
   private maxConcurrent = 2;
+  private maxCompletedTasks = 100; // 最多保留 100 个已完成的任务
   private ffmpegPath: string;
 
   constructor(ffmpegPath: string) {
@@ -92,6 +93,8 @@ export class FFmpegManager extends EventEmitter {
       const process = spawn(this.ffmpegPath, task.command);
       task.process = process;
 
+      let lastProgressEmit = 0; // 用于限制进度事件发送频率
+
       // 捕获标准输出
       process.stdout.on('data', (data: Buffer) => {
         const output = data.toString();
@@ -116,7 +119,13 @@ export class FFmpegManager extends EventEmitter {
           if (progressInfo) {
             task.progress = progressInfo.percent;
             task.progressInfo = progressInfo; // 保存完整的进度信息
-            this.emit('taskProgress', task.id, progressInfo.percent, progressInfo);
+
+            // 限制进度事件发送频率（每 500ms 发送一次）
+            const now = Date.now();
+            if (now - lastProgressEmit > 500) {
+              this.emit('taskProgress', task.id, progressInfo.percent, progressInfo);
+              lastProgressEmit = now;
+            }
           }
 
           // 检查错误
@@ -162,6 +171,9 @@ export class FFmpegManager extends EventEmitter {
       this.emit('taskFailed', this.sanitizeTask(task));
     }
 
+    // 清理旧的已完成任务（保留最新的 maxCompletedTasks 个）
+    this.cleanupCompletedTasks();
+
     this.processQueue();
   }
 
@@ -190,19 +202,22 @@ export class FFmpegManager extends EventEmitter {
       task.completedAt = new Date();
       this.completed.set(task.id, task);
       this.emit('taskCancelled', this.sanitizeTask(task));
+      this.cleanupCompletedTasks();
       return true;
     }
 
     // 检查是否正在运行
     const task = this.running.get(taskId);
     if (task?.process) {
-      task.process.kill('SIGTERM');
+      // 强制杀死进程，确保资源释放
+      task.process.kill('SIGKILL');
       task.status = 'cancelled';
       task.error = 'Cancelled by user';
       task.completedAt = new Date();
       this.running.delete(taskId);
       this.completed.set(task.id, task);
       this.emit('taskCancelled', this.sanitizeTask(task));
+      this.cleanupCompletedTasks();
       this.processQueue();
       return true;
     }
@@ -295,10 +310,40 @@ export class FFmpegManager extends EventEmitter {
   }
 
   /**
-   * 清除已完成的任务
+   * 清理已完成的任务
    */
   clearCompleted() {
     this.completed.clear();
+  }
+
+  /**
+   * 自动清理旧的已完成任务（保留最新的 maxCompletedTasks 个）
+   */
+  private cleanupCompletedTasks() {
+    if (this.completed.size > this.maxCompletedTasks) {
+      // 将 Map 转换为数组并按完成时间排序
+      const sortedTasks = Array.from(this.completed.values()).sort((a, b) => {
+        const timeA = a.completedAt?.getTime() || 0;
+        const timeB = b.completedAt?.getTime() || 0;
+        return timeB - timeA; // 降序，最新的在前
+      });
+
+      // 清空 Map
+      this.completed.clear();
+
+      // 只保留最新的 maxCompletedTasks 个
+      sortedTasks.slice(0, this.maxCompletedTasks).forEach(task => {
+        this.completed.set(task.id, task);
+      });
+    }
+  }
+
+  /**
+   * 设置最大保留已完成任务数
+   */
+  setMaxCompletedTasks(max: number) {
+    this.maxCompletedTasks = Math.max(10, max); // 最少保留 10 个
+    this.cleanupCompletedTasks();
   }
 
   /**

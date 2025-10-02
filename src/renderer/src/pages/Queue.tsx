@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { PageContainer } from '@renderer/components/PageContainer/PageContainer';
 import { TaskCard } from '@renderer/components/TaskCard/TaskCard';
 import { Button } from '@renderer/components/ui/button';
@@ -18,7 +18,7 @@ export function Queue() {
   const [loading, setLoading] = useState(true);
 
   // 加载任务列表
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     try {
       const allTasks = await window.electronAPI.task.getAll();
       setTasks(allTasks);
@@ -30,7 +30,7 @@ export function Queue() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // 初始加载
   useEffect(() => {
@@ -41,19 +41,21 @@ export function Queue() {
   useEffect(() => {
     const unsubscribers: (() => void)[] = [];
 
-    // 任务添加
+    // 任务添加 - 只更新任务列表
     const unsubTaskAdded = window.electronAPI.on(IPC_CHANNELS.TASK_ADDED, (task: Task) => {
       setTasks(prev => [...prev, task]);
-      loadTasks(); // 重新加载以更新状态
+      // 更新状态
+      setStatus(prev => ({ ...prev, queued: prev.queued + 1 }));
     });
 
-    // 任务开始
+    // 任务开始 - 只更新任务状态
     const unsubTaskStarted = window.electronAPI.on(IPC_CHANNELS.TASK_STARTED, (task: Task) => {
       setTasks(prev => prev.map(t => (t.id === task.id ? task : t)));
-      loadTasks();
+      // 更新状态
+      setStatus(prev => ({ ...prev, queued: Math.max(0, prev.queued - 1), running: prev.running + 1 }));
     });
 
-    // 任务进度
+    // 任务进度 - 只更新进度
     const unsubTaskProgress = window.electronAPI.on(
       IPC_CHANNELS.TASK_PROGRESS,
       ({ taskId, progress, progressInfo }: { taskId: string; progress: number; progressInfo?: any }) => {
@@ -65,22 +67,29 @@ export function Queue() {
       }
     );
 
-    // 任务完成
+    // 任务完成 - 只更新任务状态
     const unsubTaskCompleted = window.electronAPI.on(IPC_CHANNELS.TASK_COMPLETED, (task: Task) => {
       setTasks(prev => prev.map(t => (t.id === task.id ? task : t)));
-      loadTasks();
+      // 更新状态
+      setStatus(prev => ({ ...prev, running: Math.max(0, prev.running - 1), completed: prev.completed + 1 }));
     });
 
-    // 任务失败
+    // 任务失败 - 只更新任务状态
     const unsubTaskFailed = window.electronAPI.on(IPC_CHANNELS.TASK_FAILED, (task: Task) => {
       setTasks(prev => prev.map(t => (t.id === task.id ? task : t)));
-      loadTasks();
+      // 更新状态
+      setStatus(prev => ({ ...prev, running: Math.max(0, prev.running - 1) }));
     });
 
-    // 任务取消
+    // 任务取消 - 只更新任务状态
     const unsubTaskCancelled = window.electronAPI.on(IPC_CHANNELS.TASK_CANCELLED, (task: Task) => {
       setTasks(prev => prev.map(t => (t.id === task.id ? task : t)));
-      loadTasks();
+      // 更新状态（可能从 queued 或 running 取消）
+      setStatus(prev => ({
+        ...prev,
+        queued: Math.max(0, prev.queued - 1),
+        running: Math.max(0, prev.running - 1),
+      }));
     });
 
     unsubscribers.push(
@@ -98,72 +107,76 @@ export function Queue() {
     };
   }, []);
 
-  // 任务操作
-  const handlePause = async (taskId: string) => {
+  // 任务操作（使用 useCallback 优化）
+  const handlePause = useCallback(async (taskId: string) => {
     try {
       await window.electronAPI.task.pause(taskId);
-      await loadTasks();
     } catch (error) {
       console.error('暂停任务失败:', error);
     }
-  };
+  }, []);
 
-  const handleResume = async (taskId: string) => {
+  const handleResume = useCallback(async (taskId: string) => {
     try {
       await window.electronAPI.task.resume(taskId);
-      await loadTasks();
     } catch (error) {
       console.error('恢复任务失败:', error);
     }
-  };
+  }, []);
 
-  const handleCancel = async (taskId: string) => {
+  const handleCancel = useCallback(async (taskId: string) => {
     try {
       await window.electronAPI.task.cancel(taskId);
-      await loadTasks();
     } catch (error) {
       console.error('取消任务失败:', error);
     }
-  };
+  }, []);
 
-  const handleRetry = async (taskId: string) => {
+  const handleRetry = useCallback(async (taskId: string) => {
     try {
       // 获取原任务信息
       const task = tasks.find(t => t.id === taskId);
       if (task) {
         // 重新添加任务
         await window.electronAPI.task.add(task.command, task.priority);
-        await loadTasks();
       }
     } catch (error) {
       console.error('重试任务失败:', error);
     }
-  };
+  }, [tasks]);
 
-  const handleClearCompleted = async () => {
+  const handleClearCompleted = useCallback(async () => {
     try {
       await window.electronAPI.task.clearCompleted();
-      await loadTasks();
+      // 移除已完成的任务
+      setTasks(prev => prev.filter(t => t.status !== 'completed'));
+      setStatus(prev => ({ ...prev, completed: 0 }));
     } catch (error) {
       console.error('清除已完成任务失败:', error);
     }
-  };
+  }, []);
 
-  // 过滤任务
-  const filteredTasks = tasks.filter(task => {
-    if (filter === 'all') return true;
-    if (filter === 'pending') return task.status === 'pending';
-    if (filter === 'running') return task.status === 'running' || task.status === 'paused';
-    if (filter === 'completed') return task.status === 'completed';
-    if (filter === 'failed') return task.status === 'failed' || task.status === 'cancelled';
-    return true;
-  });
+  // 过滤任务（使用 useMemo 缓存）
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task => {
+      if (filter === 'all') return true;
+      if (filter === 'pending') return task.status === 'pending';
+      if (filter === 'running') return task.status === 'running' || task.status === 'paused';
+      if (filter === 'completed') return task.status === 'completed';
+      if (filter === 'failed') return task.status === 'failed' || task.status === 'cancelled';
+      return true;
+    });
+  }, [tasks, filter]);
 
-  // 统计各状态任务数量
-  const pendingCount = tasks.filter(t => t.status === 'pending').length;
-  const runningCount = tasks.filter(t => t.status === 'running' || t.status === 'paused').length;
-  const completedCount = tasks.filter(t => t.status === 'completed').length;
-  const failedCount = tasks.filter(t => t.status === 'failed' || t.status === 'cancelled').length;
+  // 统计各状态任务数量（使用 useMemo 缓存）
+  const { pendingCount, runningCount, completedCount, failedCount } = useMemo(() => {
+    return {
+      pendingCount: tasks.filter(t => t.status === 'pending').length,
+      runningCount: tasks.filter(t => t.status === 'running' || t.status === 'paused').length,
+      completedCount: tasks.filter(t => t.status === 'completed').length,
+      failedCount: tasks.filter(t => t.status === 'failed' || t.status === 'cancelled').length,
+    };
+  }, [tasks]);
 
   return (
     <PageContainer

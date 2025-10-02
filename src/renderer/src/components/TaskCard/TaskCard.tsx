@@ -1,6 +1,7 @@
 import { Task, TaskStatus } from '@shared/types';
 import { Button } from '../ui/button';
 import { Play, Pause, X, RotateCcw, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
+import { memo, useMemo, useCallback } from 'react';
 
 interface TaskCardProps {
   task: Task;
@@ -10,7 +11,7 @@ interface TaskCardProps {
   onRetry?: (taskId: string) => void;
 }
 
-export function TaskCard({ task, onPause, onResume, onCancel, onRetry }: TaskCardProps) {
+export const TaskCard = memo(function TaskCard({ task, onPause, onResume, onCancel, onRetry }: TaskCardProps) {
   // 状态图标和颜色
   const getStatusInfo = (status: TaskStatus) => {
     switch (status) {
@@ -66,29 +67,25 @@ export function TaskCard({ task, onPause, onResume, onCancel, onRetry }: TaskCar
     }
   };
 
-  const statusInfo = getStatusInfo(task.status);
+  const statusInfo = useMemo(() => getStatusInfo(task.status), [task.status]);
 
-  // 提取输入/输出文件名
-  const getFileName = (args: string[]): string => {
-    const inputIndex = args.findIndex(arg => arg === '-i');
-    if (inputIndex !== -1 && inputIndex + 1 < args.length) {
-      const path = args[inputIndex + 1];
+  // 提取输入/输出文件名（使用 useMemo 缓存）
+  const inputFile = useMemo(() => {
+    const inputIndex = task.command.findIndex(arg => arg === '-i');
+    if (inputIndex !== -1 && inputIndex + 1 < task.command.length) {
+      const path = task.command[inputIndex + 1];
       return path.split('/').pop() || path;
     }
     return '未知文件';
-  };
+  }, [task.command]);
 
-  const getOutputFileName = (args: string[]): string => {
-    // 通常输出文件是最后一个参数
-    const lastArg = args[args.length - 1];
+  const outputFile = useMemo(() => {
+    const lastArg = task.command[task.command.length - 1];
     if (lastArg && !lastArg.startsWith('-')) {
       return lastArg.split('/').pop() || lastArg;
     }
     return '未知';
-  };
-
-  const inputFile = getFileName(task.command);
-  const outputFile = getOutputFileName(task.command);
+  }, [task.command]);
 
   // 格式化时间
   const formatTime = (date?: Date): string => {
@@ -141,22 +138,20 @@ export function TaskCard({ task, onPause, onResume, onCancel, onRetry }: TaskCar
     return `${hours}小时${minutes}分`;
   };
 
-  // 格式化速度
-  const formatSpeed = (speed: number): string => {
+  // 格式化函数（使用 useCallback）
+  const formatSpeed = useCallback((speed: number): string => {
     return `${speed.toFixed(2)}x`;
-  };
+  }, []);
 
-  // 格式化文件大小
-  const formatSize = (sizeKB: number): string => {
+  const formatSize = useCallback((sizeKB: number): string => {
     if (sizeKB < 1024) return `${sizeKB} KB`;
     if (sizeKB < 1024 * 1024) return `${(sizeKB / 1024).toFixed(2)} MB`;
     return `${(sizeKB / (1024 * 1024)).toFixed(2)} GB`;
-  };
+  }, []);
 
-  // 格式化比特率
-  const formatBitrate = (bitrate: string): string => {
+  const formatBitrate = useCallback((bitrate: string): string => {
     return bitrate.replace('bits/s', 'bps').replace('kbits/s', 'kbps');
-  };
+  }, []);
 
   return (
     <div className={`rounded-lg border-2 ${statusInfo.bgColor} p-4 transition-all`}>
@@ -283,4 +278,4 @@ export function TaskCard({ task, onPause, onResume, onCancel, onRetry }: TaskCar
       </div>
     </div>
   );
-}
+});
