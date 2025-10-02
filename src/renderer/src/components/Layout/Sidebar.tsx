@@ -2,7 +2,6 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home,
   RefreshCw,
-  Scissors,
   Archive,
   Type,
   Target,
@@ -14,7 +13,6 @@ import { cn } from '@renderer/lib/utils';
 const menuItems = [
   { icon: Home, label: '主页', path: '/' },
   { icon: RefreshCw, label: '转换', path: '/convert' },
-  { icon: Scissors, label: '编辑', path: '/edit' },
   { icon: Archive, label: '压缩', path: '/compress' },
   { icon: Type, label: '字幕', path: '/subtitle' },
   { icon: Target, label: '水印', path: '/watermark' },

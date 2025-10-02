@@ -1,6 +1,6 @@
 import { PageContainer } from '@renderer/components/PageContainer/PageContainer';
 import { Card, CardDescription, CardHeader, CardTitle } from '@renderer/components/ui/card';
-import { RefreshCw, Scissors, Archive, Zap } from 'lucide-react';
+import { RefreshCw, Archive, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function Home() {
@@ -10,12 +10,6 @@ export function Home() {
       title: '格式转换',
       description: '支持 50+ 种视频/音频格式互转',
       path: '/convert',
-    },
-    {
-      icon: Scissors,
-      title: '视频编辑',
-      description: '剪辑、裁剪、旋转、翻转等功能',
-      path: '/edit',
     },
     {
       icon: Archive,
