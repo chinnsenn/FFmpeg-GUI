@@ -2,13 +2,13 @@
 
 **项目开始日期**：2025-10-02
 **当前阶段**：阶段一 - 基础框架
-**总体进度**：1/28 任务完成
+**总体进度**：2/28 任务完成
 
 ---
 
 ## 当前任务
 
-**Task-02**: UI框架和组件库集成
+**Task-03**: IPC通信架构搭建
 **状态**: ⏳ 待开始
 **开始时间**: -
 
@@ -19,7 +19,7 @@
 | 任务ID | 任务名称 | 状态 | 完成日期 | 备注 |
 |--------|----------|------|----------|------|
 | Task-01 | 项目初始化和开发环境配置 | ✅ 已完成 | 2025-10-02 | Electron + React + Vite 环境搭建成功 |
-| Task-02 | UI框架和组件库集成 | ⏳ 待开始 | - | |
+| Task-02 | UI框架和组件库集成 | ✅ 已完成 | 2025-10-02 | Tailwind CSS v4 + ShadCN UI 集成完成 |
 | Task-03 | IPC通信架构搭建 | ⏳ 待开始 | - | |
 | Task-04 | 路由系统和页面框架 | ⏳ 待开始 | - | |
 
@@ -120,6 +120,26 @@
   - npm run dev 启动成功
   - Electron 窗口正常打开
 
+**Task-02: UI框架和组件库集成** ✅
+- ✅ 安装 Tailwind CSS v4 相关依赖
+- ✅ 安装 ShadCN UI 依赖（clsx, class-variance-authority, tailwind-merge, lucide-react）
+- ✅ 配置 Tailwind CSS v4（使用 @theme 和 @import）
+- ✅ 配置 PostCSS（@tailwindcss/postcss 插件）
+- ✅ 创建 components.json 配置
+- ✅ 创建 utility 函数（cn 函数）
+- ✅ 创建 Button UI 组件
+- ✅ 创建 Layout 组件系统：
+  - Layout.tsx（主布局）
+  - Sidebar.tsx（侧边栏导航）
+  - Header.tsx（顶部栏，含主题切换）
+  - Footer.tsx（底部命令预览和任务状态栏）
+- ✅ 更新 App.tsx 使用新的 Layout
+- ✅ 验收测试通过：
+  - TypeScript 类型检查通过
+  - 开发服务器启动成功
+  - Electron 应用正常运行
+  - UI 布局正确显示
+
 ---
 
 ## 图例说明
@@ -132,4 +152,4 @@
 
 ---
 
-**最后更新时间**: 2025-10-02 14:40
+**最后更新时间**: 2025-10-02 15:45
