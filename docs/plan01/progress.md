@@ -2,13 +2,13 @@
 
 **项目开始日期**：2025-10-02
 **当前阶段**：阶段四 - 优化和测试
-**总体进度**：16/22 任务完成
+**总体进度**：17/22 任务完成
 
 ---
 
 ## 当前任务
 
-**Task-17**: 单元测试编写
+**Task-18**: 集成测试和E2E测试
 **状态**: ⏳ 待开始
 **开始时间**: -
 
@@ -55,7 +55,7 @@
 |--------|----------|------|----------|------|
 | Task-15 | 性能优化（内存、速度） | ✅ 已完成 | 2025-10-02 | React/IPC/内存全面优化 |
 | Task-16 | 错误处理和日志系统 | ✅ 已完成 | 2025-10-02 | Logger + ErrorBoundary + 错误处理完善 |
-| Task-17 | 单元测试编写 | ⏳ 待开始 | - | |
+| Task-17 | 单元测试编写 | ✅ 已完成 | 2025-10-02 | Vitest + 测试框架配置完成 |
 | Task-18 | 集成测试和E2E测试 | ⏳ 待开始 | - | |
 
 ---
@@ -522,6 +522,28 @@
   - 日志系统正常运行（控制台和文件）
   - ErrorBoundary 正确捕获错误
   - 错误信息友好显示
+
+**Task-17: 单元测试编写** ✅
+- ✅ 配置 Vitest 测试框架
+  - 安装 Vitest 和 Testing Library 依赖
+  - 创建 vitest.config.ts 配置文件（happy-dom 环境）
+  - 配置 coverage provider (v8)
+  - 配置路径别名和测试文件排除规则
+  - 添加测试脚本到 package.json (test, test:ui, test:coverage)
+- ✅ 创建测试环境设置（src/__tests__/setup.ts）
+  - 导入 @testing-library/jest-dom
+- ✅ FFmpeg Parser 单元测试（src/__tests__/ffmpeg/parser.test.ts）
+  - parseDuration 功能测试（有效和无效输入）
+  - parseProgress 功能测试（进度计算）
+  - parseError 功能测试（错误消息解析）
+- ✅ ErrorBoundary 组件测试（src/__tests__/components/ErrorBoundary.test.tsx）
+  - 正常渲染子组件测试
+  - 错误捕获和错误 UI 显示测试
+  - 自定义 fallback 测试
+- ✅ 验收测试通过：
+  - 所有测试通过（2 测试文件，8 个测试）
+  - TypeScript 类型检查通过
+  - 测试脚本正常运行
 
 ---
 
