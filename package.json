@@ -2,7 +2,7 @@
   "name": "ffmpeg-gui",
   "version": "0.1.0",
   "description": "A powerful and user-friendly FFmpeg GUI application",
-  "main": "dist-electron/main/index.js",
+  "main": "dist-electron/index.js",
   "author": "FFmpeg GUI Team",
   "license": "MIT",
   "scripts": {

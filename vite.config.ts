@@ -12,11 +12,21 @@ export default defineConfig({
     electron([
       {
         entry: resolve(__dirname, 'src/main/index.ts'),
+        vite: {
+          build: {
+            outDir: resolve(__dirname, 'dist-electron'),
+          },
+        },
       },
       {
         entry: resolve(__dirname, 'src/renderer/preload.ts'),
         onstart(options) {
           options.reload();
+        },
+        vite: {
+          build: {
+            outDir: resolve(__dirname, 'dist-electron'),
+          },
         },
       },
     ]),
