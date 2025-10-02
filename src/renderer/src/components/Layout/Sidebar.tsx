@@ -3,8 +3,6 @@ import {
   Home,
   RefreshCw,
   Archive,
-  Type,
-  Target,
   List,
   Settings,
 } from 'lucide-react';
@@ -14,8 +12,6 @@ const menuItems = [
   { icon: Home, label: '主页', path: '/' },
   { icon: RefreshCw, label: '转换', path: '/convert' },
   { icon: Archive, label: '压缩', path: '/compress' },
-  { icon: Type, label: '字幕', path: '/subtitle' },
-  { icon: Target, label: '水印', path: '/watermark' },
   { icon: List, label: '队列', path: '/queue' },
   { icon: Settings, label: '设置', path: '/settings' },
 ];

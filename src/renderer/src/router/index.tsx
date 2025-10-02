@@ -3,8 +3,6 @@ import { Layout } from '@renderer/components/Layout/Layout';
 import { Home } from '@renderer/pages/Home';
 import { Convert } from '@renderer/pages/Convert';
 import { Compress } from '@renderer/pages/Compress';
-import { Subtitle } from '@renderer/pages/Subtitle';
-import { Watermark } from '@renderer/pages/Watermark';
 import { Queue } from '@renderer/pages/Queue';
 import { Settings } from '@renderer/pages/Settings';
 
@@ -24,14 +22,6 @@ const router = createHashRouter([
       {
         path: 'compress',
         element: <Compress />,
-      },
-      {
-        path: 'subtitle',
-        element: <Subtitle />,
-      },
-      {
-        path: 'watermark',
-        element: <Watermark />,
       },
       {
         path: 'queue',
