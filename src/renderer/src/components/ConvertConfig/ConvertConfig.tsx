@@ -65,7 +65,24 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
 
     // 生成输出文件路径
     const inputPath = inputFile.path;
-    const outputPath = inputPath.replace(/\.[^.]+$/, `.${outputFormat}`);
+
+    // 提取文件名和目录
+    const lastSlashIndex = inputPath.lastIndexOf('/');
+    const dirPath = lastSlashIndex > 0 ? inputPath.substring(0, lastSlashIndex) : '';
+    const fileName = lastSlashIndex > 0 ? inputPath.substring(lastSlashIndex + 1) : inputPath;
+
+    // 提取文件名（不含扩展名）和原扩展名
+    const lastDotIndex = fileName.lastIndexOf('.');
+    const nameWithoutExt = lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
+    const originalExt = lastDotIndex > 0 ? fileName.substring(lastDotIndex + 1) : '';
+
+    // 如果输出格式与输入格式相同，添加 _converted 后缀避免覆盖
+    let outputPath: string;
+    if (originalExt.toLowerCase() === outputFormat.toLowerCase()) {
+      outputPath = `${dirPath}/${nameWithoutExt}_converted.${outputFormat}`;
+    } else {
+      outputPath = `${dirPath}/${nameWithoutExt}.${outputFormat}`;
+    }
 
     const options: Partial<ConvertOptions> = {
       input: inputPath,
