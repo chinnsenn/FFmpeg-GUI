@@ -1,4 +1,4 @@
-import { ipcMain, IpcMainInvokeEvent } from 'electron';
+import { ipcMain, IpcMainInvokeEvent, BrowserWindow } from 'electron';
 import { IPC_CHANNELS } from '@shared/constants';
 import { FFmpegManager } from '../ffmpeg/manager';
 import { FFmpegDetector } from '../ffmpeg/detector';
@@ -25,22 +25,22 @@ async function initializeManager(): Promise<FFmpegManager> {
     // 设置事件监听器，将管理器事件转发到渲染进程
     manager.on('taskAdded', (task) => {
       // 发送到所有窗口
-      const windows = require('electron').BrowserWindow.getAllWindows();
-      windows.forEach((window) => {
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window: BrowserWindow) => {
         window.webContents.send(IPC_CHANNELS.TASK_ADDED, task);
       });
     });
 
     manager.on('taskStarted', (task) => {
-      const windows = require('electron').BrowserWindow.getAllWindows();
-      windows.forEach((window) => {
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window: BrowserWindow) => {
         window.webContents.send(IPC_CHANNELS.TASK_STARTED, task);
       });
     });
 
     manager.on('taskProgress', (taskId, progress, progressInfo) => {
-      const windows = require('electron').BrowserWindow.getAllWindows();
-      windows.forEach((window) => {
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window: BrowserWindow) => {
         window.webContents.send(IPC_CHANNELS.TASK_PROGRESS, {
           taskId,
           progress,
@@ -50,29 +50,29 @@ async function initializeManager(): Promise<FFmpegManager> {
     });
 
     manager.on('taskOutput', (taskId, output) => {
-      const windows = require('electron').BrowserWindow.getAllWindows();
-      windows.forEach((window) => {
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window: BrowserWindow) => {
         window.webContents.send(IPC_CHANNELS.TASK_OUTPUT, { taskId, output });
       });
     });
 
     manager.on('taskCompleted', (task) => {
-      const windows = require('electron').BrowserWindow.getAllWindows();
-      windows.forEach((window) => {
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window: BrowserWindow) => {
         window.webContents.send(IPC_CHANNELS.TASK_COMPLETED, task);
       });
     });
 
     manager.on('taskFailed', (task) => {
-      const windows = require('electron').BrowserWindow.getAllWindows();
-      windows.forEach((window) => {
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window: BrowserWindow) => {
         window.webContents.send(IPC_CHANNELS.TASK_FAILED, task);
       });
     });
 
     manager.on('taskCancelled', (task) => {
-      const windows = require('electron').BrowserWindow.getAllWindows();
-      windows.forEach((window) => {
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window: BrowserWindow) => {
         window.webContents.send(IPC_CHANNELS.TASK_CANCELLED, task);
       });
     });

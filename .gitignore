@@ -8,7 +8,13 @@ pnpm-lock.yaml
 dist/
 dist-electron/
 out/
-build/
+release/
+
+# TypeScript build artifacts in source
+src/**/*.js
+src/**/*.d.ts
+*.d.ts
+*.js.map
 
 # Logs
 logs

@@ -19,5 +19,5 @@
       "@shared/*": ["src/shared/*"]
     }
   },
-  "include": ["src/main/**/*", "src/renderer/preload.ts", "vite.config.ts"]
+  "include": ["src/main/**/*", "src/renderer/preload.ts", "src/shared/**/*", "vite.config.ts"]
 }

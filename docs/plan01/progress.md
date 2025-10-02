@@ -2,13 +2,13 @@
 
 **项目开始日期**：2025-10-02
 **当前阶段**：阶段五 - 发布准备
-**总体进度**：18/22 任务完成
+**总体进度**：19/22 任务完成
 
 ---
 
 ## 当前任务
 
-**Task-19**: Electron Builder 打包配置
+**Task-20**: 多平台构建和测试
 **状态**: ⏳ 待开始
 **开始时间**: -
 
@@ -64,7 +64,7 @@
 
 | 任务ID | 任务名称 | 状态 | 完成日期 | 备注 |
 |--------|----------|------|----------|------|
-| Task-19 | Electron Builder 打包配置 | ⏳ 待开始 | - | |
+| Task-19 | Electron Builder 打包配置 | ✅ 已完成 | 2025-10-03 | Electron Builder 配置 + macOS 打包测试成功 |
 | Task-20 | 多平台构建和测试 | ⏳ 待开始 | - | |
 | Task-21 | 用户文档和开发文档 | ⏳ 待开始 | - | |
 | Task-22 | 发布和分发准备 | ⏳ 待开始 | - | |
@@ -569,6 +569,47 @@
   - 说明 E2E 测试限制和未来计划
   - 质量保证措施到位
 
+**Task-19: Electron Builder 打包配置** ✅
+- ✅ 配置 package.json 打包脚本
+  - build:main: TypeScript 编译主进程 (tsc -p tsconfig.node.json)
+  - build:renderer: Vite 构建渲染进程
+  - build: 完整打包流程 (renderer + main + electron-builder)
+  - build:dir: 仅构建目录不打包（用于快速测试）
+- ✅ 添加 electron-builder 配置到 package.json
+  - appId: com.ffmpeg.gui
+  - productName: FFmpeg GUI
+  - directories.output: release/${version}
+  - files: dist, dist-electron
+- ✅ 配置 macOS 打包选项
+  - target: dmg + zip
+  - category: public.app-category.utilities
+  - artifactName: ${productName}-${version}-${os}-${arch}.${ext}
+  - minimumSystemVersion: 10.13.0
+- ✅ 配置 Windows 打包选项
+  - target: nsis (x64)
+  - artifactName: 统一命名格式
+  - nsis: 允许用户选择安装目录、非 oneClick 模式
+- ✅ 配置 Linux 打包选项
+  - target: AppImage + deb
+  - category: Utility
+  - artifactName: 统一命名格式
+- ✅ 创建 build 资源目录
+  - build/README.md: 图标要求说明文档
+  - 说明各平台图标格式 (PNG/ICNS/ICO)
+  - 推荐图标生成工具
+- ✅ 修复 TypeScript 编译问题
+  - 更新 tsconfig.node.json 包含 src/shared/**/*
+  - 修复 taskHandlers.ts 中 window 参数类型
+  - 导入 BrowserWindow 类型并添加类型注解
+- ✅ 更新 .gitignore
+  - 移除 build/ 以跟踪资源文件
+  - 添加 release/ 忽略打包输出
+- ✅ 验收测试通过：
+  - TypeScript 类型检查通过
+  - npm run build:dir 打包成功
+  - macOS app 成功生成（release/0.1.0/mac-arm64/FFmpeg GUI.app）
+  - 应用可以正常签名
+
 ---
 
-**最后更新时间**: 2025-10-03 00:20
+**最后更新时间**: 2025-10-03 08:50
