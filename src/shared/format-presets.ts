@@ -214,3 +214,85 @@ export const CONVERSION_PRESETS: ConversionPreset[] = [
     resolution: '1280x720',
   },
 ];
+
+/**
+ * 压缩预设接口
+ */
+export interface CompressionPreset {
+  name: string;
+  description: string;
+  videoCodec?: VideoCodec;
+  audioCodec?: AudioCodec;
+  preset?: VideoQuality;
+  crf?: number;
+  targetSize?: number; // MB
+  resolution?: string;
+}
+
+/**
+ * 快速压缩预设
+ */
+export const COMPRESSION_PRESETS: CompressionPreset[] = [
+  {
+    name: '轻度压缩 (90%)',
+    description: '保持高质量,轻微减小文件',
+    videoCodec: 'libx264',
+    audioCodec: 'aac',
+    preset: 'medium',
+    crf: 18,
+  },
+  {
+    name: '中度压缩 (70%)',
+    description: '平衡质量和大小',
+    videoCodec: 'libx264',
+    audioCodec: 'aac',
+    preset: 'medium',
+    crf: 23,
+  },
+  {
+    name: '高度压缩 (50%)',
+    description: '明显减小文件,保持可接受质量',
+    videoCodec: 'libx264',
+    audioCodec: 'aac',
+    preset: 'medium',
+    crf: 28,
+  },
+  {
+    name: 'H.265 高效压缩',
+    description: '使用 H.265 编码器,更高压缩率',
+    videoCodec: 'libx265',
+    audioCodec: 'aac',
+    preset: 'medium',
+    crf: 28,
+  },
+  {
+    name: '社交媒体优化',
+    description: '适合上传到社交平台',
+    videoCodec: 'libx264',
+    audioCodec: 'aac',
+    preset: 'fast',
+    crf: 23,
+    resolution: '1280x720',
+  },
+  {
+    name: '邮件附件 (小文件)',
+    description: '极小文件,适合邮件发送',
+    videoCodec: 'libx264',
+    audioCodec: 'aac',
+    preset: 'fast',
+    crf: 32,
+    resolution: '854x480',
+  },
+];
+
+/**
+ * CRF 质量等级说明
+ */
+export const CRF_LEVELS = [
+  { value: 18, label: '最高质量 (CRF 18)', description: '视觉无损,文件较大' },
+  { value: 20, label: '极高质量 (CRF 20)', description: '接近无损' },
+  { value: 23, label: '高质量 (CRF 23)', description: '推荐值,质量很好' },
+  { value: 26, label: '中等质量 (CRF 26)', description: '平衡质量和大小' },
+  { value: 28, label: '较低质量 (CRF 28)', description: '文件较小,质量可接受' },
+  { value: 32, label: '低质量 (CRF 32)', description: '小文件,质量下降明显' },
+] as const;
