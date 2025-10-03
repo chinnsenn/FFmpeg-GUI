@@ -28,6 +28,7 @@
       "@shared/*": ["src/shared/*"]
     }
   },
-  "include": ["src/renderer/src/**/*", "src/shared/**/*"],
+  "include": ["src/renderer/src/**/*"],
+  "exclude": ["src/**/*.js", "src/**/*.d.ts", "node_modules", "dist-electron"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
