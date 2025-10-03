@@ -1,4 +1,5 @@
 import { Clock, FileType, Film, Music, Hash } from 'lucide-react';
+import { formatDuration, formatFileSize, formatBitrate } from '@renderer/lib/formatters';
 import type { MediaFileInfo } from '@shared/types';
 
 interface MediaInfoProps {
@@ -6,31 +7,6 @@ interface MediaInfoProps {
 }
 
 export function MediaInfo({ info }: MediaInfoProps) {
-  const formatDuration = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-
-    return [hours, minutes, secs]
-      .map((v) => v.toString().padStart(2, '0'))
-      .join(':');
-  };
-
-  const formatSize = (bytes: number): string => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
-  };
-
-  const formatBitrate = (bps: number): string => {
-    if (bps === 0) return '0 bps';
-    const k = 1000;
-    const sizes = ['bps', 'Kbps', 'Mbps', 'Gbps'];
-    const i = Math.floor(Math.log(bps) / Math.log(k));
-    return Math.round((bps / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
-  };
 
   return (
     <div className="rounded-lg border border-border bg-card p-4 space-y-4">
@@ -49,7 +25,7 @@ export function MediaInfo({ info }: MediaInfoProps) {
           <div className="flex items-center gap-2">
             <Hash className="h-3 w-3 text-muted-foreground" />
             <span className="text-muted-foreground">大小:</span>
-            <span className="font-medium">{formatSize(info.size)}</span>
+            <span className="font-medium">{formatFileSize(info.size)}</span>
           </div>
           <div className="flex items-center gap-2">
             <FileType className="h-3 w-3 text-muted-foreground" />

@@ -2,13 +2,8 @@ import { useState } from 'react';
 import { X, FileVideo, Music, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@renderer/components/ui/button';
 import { MediaInfo } from '@renderer/components/MediaInfo/MediaInfo';
-import type { MediaFileInfo, FileInfo } from '@shared/types';
-
-interface FileListItem {
-  file: File | FileInfo;
-  id: string;
-  mediaInfo?: MediaFileInfo;
-}
+import { formatFileSize } from '@renderer/lib/formatters';
+import type { FileListItem } from '@renderer/hooks/useFileManager';
 
 interface FileListProps {
   files: FileListItem[];
@@ -17,14 +12,6 @@ interface FileListProps {
 
 export function FileList({ files, onRemove }: FileListProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
-  };
 
   const getFileIcon = (file: File | FileInfo) => {
     // 判断是 File 对象还是 FileInfo

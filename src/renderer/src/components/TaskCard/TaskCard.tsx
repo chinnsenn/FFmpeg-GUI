@@ -2,6 +2,7 @@ import { Task, TaskStatus } from '@shared/types';
 import { Button } from '../ui/button';
 import { Play, Pause, X, RotateCcw, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
 import { memo, useMemo, useCallback } from 'react';
+import { formatTime, calculateDuration, formatSpeed, formatFileSize, formatBitrate } from '@renderer/lib/formatters';
 
 interface TaskCardProps {
   task: Task;
@@ -87,35 +88,6 @@ export const TaskCard = memo(function TaskCard({ task, onPause, onResume, onCanc
     return '未知';
   }, [task.command]);
 
-  // 格式化时间
-  const formatTime = (date?: Date): string => {
-    if (!date) return '-';
-    const d = new Date(date);
-    return d.toLocaleTimeString('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
-  };
-
-  // 计算耗时
-  const getDuration = (): string => {
-    if (!task.startedAt) return '-';
-    const start = new Date(task.startedAt);
-    const end = task.completedAt ? new Date(task.completedAt) : new Date();
-    const duration = Math.floor((end.getTime() - start.getTime()) / 1000);
-
-    if (duration < 60) return `${duration}秒`;
-    if (duration < 3600) {
-      const minutes = Math.floor(duration / 60);
-      const seconds = duration % 60;
-      return `${minutes}分${seconds}秒`;
-    }
-    const hours = Math.floor(duration / 3600);
-    const minutes = Math.floor((duration % 3600) / 60);
-    return `${hours}小时${minutes}分`;
-  };
-
   // 计算剩余时间
   const getETA = (): string => {
     if (!task.progressInfo || !task.startedAt) return '-';
@@ -137,21 +109,6 @@ export const TaskCard = memo(function TaskCard({ task, onPause, onResume, onCanc
     const minutes = Math.floor((remaining % 3600) / 60);
     return `${hours}小时${minutes}分`;
   };
-
-  // 格式化函数（使用 useCallback）
-  const formatSpeed = useCallback((speed: number): string => {
-    return `${speed.toFixed(2)}x`;
-  }, []);
-
-  const formatSize = useCallback((sizeKB: number): string => {
-    if (sizeKB < 1024) return `${sizeKB} KB`;
-    if (sizeKB < 1024 * 1024) return `${(sizeKB / 1024).toFixed(2)} MB`;
-    return `${(sizeKB / (1024 * 1024)).toFixed(2)} GB`;
-  }, []);
-
-  const formatBitrate = useCallback((bitrate: string): string => {
-    return bitrate.replace('bits/s', 'bps').replace('kbits/s', 'kbps');
-  }, []);
 
   return (
     <div className={`rounded-lg border-2 ${statusInfo.bgColor} p-4 transition-all`}>
@@ -203,7 +160,7 @@ export const TaskCard = memo(function TaskCard({ task, onPause, onResume, onCanc
                     <div>FPS: {task.progressInfo.fps.toFixed(1)}</div>
                   )}
                   {task.progressInfo.totalSize > 0 && (
-                    <div>大小: {formatSize(task.progressInfo.totalSize)}</div>
+                    <div>大小: {formatFileSize(task.progressInfo.totalSize * 1024)}</div>
                   )}
                   {task.progressInfo.bitrate && task.progressInfo.bitrate !== '0' && (
                     <div className="col-span-2">比特率: {formatBitrate(task.progressInfo.bitrate)}</div>
@@ -225,7 +182,7 @@ export const TaskCard = memo(function TaskCard({ task, onPause, onResume, onCanc
             <span>创建: {formatTime(task.createdAt)}</span>
             {task.startedAt && <span>开始: {formatTime(task.startedAt)}</span>}
             {task.completedAt && <span>完成: {formatTime(task.completedAt)}</span>}
-            {task.startedAt && <span>耗时: {getDuration()}</span>}
+            {task.startedAt && <span>耗时: {calculateDuration(task.startedAt, task.completedAt)}</span>}
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Moon, Sun, Minimize2, Maximize2, X } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import { Button } from '@renderer/components/ui/button';
 
 export function Header() {
@@ -22,17 +22,6 @@ export function Header() {
         {/* 主题切换 */}
         <Button variant="ghost" size="icon" onClick={toggleTheme}>
           {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </Button>
-
-        {/* 窗口控制按钮（稍后集成） */}
-        <Button variant="ghost" size="icon">
-          <Minimize2 className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon">
-          <Maximize2 className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon">
-          <X className="h-4 w-4" />
         </Button>
       </div>
     </header>

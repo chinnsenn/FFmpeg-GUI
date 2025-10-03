@@ -151,15 +151,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
               <p>如果问题持续存在，请尝试重新启动应用程序。</p>
               <p className="mt-1">
-                如需帮助，请访问{' '}
-                <a
-                  href="https://github.com/your-repo/issues"
-                  className="text-blue-600 dark:text-blue-400 hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  GitHub Issues
-                </a>
+                需要帮助？请查看应用程序文档或联系技术支持。
               </p>
             </div>
           </div>

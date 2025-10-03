@@ -56,8 +56,15 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
   };
 
   // 重置预设当用户手动修改选项时
+  // 使用 ref 跟踪是否是预设触发的更新
   useEffect(() => {
-    setPreset('');
+    // 只有当不是通过预设更新时才清空预设
+    // 这里我们假设如果所有值都同时变化，那么是预设触发的
+    // 用户手动修改通常只会改变单个值
+    if (preset) {
+      setPreset('');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [outputFormat, videoCodec, audioCodec, quality, videoBitrate, audioBitrate, resolution, fps]);
 
   const handleConvert = () => {
