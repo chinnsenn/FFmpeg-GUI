@@ -1,18 +1,8 @@
 import { useState, useEffect } from 'react';
-import {
-  COMPRESSION_PRESETS,
-  CRF_LEVELS,
-  VIDEO_CODECS,
-  AUDIO_CODECS,
-  QUALITY_PRESETS,
-  RESOLUTIONS,
-  type CompressionPreset,
-} from '@shared/format-presets';
+import { Zap, Sparkles, Scale, Smartphone, Globe } from 'lucide-react';
 import type { CompressOptions } from '@shared/types';
-import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Slider } from '../ui/slider';
-import { ChevronRight } from 'lucide-react';
 import { cn } from '@renderer/lib/utils';
 
 interface CompressConfigProps {
@@ -26,56 +16,127 @@ interface CompressConfigProps {
   disabled?: boolean;
 }
 
+// 6个压缩预设（匹配 demo HTML）
+const COMPRESS_PRESETS = [
+  {
+    id: 'extreme',
+    icon: Zap,
+    label: '极致压缩',
+    crf: 28,
+    preset: 'medium' as const,
+  },
+  {
+    id: 'high-quality',
+    icon: Sparkles,
+    label: '高质量',
+    crf: 20,
+    preset: 'slow' as const,
+  },
+  {
+    id: 'balanced',
+    icon: Scale,
+    label: '平衡',
+    crf: 23,
+    preset: 'medium' as const,
+  },
+  {
+    id: 'fast',
+    icon: Zap,
+    label: '快速',
+    crf: 25,
+    preset: 'veryfast' as const,
+  },
+  {
+    id: 'mobile',
+    icon: Smartphone,
+    label: '移动端',
+    crf: 26,
+    preset: 'medium' as const,
+  },
+  {
+    id: 'web',
+    icon: Globe,
+    label: 'Web优化',
+    crf: 24,
+    preset: 'medium' as const,
+  },
+];
+
 export function CompressConfig({
   inputFile,
   fileName,
   onCompress,
   disabled = false,
 }: CompressConfigProps) {
-  // 压缩模式：preset（预设）、crf（质量）、size（目标大小）、custom（自定义）
-  const [mode, setMode] = useState<'preset' | 'crf' | 'size' | 'custom'>('preset');
-  const [selectedPreset, setSelectedPreset] = useState<CompressionPreset | null>(null);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  // 压缩模式：'crf' 或 'size'
+  const [mode, setMode] = useState<'crf' | 'size'>('crf');
 
-  // 压缩选项
-  const [videoCodec, setVideoCodec] = useState<string>('libx264');
-  const [audioCodec, setAudioCodec] = useState<string>('aac');
-  const [preset, setPreset] = useState<string>('medium');
+  // 选中的预设
+  const [selectedPreset, setSelectedPreset] = useState<string>('balanced');
+
+  // CRF 值（18-32）
   const [crf, setCrf] = useState<number>(23);
-  const [targetSize, setTargetSize] = useState<number>(50); // MB
-  const [resolution, setResolution] = useState<string>('');
 
-  // 当选择预设时，自动填充参数
-  useEffect(() => {
-    if (mode === 'preset' && selectedPreset) {
-      if (selectedPreset.videoCodec) setVideoCodec(selectedPreset.videoCodec);
-      if (selectedPreset.audioCodec) setAudioCodec(selectedPreset.audioCodec);
-      if (selectedPreset.preset) setPreset(selectedPreset.preset);
-      if (selectedPreset.crf !== undefined) setCrf(selectedPreset.crf);
-      if (selectedPreset.targetSize !== undefined) setTargetSize(selectedPreset.targetSize);
-      if (selectedPreset.resolution !== undefined) setResolution(selectedPreset.resolution);
+  // 目标文件大小（MB）
+  const [targetSize, setTargetSize] = useState<number>(100);
+
+  // 原始文件大小（用于预估计算，假设为 1200 MB）
+  const originalSize = 1200;
+
+  // 当选择预设时，更新 CRF 值
+  const handlePresetClick = (presetId: string) => {
+    setSelectedPreset(presetId);
+    const preset = COMPRESS_PRESETS.find(p => p.id === presetId);
+    if (preset) {
+      setCrf(preset.crf);
     }
-  }, [selectedPreset, mode]);
+  };
+
+  // 计算预估大小和压缩比
+  const getEstimate = () => {
+    if (mode === 'size') {
+      const ratio = ((originalSize - targetSize) / originalSize) * 100;
+      return {
+        size: targetSize,
+        ratio: Math.round(ratio),
+      };
+    }
+
+    // CRF 模式：根据 CRF 值估算压缩比
+    const compressionRatios: Record<number, number> = {
+      18: 0.15, 19: 0.20, 20: 0.25, 21: 0.30, 22: 0.35,
+      23: 0.38, 24: 0.42, 25: 0.46, 26: 0.50, 27: 0.55,
+      28: 0.60, 29: 0.65, 30: 0.70, 31: 0.75, 32: 0.80,
+    };
+
+    const ratio = compressionRatios[crf] || 0.38;
+    const compressedSize = Math.round(originalSize * (1 - ratio));
+    const compressionPercent = Math.round(ratio * 100);
+
+    return {
+      size: compressedSize,
+      ratio: compressionPercent,
+    };
+  };
+
+  const estimate = getEstimate();
 
   const handleCompress = () => {
     if (!inputFile || !fileName) return;
 
+    const preset = COMPRESS_PRESETS.find(p => p.id === selectedPreset);
+
     const options: Omit<CompressOptions, 'input' | 'output'> = {
-      videoCodec: videoCodec as any,
-      audioCodec: audioCodec as any,
-      preset: preset as any,
+      videoCodec: 'libx264',
+      audioCodec: 'aac',
+      preset: preset?.preset || 'medium',
       overwrite: true,
     };
 
-    // 根据模式设置不同的参数
-    if (mode === 'crf' || (mode === 'preset' && selectedPreset?.crf !== undefined)) {
+    if (mode === 'crf') {
       options.crf = crf;
-    } else if (mode === 'size') {
+    } else {
       options.targetSize = targetSize;
-    }
-
-    if (resolution) {
-      options.resolution = resolution;
     }
 
     onCompress(options);
@@ -84,249 +145,192 @@ export function CompressConfig({
   const canCompress = inputFile && fileName;
 
   return (
-    <div className="space-y-4">
-      {/* 压缩模式选择 */}
-      <Card>
-        <label className="block text-sm font-semibold mb-3 text-text-primary">压缩模式</label>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => setMode('preset')}
-            className={cn(
-              'px-4 py-3 rounded-lg border-2 transition-all text-left',
-              mode === 'preset'
-                ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/10'
-                : 'border-border-light hover:border-border-medium hover:bg-background-secondary'
-            )}
-          >
-            <div className="font-semibold text-text-primary">快速预设</div>
-            <div className="text-xs text-text-tertiary mt-1">选择预定义的压缩方案</div>
-          </button>
-          <button
-            type="button"
+    <Card className="p-6 bg-surface-raised border border-border-light rounded-lg shadow-sm">
+      {/* 1. 压缩模式 */}
+      <div className="mb-5">
+        <label className="block text-sm font-medium text-text-primary mb-2">
+          压缩模式
+        </label>
+        <div className="space-y-3">
+          {/* CRF 质量控制 */}
+          <div
             onClick={() => setMode('crf')}
             className={cn(
-              'px-4 py-3 rounded-lg border-2 transition-all text-left',
+              'flex items-center gap-3 h-12 px-4 rounded-lg border-2 cursor-pointer transition-all',
               mode === 'crf'
-                ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/10'
-                : 'border-border-light hover:border-border-medium hover:bg-background-secondary'
+                ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/20'
+                : 'border-border-light hover:border-border-dark'
             )}
           >
-            <div className="font-semibold text-text-primary">质量优先</div>
-            <div className="text-xs text-text-tertiary mt-1">基于 CRF 质量因子</div>
-          </button>
-          <button
-            type="button"
+            <div
+              className={cn(
+                'w-5 h-5 border-2 rounded-full flex-shrink-0 relative transition-all',
+                mode === 'crf' ? 'border-primary-600' : 'border-border-medium'
+              )}
+            >
+              {mode === 'crf' && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-primary-600" />
+              )}
+            </div>
+            <span className="text-sm text-text-primary">CRF 质量控制</span>
+          </div>
+
+          {/* 目标文件大小 */}
+          <div
             onClick={() => setMode('size')}
             className={cn(
-              'px-4 py-3 rounded-lg border-2 transition-all text-left',
+              'flex items-center gap-3 h-12 px-4 rounded-lg border-2 cursor-pointer transition-all',
               mode === 'size'
-                ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/10'
-                : 'border-border-light hover:border-border-medium hover:bg-background-secondary'
+                ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/20'
+                : 'border-border-light hover:border-border-dark'
             )}
           >
-            <div className="font-semibold text-text-primary">目标大小</div>
-            <div className="text-xs text-text-tertiary mt-1">指定输出文件大小</div>
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode('custom')}
-            className={cn(
-              'px-4 py-3 rounded-lg border-2 transition-all text-left',
-              mode === 'custom'
-                ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/10'
-                : 'border-border-light hover:border-border-medium hover:bg-background-secondary'
-            )}
-          >
-            <div className="font-semibold text-text-primary">自定义</div>
-            <div className="text-xs text-text-tertiary mt-1">手动配置所有参数</div>
-          </button>
+            <div
+              className={cn(
+                'w-5 h-5 border-2 rounded-full flex-shrink-0 relative transition-all',
+                mode === 'size' ? 'border-primary-600' : 'border-border-medium'
+              )}
+            >
+              {mode === 'size' && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-primary-600" />
+              )}
+            </div>
+            <span className="text-sm text-text-primary">目标文件大小</span>
+          </div>
         </div>
-      </Card>
+      </div>
 
-      {/* 快速预设模式 */}
-      {mode === 'preset' && (
-        <Card>
-          <label className="block text-sm font-semibold mb-3 text-text-primary">选择压缩预设</label>
-          <div className="space-y-2">
-            {COMPRESSION_PRESETS.map((preset: typeof COMPRESSION_PRESETS[number]) => (
+      {/* 2. 压缩预设 - 图标按钮网格（3x2） */}
+      <div className="mb-5">
+        <label className="block text-sm font-medium text-text-primary mb-2">
+          压缩预设
+        </label>
+        <div className="grid grid-cols-3 gap-3 mt-5">
+          {COMPRESS_PRESETS.map((preset) => {
+            const Icon = preset.icon;
+            return (
               <button
-                key={preset.name}
+                key={preset.id}
                 type="button"
-                onClick={() => setSelectedPreset(preset)}
+                onClick={() => handlePresetClick(preset.id)}
+                disabled={disabled}
                 className={cn(
-                  'w-full px-4 py-3 rounded-lg border-2 text-left transition-all',
-                  selectedPreset?.name === preset.name
-                    ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/10'
-                    : 'border-border-light hover:border-border-medium hover:bg-background-secondary'
+                  'h-20 flex flex-col items-center justify-center gap-2',
+                  'rounded-lg border-2 transition-all cursor-pointer',
+                  'disabled:opacity-50 disabled:cursor-not-allowed',
+                  selectedPreset === preset.id
+                    ? 'border-primary-600 bg-primary-100 dark:bg-primary-600/20'
+                    : 'border-border-light bg-surface-base hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-600/10 hover:shadow-sm'
                 )}
               >
-                <div className="font-semibold text-text-primary">{preset.name}</div>
-                <div className="text-sm text-text-secondary mt-1">{preset.description}</div>
-                <div className="text-xs text-text-tertiary mt-1">
-                  {preset.videoCodec && `${preset.videoCodec} · `}
-                  {preset.crf !== undefined && `CRF ${preset.crf} · `}
-                  {preset.preset && preset.preset}
+                <Icon
+                  className={cn(
+                    'w-6 h-6',
+                    selectedPreset === preset.id
+                      ? 'text-primary-700 dark:text-primary-400'
+                      : 'text-text-secondary'
+                  )}
+                />
+                <div
+                  className={cn(
+                    'text-xs font-medium',
+                    selectedPreset === preset.id
+                      ? 'text-primary-700 dark:text-primary-400'
+                      : 'text-text-secondary'
+                  )}
+                >
+                  {preset.label}
                 </div>
               </button>
-            ))}
-          </div>
-        </Card>
-      )}
+            );
+          })}
+        </div>
+      </div>
 
-      {/* CRF 质量模式 */}
+      {/* 3. CRF 滑块 (仅在 CRF 模式下显示) */}
       {mode === 'crf' && (
-        <Card>
-          <label className="block text-sm font-semibold mb-1 text-text-primary">
-            选择质量等级 (CRF)
-          </label>
-          <p className="text-xs text-text-tertiary mb-3">较低的值 = 更高的质量</p>
-          <div className="space-y-2">
-            {CRF_LEVELS.map((level: typeof CRF_LEVELS[number]) => (
-              <button
-                key={level.value}
-                type="button"
-                onClick={() => setCrf(level.value)}
-                className={cn(
-                  'w-full px-4 py-3 rounded-lg border-2 text-left transition-all',
-                  crf === level.value
-                    ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/10'
-                    : 'border-border-light hover:border-border-medium hover:bg-background-secondary'
-                )}
-              >
-                <div className="font-semibold text-text-primary">{level.label}</div>
-                <div className="text-sm text-text-secondary mt-1">{level.description}</div>
-              </button>
-            ))}
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-text-primary">CRF 质量</span>
+            <span className="text-base font-semibold text-primary-600">{crf}</span>
           </div>
-        </Card>
-      )}
 
-      {/* 目标大小模式 */}
-      {mode === 'size' && (
-        <Card>
-          <label className="block text-sm font-semibold mb-4 text-text-primary">目标文件大小</label>
-          <div className="space-y-4">
-            <Slider
-              value={[targetSize]}
-              onValueChange={(values) => setTargetSize(values[0])}
-              min={10}
-              max={500}
-              step={10}
-            />
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-text-secondary">10 MB</span>
-              <span className="text-lg font-semibold text-primary-600">
-                {targetSize} MB
-              </span>
-              <span className="text-sm text-text-secondary">500 MB</span>
-            </div>
-            <p className="text-sm text-text-tertiary">
-              注意：实际输出大小可能与目标值略有差异
-            </p>
-          </div>
-        </Card>
-      )}
-
-      {/* 高级选项 */}
-      <Card>
-        <button
-          type="button"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="w-full flex items-center justify-between text-sm font-semibold text-text-primary transition-colors hover:text-primary-600"
-        >
-          <span>高级选项</span>
-          <ChevronRight
-            className={cn(
-              'h-4 w-4 text-text-tertiary transition-transform duration-200',
-              showAdvanced && 'rotate-90'
-            )}
+          <Slider
+            value={[crf]}
+            onValueChange={(values) => setCrf(values[0])}
+            min={18}
+            max={32}
+            step={1}
+            className="mb-2"
+            disabled={disabled}
           />
-        </button>
 
-        <div
-          className={cn(
-            'transition-all duration-300 ease-in-out overflow-hidden',
-            showAdvanced ? 'max-h-[600px] opacity-100 mt-4' : 'max-h-0 opacity-0'
-          )}
-        >
-          <div className="space-y-4 p-4 bg-background-secondary rounded-lg">
-            {/* 视频编解码器 */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-text-primary">视频编解码器</label>
-              <select
-                value={videoCodec}
-                onChange={(e) => setVideoCodec(e.target.value)}
-                className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              >
-                {VIDEO_CODECS.slice(0, -1).map((codec: typeof VIDEO_CODECS[number]) => (
-                  <option key={codec.value} value={codec.value}>
-                    {codec.label} - {codec.description}
-                  </option>
-                ))}
-              </select>
+          <div className="flex justify-between px-1">
+            <div className="text-center">
+              <div className="text-[11px] text-text-tertiary">18</div>
+              <div className="text-[11px] text-text-tertiary">(高质量)</div>
             </div>
-
-            {/* 编码预设 */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-text-primary">编码速度/质量预设</label>
-              <select
-                value={preset}
-                onChange={(e) => setPreset(e.target.value)}
-                className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              >
-                {QUALITY_PRESETS.map((p: typeof QUALITY_PRESETS[number]) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label} - {p.description}
-                  </option>
-                ))}
-              </select>
+            <div className="text-center">
+              <div className="text-[11px] text-text-tertiary">23</div>
+              <div className="text-[11px] text-text-tertiary">(推荐)</div>
             </div>
-
-            {/* 分辨率 */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-text-primary">输出分辨率</label>
-              <select
-                value={resolution}
-                onChange={(e) => setResolution(e.target.value)}
-                className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              >
-                {RESOLUTIONS.map((res: typeof RESOLUTIONS[number]) => (
-                  <option key={res.value} value={res.value}>
-                    {res.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* 音频编解码器 */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-text-primary">音频编解码器</label>
-              <select
-                value={audioCodec}
-                onChange={(e) => setAudioCodec(e.target.value)}
-                className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              >
-                {AUDIO_CODECS.slice(0, -1).map((codec: typeof AUDIO_CODECS[number]) => (
-                  <option key={codec.value} value={codec.value}>
-                    {codec.label} - {codec.description}
-                  </option>
-                ))}
-              </select>
+            <div className="text-center">
+              <div className="text-[11px] text-text-tertiary">32</div>
+              <div className="text-[11px] text-text-tertiary">(高压缩)</div>
             </div>
           </div>
         </div>
-      </Card>
+      )}
 
-      {/* 开始压缩按钮 */}
-      <Button
+      {/* 3b. 目标大小滑块 (仅在 size 模式下显示) */}
+      {mode === 'size' && (
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-text-primary">目标文件大小</span>
+            <span className="text-base font-semibold text-primary-600">{targetSize} MB</span>
+          </div>
+
+          <Slider
+            value={[targetSize]}
+            onValueChange={(values) => setTargetSize(values[0])}
+            min={10}
+            max={500}
+            step={10}
+            className="mb-2"
+            disabled={disabled}
+          />
+
+          <div className="flex justify-between px-1">
+            <div className="text-[11px] text-text-tertiary">10 MB</div>
+            <div className="text-[11px] text-text-tertiary">500 MB</div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. 预估卡片 */}
+      <div className="p-4 rounded-lg bg-background-secondary border border-border-light mb-5">
+        <div className="flex items-center justify-between h-8 mb-2">
+          <span className="text-sm text-text-secondary">预计大小</span>
+          <span className="text-base font-semibold text-primary-600">
+            ~{estimate.size} MB
+          </span>
+        </div>
+        <div className="flex items-center justify-between h-8">
+          <span className="text-sm text-text-secondary">压缩比</span>
+          <span className="text-base font-semibold text-success-600">
+            {estimate.ratio}%
+          </span>
+        </div>
+      </div>
+
+      {/* 5. 开始压缩按钮 */}
+      <button
         onClick={handleCompress}
         disabled={disabled || !canCompress}
-        className="w-full"
-        size="lg"
+        className="w-full h-12 bg-primary-600 text-white rounded-lg text-base font-semibold shadow-sm hover:bg-primary-700 hover:shadow-md hover:-translate-y-px transition-all active:translate-y-0 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {!inputFile ? '请先选择文件' : '开始压缩'}
-      </Button>
-    </div>
+      </button>
+    </Card>
   );
 }
