@@ -1,9 +1,11 @@
 import { Task, TaskStatus } from '@shared/types';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
+import { Card } from '../ui/card';
 import { Play, Pause, X, RotateCcw, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import { formatTime, calculateDuration, formatSpeed, formatFileSize, formatBitrate } from '@renderer/lib/formatters';
+import { cn } from '@renderer/lib/utils';
 
 interface TaskCardProps {
   task: Task;
@@ -11,67 +13,89 @@ interface TaskCardProps {
   onResume?: (taskId: string) => void;
   onCancel?: (taskId: string) => void;
   onRetry?: (taskId: string) => void;
+  onDelete?: (taskId: string) => void;
 }
 
-export const TaskCard = memo(function TaskCard({ task, onPause, onResume, onCancel, onRetry }: TaskCardProps) {
-  // 状态图标和颜色
-  const getStatusInfo = (status: TaskStatus) => {
+export const TaskCard = memo(function TaskCard({
+  task,
+  onPause,
+  onResume,
+  onCancel,
+  onRetry,
+  onDelete
+}: TaskCardProps) {
+  // 状态图标和样式配置
+  const getStatusConfig = (status: TaskStatus) => {
     switch (status) {
       case 'pending':
         return {
-          icon: <Clock className="w-4 h-4" />,
+          icon: <Clock className="w-5 h-5" />,
           label: '等待中',
-          color: 'text-gray-500',
-          bgColor: 'bg-gray-100 dark:bg-gray-800',
+          iconColor: 'text-text-tertiary',
+          labelColor: 'text-text-secondary',
+          cardClass: 'bg-background-secondary border-border-light',
+          animation: '',
         };
       case 'running':
         return {
-          icon: <Loader2 className="w-4 h-4 animate-spin" />,
-          label: '处理中',
-          color: 'text-blue-500',
-          bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+          icon: <Loader2 className="w-5 h-5 animate-spin" />,
+          label: '运行中',
+          iconColor: 'text-primary-600',
+          labelColor: 'text-primary-600',
+          cardClass: 'bg-surface-raised border-primary-500 border-2 shadow-md animate-border-pulse',
+          animation: 'animate-border-pulse',
         };
       case 'paused':
         return {
-          icon: <Pause className="w-4 h-4" />,
+          icon: <Pause className="w-5 h-5" />,
           label: '已暂停',
-          color: 'text-yellow-500',
-          bgColor: 'bg-yellow-100 dark:bg-yellow-900/20',
+          iconColor: 'text-warning-600',
+          labelColor: 'text-warning-600',
+          cardClass: 'bg-warning-50 dark:bg-warning-600/10 border-warning-500',
+          animation: '',
         };
       case 'completed':
         return {
-          icon: <CheckCircle2 className="w-4 h-4" />,
+          icon: <CheckCircle2 className="w-5 h-5 animate-scale-in" />,
           label: '已完成',
-          color: 'text-green-500',
-          bgColor: 'bg-green-100 dark:bg-green-900/20',
+          iconColor: 'text-success-600',
+          labelColor: 'text-success-600',
+          cardClass: 'bg-success-50 dark:bg-success-600/10 border-success-500',
+          animation: 'animate-scale-in',
         };
       case 'failed':
         return {
-          icon: <XCircle className="w-4 h-4" />,
+          icon: <XCircle className="w-5 h-5 animate-shake" />,
           label: '失败',
-          color: 'text-red-500',
-          bgColor: 'bg-red-100 dark:bg-red-900/20',
+          iconColor: 'text-error-600',
+          labelColor: 'text-error-600',
+          cardClass: 'bg-error-50 dark:bg-error-600/10 border-error-500',
+          animation: 'animate-shake',
         };
       case 'cancelled':
         return {
-          icon: <X className="w-4 h-4" />,
+          icon: <X className="w-5 h-5 animate-fade-out" />,
           label: '已取消',
-          color: 'text-gray-500',
-          bgColor: 'bg-gray-100 dark:bg-gray-800',
+          iconColor: 'text-text-tertiary',
+          labelColor: 'text-text-secondary',
+          cardClass: 'bg-background-secondary border-border-light opacity-60',
+          animation: 'animate-fade-out',
         };
       default:
         return {
-          icon: <Clock className="w-4 h-4" />,
+          icon: <Clock className="w-5 h-5" />,
           label: '未知',
-          color: 'text-gray-500',
-          bgColor: 'bg-gray-100 dark:bg-gray-800',
+          iconColor: 'text-text-tertiary',
+          labelColor: 'text-text-secondary',
+          cardClass: 'bg-background-secondary border-border-light',
+          animation: '',
         };
     }
   };
 
-  const statusInfo = useMemo(() => getStatusInfo(task.status), [task.status]);
+  const statusConfig = useMemo(() => getStatusConfig(task.status), [task.status]);
 
-  // 提取输入/输出文件名（使用 useMemo 缓存）
+  // 提取输入/输出文件名
   const inputFile = useMemo(() => {
     const inputIndex = task.command.findIndex(arg => arg === '-i');
     if (inputIndex !== -1 && inputIndex + 1 < task.command.length) {
@@ -96,7 +120,7 @@ export const TaskCard = memo(function TaskCard({ task, onPause, onResume, onCanc
     const { speed, percent } = task.progressInfo;
     if (speed <= 0 || percent <= 0 || percent >= 100) return '-';
 
-    const elapsed = (new Date().getTime() - new Date(task.startedAt).getTime()) / 1000; // 秒
+    const elapsed = (new Date().getTime() - new Date(task.startedAt).getTime()) / 1000;
     const estimatedTotal = elapsed / (percent / 100);
     const remaining = estimatedTotal - elapsed;
 
@@ -112,123 +136,142 @@ export const TaskCard = memo(function TaskCard({ task, onPause, onResume, onCanc
   };
 
   return (
-    <div className={`rounded-lg border-2 ${statusInfo.bgColor} p-4 transition-all`}>
-      <div className="flex items-start justify-between mb-3">
-        {/* 左侧：状态和文件信息 */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <span className={statusInfo.color}>{statusInfo.icon}</span>
-            <span className={`text-sm font-medium ${statusInfo.color}`}>
-              {statusInfo.label}
-            </span>
-            {task.status === 'running' && (
-              <span className="text-sm text-gray-500">
-                {task.progress?.toFixed(0)}%
-              </span>
+    <Card
+      padding="none"
+      className={cn(
+        'min-h-[120px] transition-all duration-300',
+        statusConfig.cardClass
+      )}
+    >
+      <div className="p-6">
+        {/* Header: Status + Actions */}
+        <div className="flex items-start justify-between mb-4">
+          {/* Left: Status Info */}
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <div className={cn('flex-shrink-0 mt-0.5', statusConfig.iconColor)}>
+              {statusConfig.icon}
+            </div>
+            <div className="flex-1 min-w-0">
+              {/* Status Label + Progress */}
+              <div className="flex items-center gap-2 mb-2">
+                <span className={cn('text-sm font-medium', statusConfig.labelColor)}>
+                  {statusConfig.label}
+                </span>
+                {task.status === 'running' && task.progress !== undefined && (
+                  <span className={cn('text-base font-semibold', statusConfig.labelColor)}>
+                    {task.progress.toFixed(0)}%
+                  </span>
+                )}
+              </div>
+
+              {/* File Info */}
+              <div className="space-y-1 text-sm">
+                <div className="text-text-secondary">
+                  <span className="text-xs">输入:</span>{' '}
+                  <span className="font-medium text-text-primary truncate" title={inputFile}>
+                    {inputFile}
+                  </span>
+                </div>
+                <div className="text-text-secondary">
+                  <span className="text-xs">输出:</span>{' '}
+                  <span className="truncate" title={outputFile}>
+                    {outputFile}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Action Buttons */}
+          <div className="flex gap-2 ml-4 flex-shrink-0">
+            {task.status === 'running' && onPause && (
+              <Button
+                size="sm"
+                variant="icon"
+                onClick={() => onPause(task.id)}
+                title="暂停"
+              >
+                <Pause className="w-4 h-4" />
+              </Button>
+            )}
+
+            {task.status === 'paused' && onResume && (
+              <Button
+                size="sm"
+                variant="icon"
+                onClick={() => onResume(task.id)}
+                title="继续"
+              >
+                <Play className="w-4 h-4" />
+              </Button>
+            )}
+
+            {(task.status === 'pending' || task.status === 'running' || task.status === 'paused') && onCancel && (
+              <Button
+                size="sm"
+                variant="icon"
+                onClick={() => onCancel(task.id)}
+                title="取消"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+
+            {(task.status === 'failed' || task.status === 'cancelled') && onRetry && (
+              <Button
+                size="sm"
+                variant="icon"
+                onClick={() => onRetry(task.id)}
+                title="重试"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </Button>
             )}
           </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">输入:</span>
-              <span className="text-sm font-medium truncate" title={inputFile}>
-                {inputFile}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">输出:</span>
-              <span className="text-sm truncate" title={outputFile}>
-                {outputFile}
-              </span>
-            </div>
-          </div>
-
-          {/* 进度条和详细信息 */}
-          {task.status === 'running' && task.progress !== undefined && (
-            <div className="mt-3 space-y-2">
-              <Progress value={task.progress} animated />
-              {/* 详细进度信息 */}
-              {task.progressInfo && (
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
-                  <div>速度: {formatSpeed(task.progressInfo.speed)}</div>
-                  <div>剩余: {getETA()}</div>
-                  {task.progressInfo.fps > 0 && (
-                    <div>FPS: {task.progressInfo.fps.toFixed(1)}</div>
-                  )}
-                  {task.progressInfo.totalSize > 0 && (
-                    <div>大小: {formatFileSize(task.progressInfo.totalSize * 1024)}</div>
-                  )}
-                  {task.progressInfo.bitrate && task.progressInfo.bitrate !== '0' && (
-                    <div className="col-span-2">比特率: {formatBitrate(task.progressInfo.bitrate)}</div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 错误信息 */}
-          {task.error && (
-            <div className="mt-2 text-xs text-red-600 dark:text-red-400">
-              错误: {task.error}
-            </div>
-          )}
-
-          {/* 时间信息 */}
-          <div className="mt-2 flex gap-4 text-xs text-gray-500">
-            <span>创建: {formatTime(task.createdAt)}</span>
-            {task.startedAt && <span>开始: {formatTime(task.startedAt)}</span>}
-            {task.completedAt && <span>完成: {formatTime(task.completedAt)}</span>}
-            {task.startedAt && <span>耗时: {calculateDuration(task.startedAt, task.completedAt)}</span>}
-          </div>
         </div>
 
-        {/* 右侧：操作按钮 */}
-        <div className="flex gap-2 ml-4">
-          {task.status === 'running' && onPause && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => onPause(task.id)}
-              title="暂停"
-            >
-              <Pause className="w-4 h-4" />
-            </Button>
-          )}
+        {/* Progress Bar + Details (Running state only) */}
+        {task.status === 'running' && task.progress !== undefined && (
+          <div className="space-y-3">
+            <Progress value={task.progress} animated size="md" />
 
-          {task.status === 'paused' && onResume && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => onResume(task.id)}
-              title="继续"
-            >
-              <Play className="w-4 h-4" />
-            </Button>
-          )}
+            {/* Progress Details */}
+            {task.progressInfo && (
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-text-secondary">
+                <div>速度: <span className="font-medium text-text-primary">{formatSpeed(task.progressInfo.speed)}</span></div>
+                <div>剩余: <span className="font-medium text-text-primary">{getETA()}</span></div>
+                {task.progressInfo.fps > 0 && (
+                  <div>FPS: <span className="font-medium text-text-primary">{task.progressInfo.fps.toFixed(1)}</span></div>
+                )}
+                {task.progressInfo.totalSize > 0 && (
+                  <div>大小: <span className="font-medium text-text-primary">{formatFileSize(task.progressInfo.totalSize * 1024)}</span></div>
+                )}
+                {task.progressInfo.bitrate && task.progressInfo.bitrate !== '0' && (
+                  <div className="col-span-2">比特率: <span className="font-medium text-text-primary">{formatBitrate(task.progressInfo.bitrate)}</span></div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
-          {(task.status === 'pending' || task.status === 'running' || task.status === 'paused') && onCancel && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => onCancel(task.id)}
-              title="取消"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
+        {/* Error Message */}
+        {task.error && (
+          <div className="mt-3 p-3 bg-error-50 dark:bg-error-600/10 border border-error-200 dark:border-error-600/30 rounded-md">
+            <p className="text-sm text-error-600 dark:text-error-400">
+              <span className="font-medium">错误: </span>
+              {task.error}
+            </p>
+          </div>
+        )}
 
-          {(task.status === 'failed' || task.status === 'cancelled') && onRetry && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => onRetry(task.id)}
-              title="重试"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </Button>
-          )}
+        {/* Time Info Footer */}
+        <div className="mt-3 pt-3 border-t border-border-light flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-tertiary">
+          <span>创建: {formatTime(task.createdAt)}</span>
+          {task.startedAt && <span>开始: {formatTime(task.startedAt)}</span>}
+          {task.completedAt && <span>完成: {formatTime(task.completedAt)}</span>}
+          {task.startedAt && <span>耗时: {calculateDuration(task.startedAt, task.completedAt)}</span>}
         </div>
       </div>
-    </div>
+    </Card>
   );
 });

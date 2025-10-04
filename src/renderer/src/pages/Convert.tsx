@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { PageContainer } from '@renderer/components/PageContainer/PageContainer';
 import { FileUploader } from '@renderer/components/FileUploader/FileUploader';
 import { FileList } from '@renderer/components/FileList/FileList';
 import { ConvertConfig } from '@renderer/components/ConvertConfig/ConvertConfig';
@@ -45,10 +44,19 @@ export function Convert() {
   };
 
   return (
-    <PageContainer
-      title="格式转换"
-      description="支持多种视频和音频格式互转"
-    >
+    <div className="max-w-6xl mx-auto">
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1
+          className="text-4xl font-bold tracking-tight text-text-primary mb-2"
+          style={{ letterSpacing: '-0.02em' }}
+        >
+          格式转换
+        </h1>
+        <p className="text-sm text-text-secondary">支持多种视频和音频格式互转</p>
+      </div>
+
+      {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 左侧：文件上传和列表 */}
         <div className="space-y-6">
@@ -68,6 +76,6 @@ export function Convert() {
           />
         </div>
       </div>
-    </PageContainer>
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cn } from '@renderer/lib/utils';
+import { useReducedMotion } from '@renderer/hooks/useReducedMotion';
 
 export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   value?: number; // 进度值 0-100
@@ -25,6 +26,7 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
     ref
   ) => {
     const percent = Math.min(100, Math.max(0, (value / max) * 100));
+    const prefersReducedMotion = useReducedMotion();
 
     // 尺寸映射
     const sizeClasses = {
@@ -48,7 +50,12 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
             aria-label="Loading..."
             {...props}
           >
-            <div className="absolute inset-0 animate-indeterminate bg-gradient-to-r from-transparent via-primary-500 to-transparent bg-[length:200%_100%]" />
+            <div
+              className={cn(
+                'absolute inset-0 bg-gradient-to-r from-transparent via-primary-500 to-transparent bg-[length:200%_100%]',
+                !prefersReducedMotion && 'animate-indeterminate'
+              )}
+            />
           </div>
           {showValue && (
             <p className="text-center text-xs text-text-secondary">Loading...</p>
@@ -80,7 +87,7 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
             )}
             style={{ width: `${percent}%` }}
           >
-            {animated && (
+            {animated && !prefersReducedMotion && (
               <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
             )}
           </div>

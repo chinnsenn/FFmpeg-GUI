@@ -1,4 +1,4 @@
-import { Clock, FileType, Film, Music, Hash } from 'lucide-react';
+import { Info, Film, Music } from 'lucide-react';
 import { formatDuration, formatFileSize, formatBitrate } from '@renderer/lib/formatters';
 import type { MediaFileInfo } from '@shared/types';
 
@@ -7,140 +7,114 @@ interface MediaInfoProps {
 }
 
 export function MediaInfo({ info }: MediaInfoProps) {
-
   return (
-    <div className="rounded-lg border border-border bg-card p-4 space-y-4">
-      {/* 基本信息 */}
-      <div>
-        <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-          <FileType className="h-4 w-4" />
-          基本信息
-        </h3>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div className="flex items-center gap-2">
-            <Clock className="h-3 w-3 text-muted-foreground" />
-            <span className="text-muted-foreground">时长:</span>
-            <span className="font-medium">{formatDuration(info.duration)}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Hash className="h-3 w-3 text-muted-foreground" />
-            <span className="text-muted-foreground">大小:</span>
-            <span className="font-medium">{formatFileSize(info.size)}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <FileType className="h-3 w-3 text-muted-foreground" />
-            <span className="text-muted-foreground">格式:</span>
-            <span className="font-medium">{info.format}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Hash className="h-3 w-3 text-muted-foreground" />
-            <span className="text-muted-foreground">比特率:</span>
-            <span className="font-medium">{formatBitrate(info.bitrate)}</span>
-          </div>
-        </div>
+    <div className="space-y-4">
+      {/* 标题 */}
+      <div className="flex items-center gap-2 mb-3">
+        <Info className="h-4 w-4 text-text-secondary" />
+        <h4 className="text-sm font-semibold text-text-primary">媒体信息</h4>
       </div>
 
-      {/* 视频流信息 */}
-      {info.videoStreams.length > 0 && (
-        <div>
-          <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-            <Film className="h-4 w-4" />
-            视频流
-          </h3>
-          <div className="space-y-3">
-            {info.videoStreams.map((stream, index) => (
-              <div key={index} className="rounded border border-border/50 p-3 space-y-2">
-                <div className="text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">编码:</span>
-                    <span className="font-medium">{stream.codec}</span>
-                    <span className="text-xs text-muted-foreground">
-                      ({stream.codecLongName})
-                    </span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-muted-foreground">分辨率: </span>
-                    <span className="font-medium">
-                      {stream.width}x{stream.height}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">帧率: </span>
-                    <span className="font-medium">{stream.frameRate} fps</span>
-                  </div>
-                  {stream.bitrate && (
-                    <div>
-                      <span className="text-muted-foreground">比特率: </span>
-                      <span className="font-medium">
-                        {formatBitrate(parseInt(stream.bitrate))}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* 基本信息网格 */}
+      <div className="grid grid-cols-[1fr_2fr] gap-x-4 gap-y-2 text-sm">
+        <div className="text-text-secondary">分辨率</div>
+        <div className="font-mono font-medium text-text-primary">
+          {info.videoStreams[0]?.width && info.videoStreams[0]?.height
+            ? `${info.videoStreams[0].width} × ${info.videoStreams[0].height}`
+            : 'N/A'}
         </div>
-      )}
 
-      {/* 音频流信息 */}
-      {info.audioStreams.length > 0 && (
-        <div>
-          <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-            <Music className="h-4 w-4" />
-            音频流
-          </h3>
-          <div className="space-y-3">
-            {info.audioStreams.map((stream, index) => (
-              <div key={index} className="rounded border border-border/50 p-3 space-y-2">
-                <div className="text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">编码:</span>
-                    <span className="font-medium">{stream.codec}</span>
-                    <span className="text-xs text-muted-foreground">
-                      ({stream.codecLongName})
-                    </span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  {stream.sampleRate && (
-                    <div>
-                      <span className="text-muted-foreground">采样率: </span>
-                      <span className="font-medium">
-                        {parseInt(stream.sampleRate) / 1000} kHz
-                      </span>
-                    </div>
-                  )}
-                  {stream.channels && (
-                    <div>
-                      <span className="text-muted-foreground">声道: </span>
-                      <span className="font-medium">{stream.channels}</span>
-                    </div>
-                  )}
-                  {stream.bitrate && (
-                    <div>
-                      <span className="text-muted-foreground">比特率: </span>
-                      <span className="font-medium">
-                        {formatBitrate(parseInt(stream.bitrate))}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+        <div className="text-text-secondary">时长</div>
+        <div className="font-mono font-medium text-text-primary">{formatDuration(info.duration)}</div>
 
-      {/* 字幕信息 */}
-      {info.subtitleCount > 0 && (
-        <div className="text-sm">
-          <span className="text-muted-foreground">字幕轨道: </span>
-          <span className="font-medium">{info.subtitleCount} 个</span>
+        <div className="text-text-secondary">帧率</div>
+        <div className="font-mono font-medium text-text-primary">
+          {info.videoStreams[0]?.frameRate ? `${info.videoStreams[0].frameRate} fps` : 'N/A'}
         </div>
-      )}
+
+        {/* 视频编解码器 */}
+        {info.videoStreams.length > 0 && (
+          <>
+            <div className="text-text-secondary">视频编解码器</div>
+            <div className="font-mono font-medium text-text-primary">
+              {info.videoStreams[0].codec}
+              <span className="ml-2 text-xs text-text-tertiary">
+                ({info.videoStreams[0].codecLongName})
+              </span>
+            </div>
+          </>
+        )}
+
+        {/* 视频码率 */}
+        {info.videoStreams[0]?.bitrate && (
+          <>
+            <div className="text-text-secondary">视频码率</div>
+            <div className="font-mono font-medium text-text-primary">
+              {formatBitrate(parseInt(info.videoStreams[0].bitrate))}
+            </div>
+          </>
+        )}
+
+        {/* 音频编解码器 */}
+        {info.audioStreams.length > 0 && (
+          <>
+            <div className="text-text-secondary">音频编解码器</div>
+            <div className="font-mono font-medium text-text-primary">
+              {info.audioStreams[0].codec}
+              <span className="ml-2 text-xs text-text-tertiary">
+                ({info.audioStreams[0].codecLongName})
+              </span>
+            </div>
+          </>
+        )}
+
+        {/* 音频码率 */}
+        {info.audioStreams[0]?.bitrate && (
+          <>
+            <div className="text-text-secondary">音频码率</div>
+            <div className="font-mono font-medium text-text-primary">
+              {formatBitrate(parseInt(info.audioStreams[0].bitrate))}
+            </div>
+          </>
+        )}
+
+        {/* 声道 */}
+        {info.audioStreams[0]?.channels && (
+          <>
+            <div className="text-text-secondary">声道</div>
+            <div className="font-mono font-medium text-text-primary">
+              {info.audioStreams[0].channels === 2 ? '立体声 (2.0)' : `${info.audioStreams[0].channels} 声道`}
+            </div>
+          </>
+        )}
+
+        {/* 采样率 */}
+        {info.audioStreams[0]?.sampleRate && (
+          <>
+            <div className="text-text-secondary">采样率</div>
+            <div className="font-mono font-medium text-text-primary">
+              {parseInt(info.audioStreams[0].sampleRate) / 1000} kHz
+            </div>
+          </>
+        )}
+
+        <div className="text-text-secondary">格式</div>
+        <div className="font-mono font-medium text-text-primary">{info.format}</div>
+
+        <div className="text-text-secondary">文件大小</div>
+        <div className="font-mono font-medium text-text-primary">{formatFileSize(info.size)}</div>
+
+        <div className="text-text-secondary">总比特率</div>
+        <div className="font-mono font-medium text-text-primary">{formatBitrate(info.bitrate)}</div>
+
+        {/* 字幕信息 */}
+        {info.subtitleCount > 0 && (
+          <>
+            <div className="text-text-secondary">字幕轨道</div>
+            <div className="font-mono font-medium text-text-primary">{info.subtitleCount} 个</div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

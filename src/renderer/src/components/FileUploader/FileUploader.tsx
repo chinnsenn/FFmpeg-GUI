@@ -34,7 +34,7 @@ export function FileUploader({
     [onFilesSelected],
   );
 
-  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, isDragAccept, isDragReject } = useDropzone({
     onDrop,
     accept,
     multiple,
@@ -64,52 +64,68 @@ export function FileUploader({
     <div
       {...getRootProps()}
       className={cn(
-        'flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 transition-colors',
-        isDragActive && 'border-primary bg-primary/5',
-        isDragReject && 'border-destructive bg-destructive/5',
-        !isDragActive && !isDragReject && 'border-border',
+        'flex min-h-[200px] flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-all duration-200',
+        // 默认状态
+        !isDragActive && !isDragReject && 'border-border-light bg-background-secondary hover:border-border-medium hover:bg-background-tertiary',
+        // 拖放激活状态 (文件悬停在区域上但未验证)
+        isDragActive && !isDragAccept && !isDragReject && 'border-primary-500 bg-primary-50',
+        // 拖放接受状态 (文件类型正确)
+        isDragAccept && 'scale-[1.02] border-solid border-primary-600 bg-primary-100 shadow-md',
+        // 拖放拒绝状态 (文件类型错误或过大)
+        isDragReject && 'border-error-500 bg-error-50',
         className,
       )}
     >
       <input {...getInputProps()} />
 
       <div className="flex flex-col items-center gap-4">
-        {isDragActive ? (
+        {/* 拖放激活状态 */}
+        {isDragActive && !isDragReject && (
           <>
-            <Upload className="h-12 w-12 text-primary animate-bounce" />
-            <p className="text-lg font-medium text-primary">释放以上传文件</p>
+            <Upload className="h-12 w-12 text-primary-600 animate-bounce" />
+            <p className="text-base font-medium text-primary-700">释放以上传文件</p>
           </>
-        ) : (
+        )}
+
+        {/* 拖放拒绝状态 */}
+        {isDragReject && (
           <>
-            <FileVideo className="h-12 w-12 text-muted-foreground" />
+            <Upload className="h-12 w-12 text-error-600" />
             <div className="text-center">
-              <p className="text-lg font-medium">拖拽文件到这里上传</p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-base font-medium text-error-700">不支持的文件类型或文件过大</p>
+              <p className="mt-1 text-sm text-error-600">
+                请上传视频或音频文件（最大 2GB）
+              </p>
+            </div>
+          </>
+        )}
+
+        {/* 默认状态 */}
+        {!isDragActive && (
+          <>
+            <FileVideo className="h-12 w-12 text-text-tertiary" />
+            <div className="text-center">
+              <p className="text-base font-medium text-text-primary">拖拽文件到这里上传</p>
+              <p className="mt-1 text-sm text-text-secondary">
                 或使用下方按钮选择文件 {multiple && '(可选择多个)'}
               </p>
             </div>
             <Button
               onClick={handleSelectFromDialog}
               variant="secondary"
-              className="gap-2"
+              leftIcon={<FolderOpen className="h-4 w-4" />}
               type="button"
+              className="mt-2"
             >
-              <FolderOpen className="h-4 w-4" />
               选择文件
             </Button>
-            <div className="text-xs text-muted-foreground mt-2">
-              <p>支持的格式：视频 (MP4, AVI, MKV, MOV 等)</p>
+            <div className="mt-6 space-y-1 text-center text-xs text-text-tertiary">
+              <p>支持的格式：视频 (MP4, AVI, MKV, MOV 等) / 音频 (MP3, WAV, AAC 等)</p>
               <p>最大文件大小：2GB</p>
             </div>
           </>
         )}
       </div>
-
-      {isDragReject && (
-        <p className="mt-4 text-sm text-destructive">
-          不支持的文件类型或文件过大
-        </p>
-      )}
     </div>
   );
 }

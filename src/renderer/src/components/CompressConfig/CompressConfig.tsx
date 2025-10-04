@@ -10,7 +10,10 @@ import {
 } from '@shared/format-presets';
 import type { CompressOptions } from '@shared/types';
 import { Button } from '../ui/button';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Card } from '../ui/card';
+import { Slider } from '../ui/slider';
+import { ChevronRight } from 'lucide-react';
+import { cn } from '@renderer/lib/utils';
 
 interface CompressConfigProps {
   /** 输入文件路径 */
@@ -81,99 +84,86 @@ export function CompressConfig({
   const canCompress = inputFile && fileName;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 压缩模式选择 */}
-      <div>
-        <label className="block text-sm font-medium mb-2">压缩模式</label>
-        <div className="grid grid-cols-2 gap-2">
+      <Card>
+        <label className="block text-sm font-semibold mb-3 text-text-primary">压缩模式</label>
+        <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={() => setMode('preset')}
-            className={`px-4 py-3 rounded-lg border-2 transition-all ${
+            className={cn(
+              'px-4 py-3 rounded-lg border-2 transition-all text-left',
               mode === 'preset'
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-            }`}
+                ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/10'
+                : 'border-border-light hover:border-border-medium hover:bg-background-secondary'
+            )}
           >
-            <div className="text-left">
-              <div className="font-semibold">快速预设</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                选择预定义的压缩方案
-              </div>
-            </div>
+            <div className="font-semibold text-text-primary">快速预设</div>
+            <div className="text-xs text-text-tertiary mt-1">选择预定义的压缩方案</div>
           </button>
           <button
             type="button"
             onClick={() => setMode('crf')}
-            className={`px-4 py-3 rounded-lg border-2 transition-all ${
+            className={cn(
+              'px-4 py-3 rounded-lg border-2 transition-all text-left',
               mode === 'crf'
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-            }`}
+                ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/10'
+                : 'border-border-light hover:border-border-medium hover:bg-background-secondary'
+            )}
           >
-            <div className="text-left">
-              <div className="font-semibold">质量优先</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                基于 CRF 质量因子
-              </div>
-            </div>
+            <div className="font-semibold text-text-primary">质量优先</div>
+            <div className="text-xs text-text-tertiary mt-1">基于 CRF 质量因子</div>
           </button>
           <button
             type="button"
             onClick={() => setMode('size')}
-            className={`px-4 py-3 rounded-lg border-2 transition-all ${
+            className={cn(
+              'px-4 py-3 rounded-lg border-2 transition-all text-left',
               mode === 'size'
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-            }`}
+                ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/10'
+                : 'border-border-light hover:border-border-medium hover:bg-background-secondary'
+            )}
           >
-            <div className="text-left">
-              <div className="font-semibold">目标大小</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                指定输出文件大小
-              </div>
-            </div>
+            <div className="font-semibold text-text-primary">目标大小</div>
+            <div className="text-xs text-text-tertiary mt-1">指定输出文件大小</div>
           </button>
           <button
             type="button"
             onClick={() => setMode('custom')}
-            className={`px-4 py-3 rounded-lg border-2 transition-all ${
+            className={cn(
+              'px-4 py-3 rounded-lg border-2 transition-all text-left',
               mode === 'custom'
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-            }`}
+                ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/10'
+                : 'border-border-light hover:border-border-medium hover:bg-background-secondary'
+            )}
           >
-            <div className="text-left">
-              <div className="font-semibold">自定义</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                手动配置所有参数
-              </div>
-            </div>
+            <div className="font-semibold text-text-primary">自定义</div>
+            <div className="text-xs text-text-tertiary mt-1">手动配置所有参数</div>
           </button>
         </div>
-      </div>
+      </Card>
 
       {/* 快速预设模式 */}
       {mode === 'preset' && (
-        <div>
-          <label className="block text-sm font-medium mb-2">选择压缩预设</label>
-          <div className="grid grid-cols-1 gap-2">
+        <Card>
+          <label className="block text-sm font-semibold mb-3 text-text-primary">选择压缩预设</label>
+          <div className="space-y-2">
             {COMPRESSION_PRESETS.map((preset) => (
               <button
                 key={preset.name}
                 type="button"
                 onClick={() => setSelectedPreset(preset)}
-                className={`px-4 py-3 rounded-lg border-2 text-left transition-all ${
+                className={cn(
+                  'w-full px-4 py-3 rounded-lg border-2 text-left transition-all',
                   selectedPreset?.name === preset.name
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                }`}
+                    ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/10'
+                    : 'border-border-light hover:border-border-medium hover:bg-background-secondary'
+                )}
               >
-                <div className="font-semibold">{preset.name}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  {preset.description}
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                <div className="font-semibold text-text-primary">{preset.name}</div>
+                <div className="text-sm text-text-secondary mt-1">{preset.description}</div>
+                <div className="text-xs text-text-tertiary mt-1">
                   {preset.videoCodec && `${preset.videoCodec} · `}
                   {preset.crf !== undefined && `CRF ${preset.crf} · `}
                   {preset.preset && preset.preset}
@@ -181,88 +171,95 @@ export function CompressConfig({
               </button>
             ))}
           </div>
-        </div>
+        </Card>
       )}
 
       {/* CRF 质量模式 */}
       {mode === 'crf' && (
-        <div>
-          <label className="block text-sm font-medium mb-2">
+        <Card>
+          <label className="block text-sm font-semibold mb-1 text-text-primary">
             选择质量等级 (CRF)
-            <span className="text-xs text-gray-500 ml-2">较低的值 = 更高的质量</span>
           </label>
-          <div className="grid grid-cols-1 gap-2">
+          <p className="text-xs text-text-tertiary mb-3">较低的值 = 更高的质量</p>
+          <div className="space-y-2">
             {CRF_LEVELS.map((level) => (
               <button
                 key={level.value}
                 type="button"
                 onClick={() => setCrf(level.value)}
-                className={`px-4 py-3 rounded-lg border-2 text-left transition-all ${
+                className={cn(
+                  'w-full px-4 py-3 rounded-lg border-2 text-left transition-all',
                   crf === level.value
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                }`}
+                    ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/10'
+                    : 'border-border-light hover:border-border-medium hover:bg-background-secondary'
+                )}
               >
-                <div className="font-semibold">{level.label}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  {level.description}
-                </div>
+                <div className="font-semibold text-text-primary">{level.label}</div>
+                <div className="text-sm text-text-secondary mt-1">{level.description}</div>
               </button>
             ))}
           </div>
-        </div>
+        </Card>
       )}
 
       {/* 目标大小模式 */}
       {mode === 'size' && (
-        <div>
-          <label className="block text-sm font-medium mb-2">目标文件大小</label>
+        <Card>
+          <label className="block text-sm font-semibold mb-4 text-text-primary">目标文件大小</label>
           <div className="space-y-4">
-            <input
-              type="range"
-              min="10"
-              max="500"
-              step="10"
-              value={targetSize}
-              onChange={(e) => setTargetSize(Number(e.target.value))}
-              className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
+            <Slider
+              value={[targetSize]}
+              onValueChange={(values) => setTargetSize(values[0])}
+              min={10}
+              max={500}
+              step={10}
             />
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">10 MB</span>
-              <span className="text-lg font-semibold text-blue-600 dark:text-blue-400">
+              <span className="text-sm text-text-secondary">10 MB</span>
+              <span className="text-lg font-semibold text-primary-600">
                 {targetSize} MB
               </span>
-              <span className="text-sm text-gray-600 dark:text-gray-400">500 MB</span>
+              <span className="text-sm text-text-secondary">500 MB</span>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-text-tertiary">
               注意：实际输出大小可能与目标值略有差异
             </p>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* 高级选项 */}
-      <div>
+      <Card>
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+          className="w-full flex items-center justify-between text-sm font-semibold text-text-primary transition-colors hover:text-primary-600"
         >
-          {showAdvanced ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          高级选项
+          <span>高级选项</span>
+          <ChevronRight
+            className={cn(
+              'h-4 w-4 text-text-tertiary transition-transform duration-200',
+              showAdvanced && 'rotate-90'
+            )}
+          />
         </button>
 
-        {showAdvanced && (
-          <div className="mt-4 space-y-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+        <div
+          className={cn(
+            'transition-all duration-300 ease-in-out overflow-hidden',
+            showAdvanced ? 'max-h-[600px] opacity-100 mt-4' : 'max-h-0 opacity-0'
+          )}
+        >
+          <div className="space-y-4 p-4 bg-background-secondary rounded-lg">
             {/* 视频编解码器 */}
             <div>
-              <label className="block text-sm font-medium mb-2">视频编解码器</label>
+              <label className="block text-sm font-medium mb-2 text-text-primary">视频编解码器</label>
               <select
                 value={videoCodec}
                 onChange={(e) => setVideoCodec(e.target.value)}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                {VIDEO_CODECS.slice(0, -1).map((codec) => ( // 排除 "复制流"
+                {VIDEO_CODECS.slice(0, -1).map((codec) => (
                   <option key={codec.value} value={codec.value}>
                     {codec.label} - {codec.description}
                   </option>
@@ -272,11 +269,11 @@ export function CompressConfig({
 
             {/* 编码预设 */}
             <div>
-              <label className="block text-sm font-medium mb-2">编码速度/质量预设</label>
+              <label className="block text-sm font-medium mb-2 text-text-primary">编码速度/质量预设</label>
               <select
                 value={preset}
                 onChange={(e) => setPreset(e.target.value)}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 {QUALITY_PRESETS.map((p) => (
                   <option key={p.value} value={p.value}>
@@ -288,11 +285,11 @@ export function CompressConfig({
 
             {/* 分辨率 */}
             <div>
-              <label className="block text-sm font-medium mb-2">输出分辨率</label>
+              <label className="block text-sm font-medium mb-2 text-text-primary">输出分辨率</label>
               <select
                 value={resolution}
                 onChange={(e) => setResolution(e.target.value)}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 {RESOLUTIONS.map((res) => (
                   <option key={res.value} value={res.value}>
@@ -304,13 +301,13 @@ export function CompressConfig({
 
             {/* 音频编解码器 */}
             <div>
-              <label className="block text-sm font-medium mb-2">音频编解码器</label>
+              <label className="block text-sm font-medium mb-2 text-text-primary">音频编解码器</label>
               <select
                 value={audioCodec}
                 onChange={(e) => setAudioCodec(e.target.value)}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                {AUDIO_CODECS.slice(0, -1).map((codec) => ( // 排除 "复制流"
+                {AUDIO_CODECS.slice(0, -1).map((codec) => (
                   <option key={codec.value} value={codec.value}>
                     {codec.label} - {codec.description}
                   </option>
@@ -318,8 +315,8 @@ export function CompressConfig({
               </select>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      </Card>
 
       {/* 开始压缩按钮 */}
       <Button

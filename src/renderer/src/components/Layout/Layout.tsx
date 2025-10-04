@@ -1,11 +1,10 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
-import { Footer } from './Footer';
 
 export function Layout() {
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-background-primary">
       {/* 侧边栏 */}
       <Sidebar />
 
@@ -15,13 +14,10 @@ export function Layout() {
         <Header />
 
         {/* 主工作区 */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto bg-background-primary p-8">
           {/* Outlet 用于渲染子路由 */}
           <Outlet />
         </main>
-
-        {/* 底部栏 */}
-        <Footer />
       </div>
     </div>
   );

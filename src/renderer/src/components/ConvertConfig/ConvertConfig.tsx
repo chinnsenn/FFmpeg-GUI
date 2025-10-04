@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Settings2, Zap } from 'lucide-react';
+import { Settings2, Zap, ChevronRight } from 'lucide-react';
 import { Button } from '@renderer/components/ui/button';
+import { Card } from '@renderer/components/ui/card';
+import { cn } from '@renderer/lib/utils';
 import type { ConvertOptions, VideoCodec, AudioCodec, VideoQuality } from '@shared/types';
 import {
   OUTPUT_FORMATS,
@@ -108,17 +110,17 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 快速预设 */}
-      <div className="rounded-lg border border-border bg-card p-4">
-        <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-          <Zap className="h-4 w-4" />
+      <Card>
+        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-text-primary">
+          <Zap className="h-4 w-4 text-primary-600" />
           快速预设
         </h3>
         <select
           value={preset}
           onChange={(e) => handlePresetChange(e.target.value)}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={disabled}
         >
           <option value="">自定义配置</option>
@@ -128,16 +130,16 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
             </option>
           ))}
         </select>
-      </div>
+      </Card>
 
       {/* 基本选项 */}
-      <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+      <Card>
         <div>
-          <label className="text-sm font-medium mb-2 block">输出格式</label>
+          <label className="text-sm font-medium mb-2 block text-text-primary">输出格式</label>
           <select
             value={outputFormat}
             onChange={(e) => setOutputFormat(e.target.value)}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={disabled}
           >
             <optgroup label="视频格式">
@@ -156,34 +158,42 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
             </optgroup>
           </select>
         </div>
-      </div>
+      </Card>
 
       {/* 高级选项 */}
-      <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+      <Card>
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="w-full flex items-center justify-between text-sm font-medium"
+          className="w-full flex items-center justify-between text-sm font-semibold text-text-primary transition-colors hover:text-primary-600"
           type="button"
         >
           <span className="flex items-center gap-2">
-            <Settings2 className="h-4 w-4" />
+            <Settings2 className="h-4 w-4 text-primary-600" />
             高级选项
           </span>
-          <span className="text-xs text-muted-foreground">
-            {showAdvanced ? '收起' : '展开'}
-          </span>
+          <ChevronRight
+            className={cn(
+              'h-4 w-4 text-text-tertiary transition-transform duration-200',
+              showAdvanced && 'rotate-90'
+            )}
+          />
         </button>
 
-        {showAdvanced && (
-          <div className="space-y-4 pt-2">
+        <div
+          className={cn(
+            'transition-all duration-300 ease-in-out overflow-hidden',
+            showAdvanced ? 'max-h-[1000px] opacity-100 mt-4' : 'max-h-0 opacity-0'
+          )}
+        >
+          <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               {/* 视频编解码器 */}
               <div>
-                <label className="text-sm font-medium mb-2 block">视频编解码器</label>
+                <label className="text-sm font-medium mb-2 block text-text-primary">视频编解码器</label>
                 <select
                   value={videoCodec}
                   onChange={(e) => setVideoCodec(e.target.value as VideoCodec)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={disabled}
                 >
                   {VIDEO_CODECS.map((codec) => (
@@ -192,18 +202,18 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-text-tertiary mt-1.5">
                   {VIDEO_CODECS.find(c => c.value === videoCodec)?.description}
                 </p>
               </div>
 
               {/* 音频编解码器 */}
               <div>
-                <label className="text-sm font-medium mb-2 block">音频编解码器</label>
+                <label className="text-sm font-medium mb-2 block text-text-primary">音频编解码器</label>
                 <select
                   value={audioCodec}
                   onChange={(e) => setAudioCodec(e.target.value as AudioCodec)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={disabled}
                 >
                   {AUDIO_CODECS.map((codec) => (
@@ -212,7 +222,7 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-text-tertiary mt-1.5">
                   {AUDIO_CODECS.find(c => c.value === audioCodec)?.description}
                 </p>
               </div>
@@ -221,11 +231,11 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
             <div className="grid grid-cols-2 gap-4">
               {/* 质量预设 */}
               <div>
-                <label className="text-sm font-medium mb-2 block">编码速度/质量</label>
+                <label className="text-sm font-medium mb-2 block text-text-primary">编码速度/质量</label>
                 <select
                   value={quality}
                   onChange={(e) => setQuality(e.target.value as VideoQuality)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={disabled}
                 >
                   {QUALITY_PRESETS.map((preset) => (
@@ -234,18 +244,18 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-text-tertiary mt-1.5">
                   {QUALITY_PRESETS.find(q => q.value === quality)?.description}
                 </p>
               </div>
 
               {/* 分辨率 */}
               <div>
-                <label className="text-sm font-medium mb-2 block">分辨率</label>
+                <label className="text-sm font-medium mb-2 block text-text-primary">分辨率</label>
                 <select
                   value={resolution}
                   onChange={(e) => setResolution(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={disabled}
                 >
                   {RESOLUTIONS.map((res) => (
@@ -260,11 +270,11 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
             <div className="grid grid-cols-2 gap-4">
               {/* 视频比特率 */}
               <div>
-                <label className="text-sm font-medium mb-2 block">视频比特率</label>
+                <label className="text-sm font-medium mb-2 block text-text-primary">视频比特率</label>
                 <select
                   value={videoBitrate}
                   onChange={(e) => setVideoBitrate(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={disabled}
                 >
                   {VIDEO_BITRATES.map((bitrate) => (
@@ -277,11 +287,11 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
 
               {/* 音频比特率 */}
               <div>
-                <label className="text-sm font-medium mb-2 block">音频比特率</label>
+                <label className="text-sm font-medium mb-2 block text-text-primary">音频比特率</label>
                 <select
                   value={audioBitrate}
                   onChange={(e) => setAudioBitrate(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={disabled}
                 >
                   {AUDIO_BITRATES.map((bitrate) => (
@@ -295,11 +305,11 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
 
             {/* 帧率 */}
             <div>
-              <label className="text-sm font-medium mb-2 block">帧率</label>
+              <label className="text-sm font-medium mb-2 block text-text-primary">帧率</label>
               <select
                 value={fps}
                 onChange={(e) => setFps(Number(e.target.value))}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={disabled}
               >
                 {FRAME_RATES.map((rate) => (
@@ -310,8 +320,8 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
               </select>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      </Card>
 
       {/* 开始转换按钮 */}
       <Button
@@ -324,7 +334,7 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
       </Button>
 
       {!inputFile && (
-        <p className="text-xs text-center text-muted-foreground">
+        <p className="text-xs text-center text-text-tertiary">
           请先选择要转换的文件
         </p>
       )}
