@@ -1,7 +1,7 @@
 import { Task, TaskStatus } from '@shared/types';
 import { Button } from '../ui/button';
 import { Play, Pause, X, RotateCcw, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
-import { memo, useMemo, useCallback } from 'react';
+import { memo, useMemo } from 'react';
 import { formatTime, calculateDuration, formatSpeed, formatFileSize, formatBitrate } from '@renderer/lib/formatters';
 
 interface TaskCardProps {
@@ -191,7 +191,7 @@ export const TaskCard = memo(function TaskCard({ task, onPause, onResume, onCanc
           {task.status === 'running' && onPause && (
             <Button
               size="sm"
-              variant="outline"
+              variant="secondary"
               onClick={() => onPause(task.id)}
               title="暂停"
             >
@@ -202,7 +202,7 @@ export const TaskCard = memo(function TaskCard({ task, onPause, onResume, onCanc
           {task.status === 'paused' && onResume && (
             <Button
               size="sm"
-              variant="outline"
+              variant="secondary"
               onClick={() => onResume(task.id)}
               title="继续"
             >
@@ -213,7 +213,7 @@ export const TaskCard = memo(function TaskCard({ task, onPause, onResume, onCanc
           {(task.status === 'pending' || task.status === 'running' || task.status === 'paused') && onCancel && (
             <Button
               size="sm"
-              variant="outline"
+              variant="secondary"
               onClick={() => onCancel(task.id)}
               title="取消"
             >
@@ -224,7 +224,7 @@ export const TaskCard = memo(function TaskCard({ task, onPause, onResume, onCanc
           {(task.status === 'failed' || task.status === 'cancelled') && onRetry && (
             <Button
               size="sm"
-              variant="outline"
+              variant="secondary"
               onClick={() => onRetry(task.id)}
               title="重试"
             >

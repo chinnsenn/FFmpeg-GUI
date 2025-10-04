@@ -20,7 +20,7 @@ export function Header() {
 
       <div className="flex items-center gap-2">
         {/* 主题切换 */}
-        <Button variant="ghost" size="icon" onClick={toggleTheme}>
+        <Button variant="icon" size="md" onClick={toggleTheme}>
           {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
       </div>

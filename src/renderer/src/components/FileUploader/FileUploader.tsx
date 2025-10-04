@@ -90,7 +90,7 @@ export function FileUploader({
             </div>
             <Button
               onClick={handleSelectFromDialog}
-              variant="outline"
+              variant="secondary"
               className="gap-2"
               type="button"
             >

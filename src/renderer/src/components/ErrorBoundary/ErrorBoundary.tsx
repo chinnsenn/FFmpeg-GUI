@@ -96,11 +96,11 @@ export class ErrorBoundary extends Component<Props, State> {
                 <RefreshCw className="w-4 h-4" />
                 重试
               </Button>
-              <Button onClick={this.handleReload} variant="outline" className="flex items-center gap-2">
+              <Button onClick={this.handleReload} variant="secondary" className="flex items-center gap-2">
                 <RefreshCw className="w-4 h-4" />
                 重新加载页面
               </Button>
-              <Button onClick={this.handleGoHome} variant="outline" className="flex items-center gap-2">
+              <Button onClick={this.handleGoHome} variant="secondary" className="flex items-center gap-2">
                 <Home className="w-4 h-4" />
                 返回首页
               </Button>

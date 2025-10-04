@@ -178,7 +178,7 @@
     .border-border-light { border-color: hsl(var(--border-light)); }
     .border-border-medium { border-color: hsl(var(--border-medium)); }
 
-    .dark .dark\:bg-primary-500\/10 { background-color: hsl(var(--primary-500) / 0.1); }
+    .dark .bg-primary-50 { background-color: hsl(var(--primary-500) / 0.1); }
   </style>
 
   <script>
@@ -194,7 +194,8 @@
             4: '16px',
             5: '20px',
             6: '24px',
-            8: '32px'
+            8: '32px',
+            30: '120px'
           },
           borderRadius: {
             'lg': '12px',
@@ -499,12 +500,14 @@
 
         // Remove active class from all links
         navLinks.forEach(l => {
-          l.classList.remove('active', 'text-primary-600', 'bg-primary-50', 'dark:bg-primary-500/10', 'font-semibold', 'border-l-3', 'border-primary-500');
+          l.classList.remove('active', 'text-primary-600', 'bg-primary-50', 'font-semibold');
           l.classList.add('text-text-secondary');
+          l.style.borderLeft = 'none';
+          l.style.paddingLeft = '16px';
         });
 
         // Add active class to clicked link
-        link.classList.add('active', 'text-primary-600', 'bg-primary-50', 'dark:bg-primary-500/10', 'font-semibold');
+        link.classList.add('active', 'text-primary-600', 'bg-primary-50', 'font-semibold');
         link.classList.remove('text-text-secondary');
         link.style.borderLeft = '3px solid hsl(var(--primary-500))';
         link.style.paddingLeft = '13px';
@@ -514,7 +517,7 @@
       if (!link.classList.contains('active')) {
         link.classList.add('text-text-secondary', 'hover:text-text-primary', 'hover:bg-background-tertiary');
       } else {
-        link.classList.add('text-primary-600', 'bg-primary-50', 'dark:bg-primary-500/10', 'font-semibold');
+        link.classList.add('text-primary-600', 'bg-primary-50', 'font-semibold');
         link.style.borderLeft = '3px solid hsl(var(--primary-500))';
         link.style.paddingLeft = '13px';
       }

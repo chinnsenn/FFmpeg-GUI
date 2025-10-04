@@ -4,6 +4,7 @@ import { Button } from '@renderer/components/ui/button';
 import { MediaInfo } from '@renderer/components/MediaInfo/MediaInfo';
 import { formatFileSize } from '@renderer/lib/formatters';
 import type { FileListItem } from '@renderer/hooks/useFileManager';
+import type { FileInfo } from '@shared/types';
 
 interface FileListProps {
   files: FileListItem[];
@@ -80,8 +81,8 @@ export function FileList({ files, onRemove }: FileListProps) {
                 <div className="flex items-center gap-1">
                   {hasMediaInfo && (
                     <Button
-                      variant="ghost"
-                      size="icon"
+                      variant="icon"
+                      size="sm"
                       onClick={() => toggleExpand(item.id)}
                       className="shrink-0"
                     >
@@ -93,8 +94,8 @@ export function FileList({ files, onRemove }: FileListProps) {
                     </Button>
                   )}
                   <Button
-                    variant="ghost"
-                    size="icon"
+                    variant="icon"
+                    size="sm"
                     onClick={() => onRemove(item.id)}
                     className="shrink-0"
                   >

@@ -243,7 +243,7 @@ export function Queue() {
           {/* 操作按钮 */}
           <div className="flex gap-2">
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={loadTasks}
               disabled={loading}
@@ -252,7 +252,7 @@ export function Queue() {
               刷新
             </Button>
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={handleClearCompleted}
               disabled={completedCount === 0}
