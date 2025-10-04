@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Zap, Sparkles, Scale, Smartphone, Globe } from 'lucide-react';
 import type { CompressOptions } from '@shared/types';
 import { Card } from '../ui/card';

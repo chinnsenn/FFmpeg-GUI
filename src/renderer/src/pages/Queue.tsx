@@ -1,10 +1,9 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { TaskCard } from '@renderer/components/TaskCard/TaskCard';
-import { Button } from '@renderer/components/ui/button';
 import { Card } from '@renderer/components/ui/card';
 import { Task, TaskManagerStatus } from '@shared/types';
 import { IPC_CHANNELS } from '@shared/constants';
-import { Trash2, RefreshCw } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { cn } from '@renderer/lib/utils';
 
 export function Queue() {
@@ -170,104 +169,91 @@ export function Queue() {
     };
   }, [tasks]);
 
+  // 处理最大并发数修改
+  const handleMaxConcurrentChange = useCallback(async (value: number) => {
+    try {
+      await window.electronAPI.task.setMaxConcurrent(value);
+      setStatus((prev: TaskManagerStatus) => ({ ...prev, maxConcurrent: value }));
+    } catch (error) {
+      console.error('设置最大并发数失败:', error);
+    }
+  }, []);
+
   return (
     <div className="max-w-6xl mx-auto">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1
-          className="text-4xl font-bold tracking-tight text-text-primary mb-2"
-          style={{ letterSpacing: '-0.02em' }}
-        >
-          任务队列
-        </h1>
-        <p className="text-sm text-text-secondary">
-          共 {tasks.length} 个任务 | 等待: {pendingCount} | 运行: {runningCount} | 完成: {completedCount} | 失败: {failedCount}
-        </p>
-      </div>
-
       <div className="space-y-6">
-        {/* 过滤和操作栏 */}
+        {/* 顶部状态栏 - 单行紧凑显示 */}
+        <Card padding="default">
+          <div className="flex items-center justify-between">
+            {/* 左侧：状态统计 */}
+            <div className="flex items-center gap-4 text-sm">
+              <span className="text-text-secondary">
+                运行中: <span className="font-semibold text-primary-600">{runningCount}</span>
+              </span>
+              <span className="text-text-tertiary">|</span>
+              <span className="text-text-secondary">
+                队列中: <span className="font-semibold text-text-primary">{pendingCount}</span>
+              </span>
+              <span className="text-text-tertiary">|</span>
+              <span className="text-text-secondary">
+                已完成: <span className="font-semibold text-success-600">{completedCount}</span>
+              </span>
+              <span className="text-text-tertiary">|</span>
+              <span className="text-text-secondary">
+                失败: <span className="font-semibold text-error-600">{failedCount}</span>
+              </span>
+            </div>
+
+            {/* 右侧：最大并发下拉框 */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-text-secondary">最大并发:</label>
+              <select
+                value={status.maxConcurrent}
+                onChange={(e) => handleMaxConcurrentChange(Number(e.target.value))}
+                className="h-8 px-2 py-1 rounded border border-border-medium bg-surface-base text-text-primary text-sm transition-all hover:border-border-dark focus:outline-none focus:border-primary-500"
+              >
+                <option value={1}>1</option>
+                <option value={2}>2</option>
+                <option value={3}>3</option>
+                <option value={4}>4</option>
+                <option value={5}>5</option>
+              </select>
+            </div>
+          </div>
+        </Card>
+
+        {/* 筛选和操作栏 */}
         <div className="flex items-center justify-between">
-          {/* 过滤按钮 */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setFilter('all')}
-              className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-all',
-                filter === 'all'
-                  ? 'bg-primary-600 text-white shadow-sm'
-                  : 'bg-surface-raised border border-border-light text-text-secondary hover:bg-background-tertiary hover:text-text-primary'
-              )}
+          {/* 左侧：筛选下拉菜单 */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-text-secondary">筛选:</label>
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value as typeof filter)}
+              className="h-10 px-3 py-2 rounded-lg border border-border-medium bg-surface-base text-text-primary text-sm transition-all hover:border-border-dark focus:outline-none focus:border-primary-500"
             >
-              全部 ({tasks.length})
-            </button>
-            <button
-              onClick={() => setFilter('pending')}
-              className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-all',
-                filter === 'pending'
-                  ? 'bg-primary-600 text-white shadow-sm'
-                  : 'bg-surface-raised border border-border-light text-text-secondary hover:bg-background-tertiary hover:text-text-primary'
-              )}
-            >
-              等待中 ({pendingCount})
-            </button>
-            <button
-              onClick={() => setFilter('running')}
-              className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-all',
-                filter === 'running'
-                  ? 'bg-primary-600 text-white shadow-sm'
-                  : 'bg-surface-raised border border-border-light text-text-secondary hover:bg-background-tertiary hover:text-text-primary'
-              )}
-            >
-              运行中 ({runningCount})
-            </button>
-            <button
-              onClick={() => setFilter('completed')}
-              className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-all',
-                filter === 'completed'
-                  ? 'bg-primary-600 text-white shadow-sm'
-                  : 'bg-surface-raised border border-border-light text-text-secondary hover:bg-background-tertiary hover:text-text-primary'
-              )}
-            >
-              已完成 ({completedCount})
-            </button>
-            <button
-              onClick={() => setFilter('failed')}
-              className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-all',
-                filter === 'failed'
-                  ? 'bg-primary-600 text-white shadow-sm'
-                  : 'bg-surface-raised border border-border-light text-text-secondary hover:bg-background-tertiary hover:text-text-primary'
-              )}
-            >
-              失败/取消 ({failedCount})
-            </button>
+              <option value="all">全部</option>
+              <option value="pending">等待中</option>
+              <option value="running">运行中</option>
+              <option value="completed">已完成</option>
+              <option value="failed">失败/取消</option>
+            </select>
           </div>
 
-          {/* 操作按钮 */}
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={loadTasks}
-              disabled={loading}
-            >
-              <RefreshCw className={cn('w-4 h-4 mr-2', loading && 'animate-spin')} />
-              刷新
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleClearCompleted}
-              disabled={completedCount === 0}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              清除已完成
-            </Button>
-          </div>
+          {/* 右侧：清除已完成按钮 */}
+          <button
+            onClick={handleClearCompleted}
+            disabled={completedCount === 0}
+            className={cn(
+              'flex items-center gap-2 h-10 px-4 rounded-lg text-sm font-medium transition-all',
+              'bg-error-50 text-error-600 border border-error-200',
+              'hover:bg-error-100 hover:border-error-300',
+              'disabled:opacity-50 disabled:cursor-not-allowed'
+            )}
+          >
+            <Trash2 className="w-4 h-4" />
+            清空已完成
+          </button>
         </div>
 
         {/* 任务列表 */}
@@ -298,38 +284,6 @@ export function Queue() {
             ))
           )}
         </div>
-
-        {/* 队列状态信息 */}
-        {tasks.length > 0 && (
-          <Card padding="default">
-            <div className="grid grid-cols-4 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-text-tertiary">
-                  {status.queued}
-                </div>
-                <div className="text-sm text-text-secondary mt-1">队列中</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-primary-600">
-                  {status.running}
-                </div>
-                <div className="text-sm text-text-secondary mt-1">运行中</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-success-600">
-                  {status.completed}
-                </div>
-                <div className="text-sm text-text-secondary mt-1">已完成</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-text-secondary">
-                  {status.maxConcurrent}
-                </div>
-                <div className="text-sm text-text-secondary mt-1">最大并发</div>
-              </div>
-            </div>
-          </Card>
-        )}
       </div>
     </div>
   );
