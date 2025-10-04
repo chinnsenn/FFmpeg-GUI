@@ -1,13 +1,13 @@
 import { Router } from './router';
 import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary';
-import { Toaster } from 'sonner';
+import { Toaster } from '@renderer/components/ui/toast';
 import './index.css';
 
 function App() {
   return (
     <ErrorBoundary>
       <Router />
-      <Toaster position="top-right" richColors />
+      <Toaster />
     </ErrorBoundary>
   );
 }

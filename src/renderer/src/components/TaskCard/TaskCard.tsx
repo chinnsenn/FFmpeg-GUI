@@ -1,5 +1,6 @@
 import { Task, TaskStatus } from '@shared/types';
 import { Button } from '../ui/button';
+import { Progress } from '../ui/progress';
 import { Play, Pause, X, RotateCcw, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import { formatTime, calculateDuration, formatSpeed, formatFileSize, formatBitrate } from '@renderer/lib/formatters';
@@ -145,12 +146,7 @@ export const TaskCard = memo(function TaskCard({ task, onPause, onResume, onCanc
           {/* 进度条和详细信息 */}
           {task.status === 'running' && task.progress !== undefined && (
             <div className="mt-3 space-y-2">
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${task.progress}%` }}
-                />
-              </div>
+              <Progress value={task.progress} animated />
               {/* 详细进度信息 */}
               {task.progressInfo && (
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
