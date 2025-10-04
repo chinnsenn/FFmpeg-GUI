@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskCard Component - All States</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* CSS Variables - Design Tokens */
+    :root {
+      /* Colors */
+      --background-primary: #FFFFFF;
+      --background-secondary: #F9FAFB;
+      --background-tertiary: #F3F4F6;
+      --surface-base: #FFFFFF;
+      --surface-raised: #FFFFFF;
+      --text-primary: #111827;
+      --text-secondary: #6B7280;
+      --text-tertiary: #9CA3AF;
+      --border-light: #E5E7EB;
+      --border-medium: #D1D5DB;
+
+      /* Status Colors */
+      --primary-500: #3B82F6;
+      --primary-600: #2563EB;
+      --primary-700: #1D4ED8;
+      --success-50: #F0FDF4;
+      --success-500: #22C55E;
+      --success-600: #16A34A;
+      --error-50: #FEF2F2;
+      --error-500: #EF4444;
+      --error-600: #DC2626;
+      --warning-50: #FFFBEB;
+      --warning-500: #F59E0B;
+      --warning-600: #D97706;
+
+      /* Spacing */
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-6: 24px;
+
+      /* Border Radius */
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-full: 9999px;
+
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--background-secondary);
+      padding: 40px 20px;
+      color: var(--text-primary);
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 40px;
+      text-align: center;
+      color: var(--text-primary);
+    }
+
+    .cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* TaskCard Base */
+    .task-card {
+      width: 100%;
+      min-height: 120px;
+      padding: var(--space-6);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-light);
+      background: var(--background-secondary);
+      transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Status Variants */
+    .task-card--pending {
+      background: var(--background-secondary);
+      border: 1px solid var(--border-light);
+      box-shadow: none;
+    }
+
+    .task-card--running {
+      background: var(--surface-raised);
+      border: 2px solid var(--primary-500);
+      box-shadow: var(--shadow-md);
+      animation: border-pulse 2s ease-in-out infinite;
+    }
+
+    .task-card--paused {
+      background: var(--warning-50);
+      border: 1px solid var(--warning-500);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .task-card--completed {
+      background: var(--success-50);
+      border: 1px solid var(--success-500);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .task-card--failed {
+      background: var(--error-50);
+      border: 1px solid var(--error-500);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .task-card--cancelled {
+      background: var(--background-secondary);
+      border: 1px solid var(--border-light);
+      box-shadow: none;
+    }
+
+    /* Card Header */
+    .task-card__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .task-card__status {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .task-card__icon {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .task-card__status-info {
+      flex: 1;
+    }
+
+    .task-card__status-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .task-card__files {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .task-card__actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Buttons */
+    .btn {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 150ms ease;
+      color: var(--text-secondary);
+    }
+
+    .btn:hover {
+      background: var(--background-tertiary);
+      color: var(--text-primary);
+    }
+
+    .btn--danger:hover {
+      color: var(--error-600);
+    }
+
+    .btn--primary:hover {
+      color: var(--primary-600);
+    }
+
+    /* Progress Bar */
+    .progress-section {
+      margin-top: 16px;
+    }
+
+    .progress-bar {
+      position: relative;
+      width: 100%;
+      height: 8px;
+      background: var(--border-light);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .progress-bar__fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+      border-radius: var(--radius-full);
+      transition: width 300ms ease-out;
+    }
+
+    .progress-bar__shimmer {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 100%
+      );
+      animation: shimmer 2s infinite;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Status Messages */
+    .task-card__message {
+      margin-top: 12px;
+      font-size: 12px;
+    }
+
+    .task-card__message--success {
+      color: var(--success-600);
+    }
+
+    .task-card__message--error {
+      color: var(--error-600);
+    }
+
+    /* Animations */
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    @keyframes border-pulse {
+      0%, 100% {
+        border-color: var(--primary-500);
+        opacity: 1;
+      }
+      50% {
+        border-color: var(--primary-500);
+        opacity: 0.8;
+      }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes scale-in {
+      from {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+
+    .animate-scale-in {
+      animation: scale-in 300ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .animate-shake {
+      animation: shake 400ms ease-in-out;
+    }
+
+    /* Icon Colors */
+    .icon-gray { color: #9CA3AF; }
+    .icon-blue { color: var(--primary-600); }
+    .icon-yellow { color: var(--warning-600); }
+    .icon-green { color: var(--success-600); }
+    .icon-red { color: var(--error-600); }
+
+    .text-primary { color: var(--primary-600); }
+    .text-success { color: var(--success-600); }
+    .text-warning { color: var(--warning-600); }
+    .text-error { color: var(--error-600); }
+    .text-gray { color: var(--text-secondary); }
+
+    .font-semibold {
+      font-weight: 600;
+    }
+
+    .text-base {
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>TaskCard Component - All States</h1>
+
+    <div class="cards-list">
+      <!-- 1. PENDING STATE -->
+      <div class="task-card task-card--pending">
+        <div class="task-card__header">
+          <div class="task-card__status">
+            <div class="task-card__icon">
+              <i data-lucide="clock" class="icon-gray" width="20" height="20"></i>
+            </div>
+            <div class="task-card__status-info">
+              <div class="task-card__status-label">
+                <span class="text-gray">等待中</span>
+              </div>
+              <div class="task-card__files">
+                <div>输入: video.mp4</div>
+                <div>输出: video.webm</div>
+              </div>
+            </div>
+          </div>
+          <div class="task-card__actions">
+            <button class="btn btn--danger">
+              <i data-lucide="x" width="16" height="16"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. RUNNING STATE -->
+      <div class="task-card task-card--running">
+        <div class="task-card__header">
+          <div class="task-card__status">
+            <div class="task-card__icon">
+              <i data-lucide="loader-2" class="icon-blue animate-spin" width="20" height="20"></i>
+            </div>
+            <div class="task-card__status-info">
+              <div class="task-card__status-label">
+                <span class="text-primary">运行中</span>
+                <span class="text-primary font-semibold text-base">45%</span>
+              </div>
+              <div class="task-card__files">
+                <div>输入: video.mp4</div>
+                <div>输出: video.webm</div>
+              </div>
+            </div>
+          </div>
+          <div class="task-card__actions">
+            <button class="btn">
+              <i data-lucide="pause" width="16" height="16"></i>
+            </button>
+            <button class="btn btn--danger">
+              <i data-lucide="x" width="16" height="16"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="progress-section">
+          <div class="progress-bar">
+            <div class="progress-bar__fill" style="width: 45%;">
+              <div class="progress-bar__shimmer"></div>
+            </div>
+          </div>
+          <div class="progress-info">
+            <span>速度: 1.8x</span>
+            <span>ETA: 5:32</span>
+            <span>FPS: 54</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. PAUSED STATE -->
+      <div class="task-card task-card--paused">
+        <div class="task-card__header">
+          <div class="task-card__status">
+            <div class="task-card__icon">
+              <i data-lucide="pause" class="icon-yellow" width="20" height="20"></i>
+            </div>
+            <div class="task-card__status-info">
+              <div class="task-card__status-label">
+                <span class="text-warning">已暂停</span>
+                <span class="text-warning font-semibold text-base">45%</span>
+              </div>
+              <div class="task-card__files">
+                <div>输入: video.mp4</div>
+                <div>输出: video.webm</div>
+              </div>
+            </div>
+          </div>
+          <div class="task-card__actions">
+            <button class="btn btn--primary">
+              <i data-lucide="play" width="16" height="16"></i>
+            </button>
+            <button class="btn btn--danger">
+              <i data-lucide="x" width="16" height="16"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="progress-section">
+          <div class="progress-bar">
+            <div class="progress-bar__fill" style="width: 45%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. COMPLETED STATE -->
+      <div class="task-card task-card--completed">
+        <div class="task-card__header">
+          <div class="task-card__status">
+            <div class="task-card__icon">
+              <i data-lucide="check-circle-2" class="icon-green animate-scale-in" width="20" height="20"></i>
+            </div>
+            <div class="task-card__status-info">
+              <div class="task-card__status-label">
+                <span class="text-success">已完成</span>
+              </div>
+              <div class="task-card__files">
+                <div>输入: video.mp4</div>
+                <div>输出: video.webm</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="task-card__message task-card__message--success">
+          用时: 8:12
+        </div>
+      </div>
+
+      <!-- 5. FAILED STATE -->
+      <div class="task-card task-card--failed">
+        <div class="task-card__header">
+          <div class="task-card__status">
+            <div class="task-card__icon">
+              <i data-lucide="x-circle" class="icon-red animate-shake" width="20" height="20"></i>
+            </div>
+            <div class="task-card__status-info">
+              <div class="task-card__status-label">
+                <span class="text-error">失败</span>
+              </div>
+              <div class="task-card__files">
+                <div>输入: video.mp4</div>
+                <div>输出: video.webm</div>
+              </div>
+            </div>
+          </div>
+          <div class="task-card__actions">
+            <button class="btn btn--primary">
+              <i data-lucide="rotate-ccw" width="16" height="16"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="task-card__message task-card__message--error">
+          错误: Unsupported video codec
+        </div>
+      </div>
+
+      <!-- 6. CANCELLED STATE -->
+      <div class="task-card task-card--cancelled">
+        <div class="task-card__header">
+          <div class="task-card__status">
+            <div class="task-card__icon">
+              <i data-lucide="x" class="icon-gray" width="20" height="20"></i>
+            </div>
+            <div class="task-card__status-info">
+              <div class="task-card__status-label">
+                <span class="text-gray">已取消</span>
+              </div>
+              <div class="task-card__files">
+                <div>输入: video.mp4</div>
+                <div>输出: video.webm</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>

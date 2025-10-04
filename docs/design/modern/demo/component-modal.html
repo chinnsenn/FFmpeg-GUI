@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modal Component Examples - FFmpeg GUI Design System</title>
+  <style>
+    /* Design Tokens */
+    :root {
+      /* Colors - Light Theme */
+      --background-primary: #FFFFFF;
+      --background-secondary: #F9FAFB;
+      --background-tertiary: #F3F4F6;
+      --surface-base: #FFFFFF;
+      --surface-raised: #FFFFFF;
+
+      --text-primary: #111827;
+      --text-secondary: #6B7280;
+      --text-tertiary: #9CA3AF;
+
+      --border-light: #E5E7EB;
+      --border-medium: #D1D5DB;
+      --border-dark: #9CA3AF;
+
+      --primary-500: #3B82F6;
+      --primary-600: #2563EB;
+      --primary-700: #1D4ED8;
+      --primary-50: #EFF6FF;
+
+      --error-500: #EF4444;
+      --error-600: #DC2626;
+      --error-700: #B91C1C;
+      --error-50: #FEF2F2;
+
+      --warning-500: #F59E0B;
+      --warning-600: #D97706;
+
+      /* Spacing */
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-6: 24px;
+      --space-8: 32px;
+
+      /* Border Radius */
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Dark Theme */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background-primary: #0F1419;
+        --background-secondary: #1A1F29;
+        --background-tertiary: #242933;
+        --surface-base: #1A1F29;
+        --surface-raised: #242933;
+
+        --text-primary: #F9FAFB;
+        --text-secondary: #9CA3AF;
+        --text-tertiary: #6B7280;
+
+        --border-light: #374151;
+        --border-medium: #4B5563;
+        --border-dark: #6B7280;
+
+        --primary-50: rgba(59, 130, 246, 0.1);
+        --error-50: rgba(239, 68, 68, 0.1);
+
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
+      }
+    }
+
+    /* Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--background-primary);
+      color: var(--text-primary);
+      padding: 40px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 48px;
+    }
+
+    /* Button Styles */
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 40px;
+      padding: 0 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      transition: all 150ms ease;
+      font-family: inherit;
+    }
+
+    .button-primary {
+      background: var(--primary-600);
+      color: white;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .button-primary:hover {
+      background: var(--primary-700);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .button-primary:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .button-secondary {
+      background: var(--background-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-medium);
+    }
+
+    .button-secondary:hover {
+      background: var(--border-light);
+      border-color: var(--border-dark);
+    }
+
+    .button-destructive {
+      background: var(--error-600);
+      color: white;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .button-destructive:hover {
+      background: var(--error-700);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 24px;
+      opacity: 0;
+      transition: opacity 200ms ease;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .modal-overlay {
+        background: rgba(0, 0, 0, 0.7);
+      }
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+    }
+
+    /* Modal Container */
+    .modal {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      padding: var(--space-8);
+      background: var(--surface-raised);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      overflow-y: auto;
+      opacity: 0;
+      transform: scale(0.95) translateY(10px);
+      transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .modal-overlay.active .modal {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-overlay.closing .modal {
+      opacity: 0;
+      transform: scale(0.95) translateY(10px);
+      transition: all 150ms cubic-bezier(0.4, 0, 0.6, 1);
+    }
+
+    /* Modal Header */
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: var(--space-6);
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+
+    .modal-close:hover {
+      background: var(--background-tertiary);
+      color: var(--text-primary);
+    }
+
+    /* Modal Content */
+    .modal-content {
+      margin-bottom: var(--space-6);
+    }
+
+    .modal-content p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    /* Modal Footer */
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 40px;
+      padding: 8px 12px;
+      font-size: 14px;
+      background: var(--surface-base);
+      color: var(--text-primary);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      transition: all 150ms ease;
+      font-family: inherit;
+    }
+
+    .form-input:hover {
+      border-color: var(--border-dark);
+    }
+
+    .form-input:focus {
+      outline: none;
+      border: 2px solid var(--primary-500);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      padding: 7px 11px;
+    }
+
+    .form-input::placeholder {
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+
+    .form-select {
+      width: 100%;
+      height: 40px;
+      padding: 8px 12px;
+      font-size: 14px;
+      background: var(--surface-base);
+      color: var(--text-primary);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      transition: all 150ms ease;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .form-select:hover {
+      border-color: var(--border-dark);
+    }
+
+    .form-select:focus {
+      outline: none;
+      border: 2px solid var(--primary-500);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      padding: 7px 11px;
+    }
+
+    /* Warning Icon */
+    .warning-icon {
+      width: 24px;
+      height: 24px;
+      color: var(--warning-600);
+    }
+
+    /* Icon SVG */
+    .icon {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Hidden State */
+    .hidden {
+      display: none;
+    }
+
+    /* Focus Trap (for accessibility) */
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    /* Info Section */
+    .info-section {
+      background: var(--background-secondary);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-top: 48px;
+    }
+
+    .info-section h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+    }
+
+    .info-section ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .info-section li {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .info-section li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--primary-500);
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Modal Component Examples</h1>
+    <p class="subtitle">Interactive demos of modal dialogs with animations and interactions</p>
+
+    <div class="button-group">
+      <button class="button button-primary" id="openConfirmDialog">
+        Open Confirmation Dialog
+      </button>
+      <button class="button button-primary" id="openErrorDialog">
+        Open Error Dialog
+      </button>
+      <button class="button button-primary" id="openFormDialog">
+        Open Form Dialog
+      </button>
+    </div>
+
+    <div class="info-section">
+      <h2>Modal Specifications</h2>
+      <ul>
+        <li>Maximum width: 600px</li>
+        <li>Padding: 32px</li>
+        <li>Border radius: 16px</li>
+        <li>Shadow: Level 3 (Floating)</li>
+        <li>Overlay: Semi-transparent black with backdrop blur</li>
+        <li>Animation: Fade in + scale from 0.95 to 1 + slide up (200ms)</li>
+        <li>Exit animation: Fade out + scale to 0.95 (150ms)</li>
+        <li>Interactions: Click overlay/X button to close, Escape key supported</li>
+        <li>Focus trap: Active when modal is open</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Modal 1: Confirmation Dialog -->
+  <div id="confirmDialog" class="modal-overlay hidden">
+    <div class="modal" role="dialog" aria-labelledby="confirmTitle" aria-modal="true">
+      <button class="modal-close" aria-label="Close dialog">
+        <svg class="icon" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="modal-header">
+        <h2 id="confirmTitle" class="modal-title">Clear Completed Tasks?</h2>
+      </div>
+
+      <div class="modal-content">
+        <p>This will delete 15 completed task records. This action cannot be undone.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="button button-secondary" data-close>Cancel</button>
+        <button class="button button-destructive" data-close>Confirm Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Error Dialog -->
+  <div id="errorDialog" class="modal-overlay hidden">
+    <div class="modal" role="dialog" aria-labelledby="errorTitle" aria-modal="true">
+      <button class="modal-close" aria-label="Close dialog">
+        <svg class="icon" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="modal-header">
+        <h2 id="errorTitle" class="modal-title">
+          <svg class="warning-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          FFmpeg Not Detected
+        </h2>
+      </div>
+
+      <div class="modal-content">
+        <p>FFmpeg is required for video processing. The application cannot work without it.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="button button-secondary" data-close>Learn More</button>
+        <button class="button button-secondary" data-close>Manual Setup</button>
+        <button class="button button-primary" data-close>Auto Download</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Form Dialog -->
+  <div id="formDialog" class="modal-overlay hidden">
+    <div class="modal" role="dialog" aria-labelledby="formTitle" aria-modal="true">
+      <button class="modal-close" aria-label="Close dialog">
+        <svg class="icon" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="modal-header">
+        <h2 id="formTitle" class="modal-title">Add Custom Preset</h2>
+      </div>
+
+      <div class="modal-content">
+        <form id="presetForm">
+          <div class="form-group">
+            <label class="form-label" for="presetName">Preset Name</label>
+            <input
+              type="text"
+              id="presetName"
+              class="form-input"
+              placeholder="e.g., High Quality 1080p"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="outputFormat">Output Format</label>
+            <select id="outputFormat" class="form-select" required>
+              <option value="">Select format...</option>
+              <option value="mp4">MP4 (H.264)</option>
+              <option value="webm">WebM (VP9)</option>
+              <option value="mkv">MKV (Matroska)</option>
+              <option value="avi">AVI</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="videoBitrate">Video Bitrate (kbps)</label>
+            <input
+              type="number"
+              id="videoBitrate"
+              class="form-input"
+              placeholder="e.g., 8000"
+              min="500"
+              max="50000"
+              required
+            />
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="button button-secondary" data-close>Cancel</button>
+        <button class="button button-primary" id="savePreset">Save Preset</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Modal Management
+    class ModalManager {
+      constructor() {
+        this.activeModal = null;
+        this.focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+        this.firstFocusableElement = null;
+        this.lastFocusableElement = null;
+
+        this.init();
+      }
+
+      init() {
+        // Open buttons
+        document.getElementById('openConfirmDialog').addEventListener('click', () => {
+          this.open('confirmDialog');
+        });
+
+        document.getElementById('openErrorDialog').addEventListener('click', () => {
+          this.open('errorDialog');
+        });
+
+        document.getElementById('openFormDialog').addEventListener('click', () => {
+          this.open('formDialog');
+        });
+
+        // Close buttons (X and Cancel/action buttons)
+        document.querySelectorAll('.modal-close, [data-close]').forEach(button => {
+          button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.close();
+          });
+        });
+
+        // Overlay click to close
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+          overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+              this.close();
+            }
+          });
+        });
+
+        // Escape key to close
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && this.activeModal) {
+            this.close();
+          }
+        });
+
+        // Form submit
+        document.getElementById('savePreset').addEventListener('click', (e) => {
+          e.preventDefault();
+          const form = document.getElementById('presetForm');
+          if (form.checkValidity()) {
+            alert('Preset saved successfully!');
+            this.close();
+            form.reset();
+          } else {
+            form.reportValidity();
+          }
+        });
+      }
+
+      open(modalId) {
+        this.activeModal = document.getElementById(modalId);
+
+        // Show overlay and modal
+        this.activeModal.classList.remove('hidden');
+
+        // Trigger animation
+        requestAnimationFrame(() => {
+          this.activeModal.classList.add('active');
+        });
+
+        // Lock body scroll
+        document.body.classList.add('modal-open');
+
+        // Setup focus trap
+        this.setupFocusTrap();
+      }
+
+      close() {
+        if (!this.activeModal) return;
+
+        // Start closing animation
+        this.activeModal.classList.add('closing');
+        this.activeModal.classList.remove('active');
+
+        // Wait for animation to complete
+        setTimeout(() => {
+          this.activeModal.classList.add('hidden');
+          this.activeModal.classList.remove('closing');
+          this.activeModal = null;
+
+          // Unlock body scroll
+          document.body.classList.remove('modal-open');
+        }, 150); // Match exit animation duration
+      }
+
+      setupFocusTrap() {
+        const modal = this.activeModal.querySelector('.modal');
+        const focusableContent = modal.querySelectorAll(this.focusableElements);
+
+        this.firstFocusableElement = focusableContent[0];
+        this.lastFocusableElement = focusableContent[focusableContent.length - 1];
+
+        // Focus first element
+        this.firstFocusableElement.focus();
+
+        // Trap focus
+        modal.addEventListener('keydown', (e) => {
+          if (e.key === 'Tab') {
+            if (e.shiftKey) {
+              // Shift + Tab
+              if (document.activeElement === this.firstFocusableElement) {
+                this.lastFocusableElement.focus();
+                e.preventDefault();
+              }
+            } else {
+              // Tab
+              if (document.activeElement === this.lastFocusableElement) {
+                this.firstFocusableElement.focus();
+                e.preventDefault();
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // Initialize modal manager
+    new ModalManager();
+
+    // Prevent modal content clicks from closing
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Convert Page Demo - FFmpeg GUI</title>
+  <style>
+    /* Reset and base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* CSS Custom Properties (Design Tokens) */
+    :root {
+      /* Light Theme Colors */
+      --background-primary: hsl(0, 0%, 100%);
+      --background-secondary: hsl(210, 20%, 98%);
+      --background-tertiary: hsl(210, 20%, 95%);
+      --surface-base: hsl(0, 0%, 100%);
+      --surface-raised: hsl(0, 0%, 100%);
+
+      --text-primary: hsl(220, 20%, 10%);
+      --text-secondary: hsl(220, 10%, 45%);
+      --text-tertiary: hsl(220, 8%, 60%);
+      --text-disabled: hsl(220, 5%, 75%);
+
+      --primary-50: hsl(215, 100%, 97%);
+      --primary-100: hsl(215, 95%, 93%);
+      --primary-500: hsl(217, 91%, 60%);
+      --primary-600: hsl(217, 91%, 52%);
+      --primary-700: hsl(217, 85%, 45%);
+
+      --success-500: hsl(142, 71%, 45%);
+      --success-600: hsl(142, 76%, 36%);
+
+      --border-light: hsl(220, 15%, 90%);
+      --border-medium: hsl(220, 15%, 85%);
+      --border-dark: hsl(220, 15%, 75%);
+
+      /* Spacing */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+
+      /* Border Radius */
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-full: 9999px;
+
+      /* Shadows */
+      --shadow-sm: 0 1px 3px 0 hsla(220, 15%, 20%, 0.04), 0 1px 2px 0 hsla(220, 15%, 20%, 0.02);
+      --shadow-md: 0 4px 6px -1px hsla(220, 15%, 20%, 0.06), 0 2px 4px -1px hsla(220, 15%, 20%, 0.04);
+    }
+
+    .dark {
+      --background-primary: hsl(220, 18%, 8%);
+      --background-secondary: hsl(220, 16%, 12%);
+      --background-tertiary: hsl(220, 15%, 16%);
+      --surface-base: hsl(220, 16%, 12%);
+      --surface-raised: hsl(220, 15%, 16%);
+
+      --text-primary: hsl(210, 20%, 98%);
+      --text-secondary: hsl(215, 15%, 75%);
+      --text-tertiary: hsl(215, 12%, 60%);
+      --text-disabled: hsl(215, 10%, 45%);
+
+      --primary-500: hsl(213, 94%, 68%);
+      --primary-600: hsl(213, 90%, 62%);
+
+      --border-light: hsl(220, 14%, 22%);
+      --border-medium: hsl(220, 13%, 28%);
+      --border-dark: hsl(220, 12%, 35%);
+
+      --shadow-sm: 0 1px 3px 0 hsla(0, 0%, 0%, 0.3), 0 1px 2px 0 hsla(0, 0%, 0%, 0.2);
+      --shadow-md: 0 4px 6px -1px hsla(0, 0%, 0%, 0.4), 0 2px 4px -1px hsla(0, 0%, 0%, 0.3);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+      background-color: var(--background-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background-color 200ms ease, color 200ms ease;
+    }
+
+    /* Layout */
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background-color: var(--background-secondary);
+      border-right: 1px solid var(--border-light);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+
+    .sidebar-logo h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      height: 40px;
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 150ms ease;
+      cursor: pointer;
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background-color: var(--background-tertiary);
+    }
+
+    .nav-link.active {
+      color: var(--primary-600);
+      background-color: var(--primary-50);
+      font-weight: 600;
+      border-left: 3px solid var(--primary-500);
+      padding-left: 13px;
+    }
+
+    .theme-toggle {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 200ms ease;
+    }
+
+    .theme-toggle:hover {
+      background-color: var(--background-tertiary);
+      transform: scale(1.05);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: var(--space-8);
+      overflow-y: auto;
+    }
+
+    .page-header {
+      margin-bottom: var(--space-8);
+    }
+
+    .page-title {
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 48px;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+
+    .page-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* Two Column Layout */
+    .two-column-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-6);
+    }
+
+    @media (max-width: 1024px) {
+      .two-column-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* File Uploader */
+    .file-uploader {
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-8);
+      border-radius: var(--radius-lg);
+      border: 2px dashed var(--border-medium);
+      background-color: var(--background-secondary);
+      cursor: pointer;
+      transition: all 200ms ease;
+    }
+
+    .file-uploader:hover {
+      border-color: var(--border-dark);
+    }
+
+    .file-uploader.drag-active {
+      background-color: var(--primary-50);
+      border-color: var(--primary-500);
+      border-style: solid;
+    }
+
+    .file-uploader-icon {
+      width: 48px;
+      height: 48px;
+      margin-bottom: var(--space-4);
+      color: var(--text-tertiary);
+    }
+
+    .file-uploader-text {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: var(--space-3);
+    }
+
+    .file-uploader-divider {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-3);
+    }
+
+    .file-uploader-hint {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: var(--space-6);
+    }
+
+    /* Button */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      height: 40px;
+      padding: 0 var(--space-6);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-600);
+      color: white;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-700);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .btn-large {
+      height: 48px;
+      font-size: 16px;
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    /* File List */
+    .file-list {
+      margin-top: var(--space-6);
+    }
+
+    .file-list-header {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-3);
+    }
+
+    .file-list-items {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .file-item {
+      background-color: var(--surface-raised);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      transition: all 150ms ease;
+    }
+
+    .file-item:hover {
+      background-color: var(--background-tertiary);
+      box-shadow: var(--shadow-md);
+    }
+
+    .file-item-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      cursor: pointer;
+    }
+
+    .file-icon {
+      width: 20px;
+      height: 20px;
+      color: var(--primary-600);
+      flex-shrink: 0;
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-size {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+
+    .file-actions {
+      display: flex;
+      gap: var(--space-1);
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+
+    .icon-btn:hover {
+      background-color: var(--background-tertiary);
+    }
+
+    .icon-btn.danger:hover {
+      color: var(--error-600);
+    }
+
+    .icon-btn svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 200ms ease;
+    }
+
+    .icon-btn.expanded svg {
+      transform: rotate(180deg);
+    }
+
+    /* Media Info */
+    .media-info {
+      padding: var(--space-4);
+      background-color: var(--background-secondary);
+      border-top: 1px solid var(--border-light);
+      animation: slideDown 300ms ease;
+    }
+
+    .media-info-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: var(--space-3);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .media-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: var(--space-2) var(--space-4);
+    }
+
+    .media-info-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .media-info-value {
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 500;
+      font-family: 'Monaco', 'Courier New', monospace;
+    }
+
+    /* Config Panel */
+    .config-panel {
+      background-color: var(--surface-raised);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .form-group {
+      margin-bottom: var(--space-5);
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+
+    .form-select {
+      width: 100%;
+      height: 40px;
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-medium);
+      background-color: var(--surface-base);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: all 150ms ease;
+    }
+
+    .form-select:hover {
+      border-color: var(--border-dark);
+    }
+
+    .form-select:focus {
+      outline: none;
+      border: 2px solid var(--primary-500);
+      padding: 7px 11px;
+      box-shadow: 0 0 0 3px hsla(217, 91%, 60%, 0.2);
+    }
+
+    /* Preset Buttons */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-3);
+      margin-top: var(--space-5);
+    }
+
+    .preset-btn {
+      height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      border-radius: var(--radius-md);
+      border: 2px solid var(--border-light);
+      background-color: var(--surface-base);
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--primary-500);
+      background-color: var(--primary-50);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .preset-btn.active {
+      border-color: var(--primary-600);
+      background-color: var(--primary-100);
+    }
+
+    .preset-icon {
+      font-size: 24px;
+    }
+
+    .preset-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    /* Collapsible */
+    .collapsible-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 48px;
+      padding: var(--space-4);
+      background-color: var(--background-secondary);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 150ms ease;
+      margin-top: var(--space-5);
+    }
+
+    .collapsible-header:hover {
+      background-color: var(--background-tertiary);
+    }
+
+    .collapsible-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .collapsible-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 300ms ease, opacity 300ms ease;
+      opacity: 0;
+    }
+
+    .collapsible-content.expanded {
+      max-height: 500px;
+      opacity: 1;
+      margin-top: var(--space-4);
+    }
+
+    /* Animations */
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Icon styles */
+    .icon {
+      width: 20px;
+      height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <h1>FFmpeg GUI</h1>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-link">
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          <span>首页</span>
+        </a>
+
+        <a href="#" class="nav-link active">
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>转换</span>
+        </a>
+
+        <a href="#" class="nav-link">
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+          <span>压缩</span>
+        </a>
+
+        <a href="#" class="nav-link">
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+          <span>队列</span>
+        </a>
+
+        <a href="#" class="nav-link">
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          <span>设置</span>
+        </a>
+      </nav>
+
+      <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+        <svg class="icon" id="themeIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+        </svg>
+      </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page-header">
+        <h1 class="page-title">格式转换</h1>
+        <p class="page-description">支持多种视频和音频格式互转</p>
+      </div>
+
+      <div class="two-column-layout">
+        <!-- Left Column: File Upload and List -->
+        <div>
+          <div class="file-uploader" id="fileUploader">
+            <svg class="file-uploader-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            <p class="file-uploader-text">拖放文件到此处</p>
+            <p class="file-uploader-divider">或</p>
+            <button class="btn btn-primary" id="selectFilesBtn">点击选择文件</button>
+            <p class="file-uploader-hint">支持的格式: MP4, AVI, MKV, MOV, FLV, WMV, WebM, MP3, WAV, AAC</p>
+          </div>
+
+          <div class="file-list" id="fileList">
+            <div class="file-list-header">已选择文件 (3)</div>
+            <div class="file-list-items">
+              <!-- File Item 1 -->
+              <div class="file-item">
+                <div class="file-item-header" onclick="toggleMediaInfo(0)">
+                  <svg class="file-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                  <div class="file-info">
+                    <div class="file-name">video1.mp4</div>
+                    <div class="file-size">256 MB</div>
+                  </div>
+                  <div class="file-actions">
+                    <button class="icon-btn" id="expandBtn0">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </button>
+                    <button class="icon-btn danger">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="media-info" id="mediaInfo0" style="display: none;">
+                  <div class="media-info-title">
+                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    媒体信息
+                  </div>
+                  <div class="media-info-grid">
+                    <div class="media-info-label">分辨率</div>
+                    <div class="media-info-value">1920 × 1080</div>
+                    <div class="media-info-label">时长</div>
+                    <div class="media-info-value">10:24</div>
+                    <div class="media-info-label">帧率</div>
+                    <div class="media-info-value">30 fps</div>
+                    <div class="media-info-label">视频编解码器</div>
+                    <div class="media-info-value">H.264 (AVC)</div>
+                    <div class="media-info-label">视频码率</div>
+                    <div class="media-info-value">3.5 Mbps</div>
+                    <div class="media-info-label">音频编解码器</div>
+                    <div class="media-info-value">AAC</div>
+                    <div class="media-info-label">音频码率</div>
+                    <div class="media-info-value">192 kbps</div>
+                    <div class="media-info-label">声道</div>
+                    <div class="media-info-value">立体声 (2.0)</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- File Item 2 -->
+              <div class="file-item">
+                <div class="file-item-header" onclick="toggleMediaInfo(1)">
+                  <svg class="file-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                  <div class="file-info">
+                    <div class="file-name">video2.mp4</div>
+                    <div class="file-size">512 MB</div>
+                  </div>
+                  <div class="file-actions">
+                    <button class="icon-btn" id="expandBtn1">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </button>
+                    <button class="icon-btn danger">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="media-info" id="mediaInfo1" style="display: none;">
+                  <div class="media-info-title">
+                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    媒体信息
+                  </div>
+                  <div class="media-info-grid">
+                    <div class="media-info-label">分辨率</div>
+                    <div class="media-info-value">2560 × 1440</div>
+                    <div class="media-info-label">时长</div>
+                    <div class="media-info-value">15:32</div>
+                    <div class="media-info-label">帧率</div>
+                    <div class="media-info-value">60 fps</div>
+                    <div class="media-info-label">视频编解码器</div>
+                    <div class="media-info-value">H.265 (HEVC)</div>
+                    <div class="media-info-label">视频码率</div>
+                    <div class="media-info-value">5.8 Mbps</div>
+                    <div class="media-info-label">音频编解码器</div>
+                    <div class="media-info-value">AAC</div>
+                    <div class="media-info-label">音频码率</div>
+                    <div class="media-info-value">256 kbps</div>
+                    <div class="media-info-label">声道</div>
+                    <div class="media-info-value">立体声 (2.0)</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- File Item 3 -->
+              <div class="file-item">
+                <div class="file-item-header" onclick="toggleMediaInfo(2)">
+                  <svg class="file-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                  <div class="file-info">
+                    <div class="file-name">video3.avi</div>
+                    <div class="file-size">1.2 GB</div>
+                  </div>
+                  <div class="file-actions">
+                    <button class="icon-btn" id="expandBtn2">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </button>
+                    <button class="icon-btn danger">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="media-info" id="mediaInfo2" style="display: none;">
+                  <div class="media-info-title">
+                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    媒体信息
+                  </div>
+                  <div class="media-info-grid">
+                    <div class="media-info-label">分辨率</div>
+                    <div class="media-info-value">3840 × 2160</div>
+                    <div class="media-info-label">时长</div>
+                    <div class="media-info-value">8:45</div>
+                    <div class="media-info-label">帧率</div>
+                    <div class="media-info-value">24 fps</div>
+                    <div class="media-info-label">视频编解码器</div>
+                    <div class="media-info-value">MPEG-4</div>
+                    <div class="media-info-label">视频码率</div>
+                    <div class="media-info-value">18.5 Mbps</div>
+                    <div class="media-info-label">音频编解码器</div>
+                    <div class="media-info-value">PCM</div>
+                    <div class="media-info-label">音频码率</div>
+                    <div class="media-info-value">1536 kbps</div>
+                    <div class="media-info-label">声道</div>
+                    <div class="media-info-value">5.1 环绕声</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Convert Configuration -->
+        <div>
+          <div class="config-panel">
+            <div class="form-group">
+              <label class="form-label">输出格式</label>
+              <select class="form-select">
+                <option value="mp4">MP4</option>
+                <option value="webm">WebM</option>
+                <option value="mov">MOV</option>
+                <option value="avi">AVI</option>
+                <option value="mkv">MKV</option>
+                <option value="flv">FLV</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">快速预设</label>
+              <div class="preset-grid">
+                <button class="preset-btn active" onclick="selectPreset(this)">
+                  <div class="preset-icon">⭐</div>
+                  <div class="preset-label">高质量</div>
+                </button>
+                <button class="preset-btn" onclick="selectPreset(this)">
+                  <div class="preset-icon">⚡</div>
+                  <div class="preset-label">中等</div>
+                </button>
+                <button class="preset-btn" onclick="selectPreset(this)">
+                  <div class="preset-icon">💨</div>
+                  <div class="preset-label">低质量</div>
+                </button>
+                <button class="preset-btn" onclick="selectPreset(this)">
+                  <div class="preset-icon">🚀</div>
+                  <div class="preset-label">快速</div>
+                </button>
+                <button class="preset-btn" onclick="selectPreset(this)">
+                  <div class="preset-icon">📱</div>
+                  <div class="preset-label">移动端</div>
+                </button>
+                <button class="preset-btn" onclick="selectPreset(this)">
+                  <div class="preset-icon">🌐</div>
+                  <div class="preset-label">Web优化</div>
+                </button>
+              </div>
+            </div>
+
+            <div class="collapsible-header" onclick="toggleAdvanced()">
+              <span class="collapsible-title">高级设置</span>
+              <svg class="icon" id="advancedIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </div>
+
+            <div class="collapsible-content" id="advancedSettings">
+              <div class="form-group">
+                <label class="form-label">视频编解码器</label>
+                <select class="form-select">
+                  <option value="h264">H.264</option>
+                  <option value="h265">H.265 (HEVC)</option>
+                  <option value="vp9">VP9</option>
+                  <option value="av1">AV1</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">视频比特率</label>
+                <select class="form-select">
+                  <option value="auto">自动</option>
+                  <option value="1000">1 Mbps</option>
+                  <option value="2500">2.5 Mbps</option>
+                  <option value="5000">5 Mbps</option>
+                  <option value="10000">10 Mbps</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">分辨率</label>
+                <select class="form-select">
+                  <option value="original">保持原始</option>
+                  <option value="3840x2160">4K (3840×2160)</option>
+                  <option value="1920x1080">1080p (1920×1080)</option>
+                  <option value="1280x720">720p (1280×720)</option>
+                  <option value="854x480">480p (854×480)</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-large btn-full" style="margin-top: var(--space-8);">
+              开始转换
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Theme Toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const html = document.documentElement;
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+      html.classList.add('dark');
+      updateThemeIcon('dark');
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const isDark = html.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      updateThemeIcon(isDark ? 'dark' : 'light');
+    });
+
+    function updateThemeIcon(theme) {
+      if (theme === 'dark') {
+        themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+      } else {
+        themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+      }
+    }
+
+    // File Uploader Drag & Drop
+    const fileUploader = document.getElementById('fileUploader');
+
+    fileUploader.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      fileUploader.classList.add('drag-active');
+    });
+
+    fileUploader.addEventListener('dragleave', () => {
+      fileUploader.classList.remove('drag-active');
+    });
+
+    fileUploader.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fileUploader.classList.remove('drag-active');
+      // Handle file drop
+      console.log('Files dropped:', e.dataTransfer.files);
+    });
+
+    // Toggle Media Info
+    function toggleMediaInfo(index) {
+      const mediaInfo = document.getElementById(`mediaInfo${index}`);
+      const expandBtn = document.getElementById(`expandBtn${index}`);
+
+      if (mediaInfo.style.display === 'none') {
+        mediaInfo.style.display = 'block';
+        expandBtn.classList.add('expanded');
+      } else {
+        mediaInfo.style.display = 'none';
+        expandBtn.classList.remove('expanded');
+      }
+    }
+
+    // Preset Selection
+    function selectPreset(btn) {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    // Toggle Advanced Settings
+    function toggleAdvanced() {
+      const content = document.getElementById('advancedSettings');
+      const icon = document.getElementById('advancedIcon');
+
+      if (content.classList.contains('expanded')) {
+        content.classList.remove('expanded');
+        icon.style.transform = 'rotate(0deg)';
+      } else {
+        content.classList.add('expanded');
+        icon.style.transform = 'rotate(180deg)';
+      }
+    }
+
+    // Select Files Button
+    document.getElementById('selectFilesBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      // In real implementation, this would trigger file input
+      console.log('Select files clicked');
+    });
+  </script>
+</body>
+</html>

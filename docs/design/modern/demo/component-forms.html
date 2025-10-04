@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form Components - Input, Select, Radio, Checkbox, Slider</title>
+  <style>
+    /* CSS 变量定义 */
+    :root {
+      /* 颜色 */
+      --surface-base: #FFFFFF;
+      --surface-raised: #FFFFFF;
+      --background-secondary: #F9FAFB;
+      --background-tertiary: #F3F4F6;
+      --text-primary: #111827;
+      --text-secondary: #6B7280;
+      --text-tertiary: #9CA3AF;
+      --text-disabled: #D1D5DB;
+      --border-light: #E5E7EB;
+      --border-medium: #D1D5DB;
+      --border-dark: #9CA3AF;
+      --primary-50: #EFF6FF;
+      --primary-500: #3B82F6;
+      --primary-600: #2563EB;
+      --primary-700: #1D4ED8;
+      --error-50: #FEF2F2;
+      --error-500: #EF4444;
+      --error-600: #DC2626;
+      --warning-500: #F59E0B;
+      --warning-600: #D97706;
+      --success-500: #10B981;
+      --success-600: #059669;
+
+      /* 间距 */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-6: 24px;
+      --space-8: 32px;
+
+      /* 圆角 */
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-full: 9999px;
+
+      /* 阴影 */
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+
+    /* 深色主题 */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --surface-base: #1F2937;
+        --surface-raised: #242933;
+        --background-secondary: #1A1F29;
+        --background-tertiary: #2C3342;
+        --text-primary: #F9FAFB;
+        --text-secondary: #9CA3AF;
+        --text-tertiary: #6B7280;
+        --text-disabled: #4B5563;
+        --border-light: #374151;
+        --border-medium: #4B5563;
+        --border-dark: #6B7280;
+      }
+    }
+
+    /* 基础样式 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--background-secondary);
+      color: var(--text-primary);
+      padding: var(--space-8);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: var(--space-8);
+      color: var(--text-primary);
+    }
+
+    .section {
+      background: var(--surface-raised);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      margin-bottom: var(--space-6);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: var(--space-4);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .form-group {
+      margin-bottom: var(--space-6);
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+
+    .helper-text {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: var(--space-1);
+    }
+
+    .error-text {
+      font-size: 12px;
+      color: var(--error-600);
+      margin-top: var(--space-1);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Input 输入框 */
+    input[type="text"],
+    input[type="email"],
+    input[type="number"] {
+      height: 40px;
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-medium);
+      background: var(--surface-base);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: all 150ms ease;
+      outline: none;
+    }
+
+    input[type="text"]::placeholder,
+    input[type="email"]::placeholder,
+    input[type="number"]::placeholder {
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+
+    input[type="text"]:hover,
+    input[type="email"]:hover,
+    input[type="number"]:hover {
+      border-color: var(--border-dark);
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="number"]:focus {
+      border: 2px solid var(--primary-500);
+      padding: 7px 11px; /* 补偿边框增加 */
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    input[type="text"]:disabled,
+    input[type="email"]:disabled,
+    input[type="number"]:disabled {
+      background: var(--background-secondary);
+      color: var(--text-disabled);
+      cursor: not-allowed;
+    }
+
+    input.error {
+      border: 2px solid var(--error-500);
+      padding: 7px 11px;
+    }
+
+    input.error:focus {
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+
+    input.monospace {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+      font-size: 13px;
+    }
+
+    /* Select 下拉菜单 */
+    .select-wrapper {
+      position: relative;
+    }
+
+    select {
+      height: 40px;
+      width: 100%;
+      padding: 8px 36px 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-medium);
+      background: var(--surface-base);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: all 150ms ease;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+    }
+
+    select:hover {
+      border-color: var(--border-dark);
+    }
+
+    select:focus {
+      border: 2px solid var(--primary-500);
+      padding: 7px 35px 7px 11px;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .select-wrapper::after {
+      content: '';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid var(--text-secondary);
+      pointer-events: none;
+    }
+
+    select:focus + .select-wrapper::after {
+      right: 13px;
+    }
+
+    /* Radio 单选按钮 */
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .radio-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      cursor: pointer;
+      padding: var(--space-2);
+      border-radius: var(--radius-md);
+      transition: background 150ms ease;
+    }
+
+    .radio-item:hover {
+      background: var(--background-tertiary);
+    }
+
+    input[type="radio"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border-medium);
+      border-radius: 50%;
+      background: var(--surface-base);
+      position: relative;
+      cursor: pointer;
+      transition: all 150ms ease;
+      flex-shrink: 0;
+    }
+
+    input[type="radio"]:hover {
+      border-color: var(--border-dark);
+    }
+
+    input[type="radio"]:checked {
+      border-color: var(--primary-600);
+    }
+
+    input[type="radio"]:checked::after {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary-600);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(1);
+      animation: radio-check 150ms ease-out;
+    }
+
+    @keyframes radio-check {
+      from {
+        transform: translate(-50%, -50%) scale(0);
+      }
+      to {
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    input[type="radio"]:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .radio-label {
+      font-size: 14px;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .radio-description {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* Checkbox 复选框 */
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      cursor: pointer;
+      padding: var(--space-2);
+      border-radius: var(--radius-md);
+      transition: background 150ms ease;
+    }
+
+    .checkbox-item:hover {
+      background: var(--background-tertiary);
+    }
+
+    input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      background: var(--surface-base);
+      position: relative;
+      cursor: pointer;
+      transition: all 150ms ease;
+      flex-shrink: 0;
+    }
+
+    input[type="checkbox"]:hover {
+      border-color: var(--border-dark);
+    }
+
+    input[type="checkbox"]:checked {
+      background: var(--primary-600);
+      border-color: var(--primary-600);
+    }
+
+    input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 1px;
+      width: 4px;
+      height: 9px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg) scale(1);
+      animation: checkbox-check 150ms ease-out;
+    }
+
+    @keyframes checkbox-check {
+      from {
+        transform: rotate(45deg) scale(0.8);
+        opacity: 0;
+      }
+      to {
+        transform: rotate(45deg) scale(1);
+        opacity: 1;
+      }
+    }
+
+    input[type="checkbox"]:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .checkbox-label {
+      font-size: 14px;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    /* Slider 滑块 */
+    .slider-container {
+      padding: var(--space-2) 0;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-4);
+    }
+
+    .slider-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .slider-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary-600);
+    }
+
+    .slider-wrapper {
+      position: relative;
+      margin-bottom: var(--space-6);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: transparent;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Webkit 浏览器 (Chrome, Safari) */
+    input[type="range"]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 6px;
+      background: var(--border-light);
+      border-radius: var(--radius-full);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: var(--primary-600);
+      border: 3px solid white;
+      border-radius: 50%;
+      cursor: grab;
+      box-shadow: var(--shadow-md);
+      transition: transform 150ms ease;
+      margin-top: -7px; /* (20px - 6px) / 2 */
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    input[type="range"]::-webkit-slider-thumb:active {
+      cursor: grabbing;
+      transform: scale(1.15);
+    }
+
+    input[type="range"]:focus::-webkit-slider-thumb {
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), var(--shadow-md);
+    }
+
+    /* Firefox */
+    input[type="range"]::-moz-range-track {
+      width: 100%;
+      height: 6px;
+      background: var(--border-light);
+      border-radius: var(--radius-full);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: var(--primary-600);
+      border: 3px solid white;
+      border-radius: 50%;
+      cursor: grab;
+      box-shadow: var(--shadow-md);
+      transition: transform 150ms ease;
+    }
+
+    input[type="range"]::-moz-range-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    input[type="range"]::-moz-range-thumb:active {
+      cursor: grabbing;
+    }
+
+    /* 滑块填充效果（通过渐变实现） */
+    .slider-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+      border-radius: var(--radius-full);
+      pointer-events: none;
+      transition: width 50ms ease;
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      padding-top: var(--space-2);
+    }
+
+    .slider-label-item {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      text-align: center;
+      flex: 1;
+    }
+
+    .slider-label-item:first-child {
+      text-align: left;
+    }
+
+    .slider-label-item:last-child {
+      text-align: right;
+    }
+
+    /* 演示网格 */
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-4);
+    }
+
+    /* 状态标签 */
+    .state-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-left: var(--space-2);
+    }
+
+    .state-badge.success {
+      background: var(--success-500);
+      color: white;
+    }
+
+    .state-badge.error {
+      background: var(--error-500);
+      color: white;
+    }
+
+    .state-badge.disabled {
+      background: var(--text-disabled);
+      color: white;
+    }
+
+    /* 分隔线 */
+    .divider {
+      height: 1px;
+      background: var(--border-light);
+      margin: var(--space-4) 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Form Components Demo</h1>
+    <p style="margin-bottom: 32px; color: var(--text-secondary);">
+      Interactive demo of Input, Select, Radio, Checkbox, and Slider components with all states and interactions.
+    </p>
+
+    <!-- Section 1: Input Fields -->
+    <div class="section">
+      <h2 class="section-title">1. Input Fields</h2>
+
+      <div class="form-group">
+        <label for="input-default">Default Input</label>
+        <input type="text" id="input-default" placeholder="Enter text...">
+        <div class="helper-text">Standard input with placeholder</div>
+      </div>
+
+      <div class="form-group">
+        <label for="input-label">Input with Label</label>
+        <input type="text" id="input-label" value="Sample text">
+        <div class="helper-text">Input with pre-filled value</div>
+      </div>
+
+      <div class="form-group">
+        <label for="input-placeholder">Input with Placeholder</label>
+        <input type="text" id="input-placeholder" placeholder="Type something here...">
+      </div>
+
+      <div class="form-group">
+        <label for="input-error">Input with Error State <span class="state-badge error">Error</span></label>
+        <input type="email" id="input-error" class="error" value="invalid-email">
+        <div class="error-text">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <circle cx="6" cy="6" r="5" stroke="currentColor" fill="none" stroke-width="1.5"/>
+            <path d="M6 3v3.5M6 8.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Please enter a valid email address
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="input-disabled">Disabled Input <span class="state-badge disabled">Disabled</span></label>
+        <input type="text" id="input-disabled" value="Cannot edit this" disabled>
+        <div class="helper-text">This input is disabled</div>
+      </div>
+
+      <div class="form-group">
+        <label for="input-monospace">Monospace Input (File Path)</label>
+        <input type="text" id="input-monospace" class="monospace" value="/usr/local/bin/ffmpeg" placeholder="/path/to/file">
+        <div class="helper-text">Uses monospace font for technical values</div>
+      </div>
+    </div>
+
+    <!-- Section 2: Select Dropdown -->
+    <div class="section">
+      <h2 class="section-title">2. Select Dropdown</h2>
+
+      <div class="form-group">
+        <label for="select-default">Default Select</label>
+        <div class="select-wrapper">
+          <select id="select-default">
+            <option value="">Choose an option...</option>
+            <option value="option1">Option 1</option>
+            <option value="option2">Option 2</option>
+            <option value="option3">Option 3</option>
+          </select>
+        </div>
+        <div class="helper-text">Select with placeholder option</div>
+      </div>
+
+      <div class="form-group">
+        <label for="select-format">Output Format</label>
+        <div class="select-wrapper">
+          <select id="select-format">
+            <option value="mp4" selected>MP4 (H.264 + AAC)</option>
+            <option value="webm">WebM (VP9 + Opus)</option>
+            <option value="avi">AVI (MPEG-4)</option>
+            <option value="mkv">MKV (Matroska)</option>
+            <option value="mov">MOV (QuickTime)</option>
+          </select>
+        </div>
+        <div class="helper-text">Selected: MP4 format with blue focus ring on click</div>
+      </div>
+
+      <div class="form-group">
+        <label for="select-codec">Video Codec</label>
+        <div class="select-wrapper">
+          <select id="select-codec">
+            <option value="h264">H.264 (AVC)</option>
+            <option value="h265">H.265 (HEVC)</option>
+            <option value="vp9" selected>VP9</option>
+            <option value="av1">AV1</option>
+          </select>
+        </div>
+        <div class="helper-text">Selected: VP9 codec</div>
+      </div>
+    </div>
+
+    <!-- Section 3: Radio Buttons -->
+    <div class="section">
+      <h2 class="section-title">3. Radio Buttons</h2>
+
+      <div class="form-group">
+        <label>Compression Mode</label>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="compression" value="crf" checked>
+            <div>
+              <div class="radio-label">CRF Quality Control</div>
+              <div class="radio-description">Constant Rate Factor - Better quality, variable file size</div>
+            </div>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="compression" value="target-size">
+            <div>
+              <div class="radio-label">Target File Size</div>
+              <div class="radio-description">Two-pass encoding - Predictable file size, variable quality</div>
+            </div>
+          </label>
+        </div>
+        <div class="helper-text">Selected: CRF Quality Control (blue border + inner circle)</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="form-group">
+        <label>Encoding Preset</label>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="preset" value="slow">
+            <div>
+              <div class="radio-label">Slow</div>
+              <div class="radio-description">Best quality, longer encoding time</div>
+            </div>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="preset" value="medium" checked>
+            <div>
+              <div class="radio-label">Medium</div>
+              <div class="radio-description">Balanced quality and speed</div>
+            </div>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="preset" value="fast">
+            <div>
+              <div class="radio-label">Fast</div>
+              <div class="radio-description">Lower quality, faster encoding</div>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Checkboxes -->
+    <div class="section">
+      <h2 class="section-title">4. Checkboxes</h2>
+
+      <div class="form-group">
+        <label>Task Settings</label>
+        <div class="checkbox-group">
+          <label class="checkbox-item">
+            <input type="checkbox" id="checkbox-autostart" checked>
+            <span class="checkbox-label">Auto-start next task</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" id="checkbox-notifications">
+            <span class="checkbox-label">Send notifications when tasks complete</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" id="checkbox-keep-files" checked>
+            <span class="checkbox-label">Keep original files after conversion</span>
+          </label>
+        </div>
+        <div class="helper-text">Checked items have blue background with white checkmark</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="form-group">
+        <label>Output Options</label>
+        <div class="checkbox-group">
+          <label class="checkbox-item">
+            <input type="checkbox" id="checkbox-overwrite">
+            <span class="checkbox-label">Overwrite existing files</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" id="checkbox-metadata" checked>
+            <span class="checkbox-label">Preserve metadata</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" id="checkbox-subtitle">
+            <span class="checkbox-label">Include subtitles</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" id="checkbox-thumbnail" checked>
+            <span class="checkbox-label">Generate thumbnail</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5: Slider (CRF) -->
+    <div class="section">
+      <h2 class="section-title">5. Slider (CRF Quality)</h2>
+
+      <div class="slider-container">
+        <div class="slider-header">
+          <span class="slider-label">CRF Quality</span>
+          <span class="slider-value" id="crf-value">23</span>
+        </div>
+
+        <div class="slider-wrapper">
+          <div class="slider-fill" id="slider-fill" style="width: 35.7%"></div>
+          <input
+            type="range"
+            id="crf-slider"
+            min="18"
+            max="32"
+            value="23"
+            step="1"
+          >
+        </div>
+
+        <div class="slider-labels">
+          <div class="slider-label-item">
+            <strong>18</strong><br>
+            High Quality<br>
+            (Large file)
+          </div>
+          <div class="slider-label-item">
+            <strong>23</strong><br>
+            Recommended<br>
+            (Balanced)
+          </div>
+          <div class="slider-label-item">
+            <strong>32</strong><br>
+            High Compression<br>
+            (Small file)
+          </div>
+        </div>
+
+        <div class="helper-text" style="margin-top: 16px;">
+          Lower values = better quality but larger files. Higher values = smaller files but lower quality.
+          CRF 23 is recommended for most videos.
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="slider-container">
+        <div class="slider-header">
+          <span class="slider-label">Audio Bitrate</span>
+          <span class="slider-value" id="bitrate-value">192 kbps</span>
+        </div>
+
+        <div class="slider-wrapper">
+          <div class="slider-fill" id="bitrate-fill" style="width: 40%"></div>
+          <input
+            type="range"
+            id="bitrate-slider"
+            min="96"
+            max="320"
+            value="192"
+            step="32"
+          >
+        </div>
+
+        <div class="slider-labels">
+          <div class="slider-label-item">
+            <strong>96</strong><br>
+            Low Quality
+          </div>
+          <div class="slider-label-item">
+            <strong>192</strong><br>
+            Standard
+          </div>
+          <div class="slider-label-item">
+            <strong>320</strong><br>
+            High Quality
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="section" style="background: var(--primary-50); border: 1px solid var(--primary-500);">
+      <h2 class="section-title">Interactive Features</h2>
+      <ul style="list-style: none; padding: 0;">
+        <li style="margin-bottom: 12px;">
+          <strong>Inputs:</strong> Hover for darker border, click to focus (blue ring), try typing in error/disabled states
+        </li>
+        <li style="margin-bottom: 12px;">
+          <strong>Select:</strong> Click to open dropdown, hover over options, selected option shows with primary color
+        </li>
+        <li style="margin-bottom: 12px;">
+          <strong>Radio:</strong> Click to select, inner circle appears with animation, outer border turns blue
+        </li>
+        <li style="margin-bottom: 12px;">
+          <strong>Checkbox:</strong> Click to toggle, background turns blue with white checkmark animation
+        </li>
+        <li style="margin-bottom: 12px;">
+          <strong>Slider:</strong> Drag the thumb (hover scales up 1.2x), value updates in real-time, blue fill shows current position
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // CRF Slider 交互
+    const crfSlider = document.getElementById('crf-slider');
+    const crfValue = document.getElementById('crf-value');
+    const sliderFill = document.getElementById('slider-fill');
+
+    crfSlider.addEventListener('input', function() {
+      const value = this.value;
+      const min = this.min;
+      const max = this.max;
+      const percentage = ((value - min) / (max - min)) * 100;
+
+      crfValue.textContent = value;
+      sliderFill.style.width = percentage + '%';
+    });
+
+    // Audio Bitrate Slider 交互
+    const bitrateSlider = document.getElementById('bitrate-slider');
+    const bitrateValue = document.getElementById('bitrate-value');
+    const bitrateFill = document.getElementById('bitrate-fill');
+
+    bitrateSlider.addEventListener('input', function() {
+      const value = this.value;
+      const min = this.min;
+      const max = this.max;
+      const percentage = ((value - min) / (max - min)) * 100;
+
+      bitrateValue.textContent = value + ' kbps';
+      bitrateFill.style.width = percentage + '%';
+    });
+
+    // 添加键盘导航支持
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+      radio.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.checked = true;
+        }
+      });
+    });
+
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+      checkbox.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.checked = !this.checked;
+        }
+      });
+    });
+
+    // 添加表单验证演示
+    const errorInput = document.getElementById('input-error');
+    errorInput.addEventListener('input', function() {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailPattern.test(this.value)) {
+        this.classList.remove('error');
+        const errorText = this.nextElementSibling;
+        if (errorText && errorText.classList.contains('error-text')) {
+          errorText.style.display = 'none';
+        }
+      } else {
+        this.classList.add('error');
+        const errorText = this.nextElementSibling;
+        if (errorText && errorText.classList.contains('error-text')) {
+          errorText.style.display = 'flex';
+        }
+      }
+    });
+
+    // 日志输出交互信息
+    console.log('%c Form Components Demo Loaded ', 'background: #3B82F6; color: white; font-weight: bold; padding: 4px 8px; border-radius: 4px;');
+    console.log('All form components are interactive. Try:');
+    console.log('- Typing in inputs (notice focus ring)');
+    console.log('- Selecting from dropdowns');
+    console.log('- Clicking radio buttons (watch animation)');
+    console.log('- Toggling checkboxes (see checkmark appear)');
+    console.log('- Dragging sliders (value updates in real-time)');
+  </script>
+</body>
+</html>

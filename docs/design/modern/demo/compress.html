@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FFmpeg GUI - 视频压缩 (Demo)</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      /* Primary Colors */
+      --primary-50: hsl(217, 91%, 95%);
+      --primary-100: hsl(217, 91%, 85%);
+      --primary-500: hsl(217, 91%, 60%);
+      --primary-600: hsl(217, 91%, 50%);
+      --primary-700: hsl(217, 91%, 40%);
+
+      /* Success Colors */
+      --success-50: hsl(142, 71%, 95%);
+      --success-600: hsl(142, 71%, 45%);
+
+      /* Error Colors */
+      --error-50: hsl(0, 84%, 95%);
+      --error-600: hsl(0, 84%, 60%);
+
+      /* Warning Colors */
+      --warning-50: hsl(45, 93%, 95%);
+      --warning-600: hsl(45, 93%, 58%);
+
+      /* Neutral Colors - Light Theme */
+      --background-primary: hsl(0, 0%, 100%);
+      --background-secondary: hsl(220, 14%, 98%);
+      --background-tertiary: hsl(220, 14%, 96%);
+      --surface-base: hsl(0, 0%, 100%);
+      --surface-raised: hsl(0, 0%, 100%);
+
+      --text-primary: hsl(220, 18%, 15%);
+      --text-secondary: hsl(220, 14%, 45%);
+      --text-tertiary: hsl(220, 14%, 60%);
+
+      --border-light: hsl(220, 15%, 90%);
+      --border-medium: hsl(220, 14%, 80%);
+      --border-dark: hsl(220, 14%, 70%);
+
+      /* Spacing */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+
+      /* Radius */
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-full: 9999px;
+
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: var(--background-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app-container {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--background-secondary);
+      border-right: 1px solid var(--border-light);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+
+    .logo h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      flex: 1;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      height: 40px;
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 150ms ease;
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background: var(--background-tertiary);
+    }
+
+    .nav-link.active {
+      color: var(--primary-600);
+      background: var(--primary-50);
+      font-weight: 600;
+      border-left: 3px solid var(--primary-500);
+      padding-left: 13px;
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-8);
+    }
+
+    .page-header {
+      margin-bottom: var(--space-8);
+    }
+
+    .page-title {
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 48px;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+
+    .page-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* Two Column Layout */
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-6);
+    }
+
+    /* File Uploader */
+    .file-uploader {
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-8);
+      border-radius: var(--radius-lg);
+      border: 2px dashed var(--border-medium);
+      background: var(--background-secondary);
+      transition: all 200ms ease;
+      cursor: pointer;
+    }
+
+    .file-uploader:hover {
+      border-color: var(--border-dark);
+    }
+
+    .upload-icon {
+      width: 48px;
+      height: 48px;
+      color: var(--text-tertiary);
+      margin-bottom: var(--space-4);
+    }
+
+    .upload-text {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: var(--space-3);
+    }
+
+    .upload-divider {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-3);
+    }
+
+    /* Button */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      height: 40px;
+      padding: var(--space-2) var(--space-6);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+
+    .btn-primary {
+      background: var(--primary-600);
+      color: white;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-700);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .btn-large {
+      height: 48px;
+      padding: var(--space-3) var(--space-8);
+      font-size: 16px;
+      width: 100%;
+    }
+
+    .upload-hint {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: var(--space-6);
+    }
+
+    /* File List */
+    .file-list {
+      margin-top: var(--space-6);
+    }
+
+    .file-list-header {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-3);
+    }
+
+    .file-item {
+      padding: var(--space-4);
+      border-radius: var(--radius-md);
+      background: var(--surface-raised);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
+      transition: all 150ms ease;
+    }
+
+    .file-item:hover {
+      background: var(--background-tertiary);
+      box-shadow: var(--shadow-md);
+    }
+
+    .file-item-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .file-icon {
+      width: 20px;
+      height: 20px;
+      color: var(--primary-600);
+      flex-shrink: 0;
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-size {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    .file-actions {
+      display: flex;
+      gap: var(--space-1);
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 150ms ease;
+      padding: 0;
+    }
+
+    .icon-btn:hover {
+      background: var(--background-tertiary);
+    }
+
+    .icon-btn svg {
+      width: 16px;
+      height: 16px;
+      color: var(--text-secondary);
+    }
+
+    .icon-btn.expanded svg {
+      transform: rotate(90deg);
+    }
+
+    /* Media Info */
+    .media-info {
+      margin-top: var(--space-4);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--border-light);
+      animation: slideDown 300ms ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .media-info-title {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: var(--space-3);
+    }
+
+    .info-icon {
+      width: 16px;
+      height: 16px;
+      color: var(--text-secondary);
+    }
+
+    .media-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: var(--space-2) var(--space-4);
+    }
+
+    .media-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .media-value {
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 500;
+      font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    }
+
+    /* Config Panel */
+    .config-panel {
+      padding: var(--space-6);
+      border-radius: var(--radius-lg);
+      background: var(--surface-raised);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .config-section {
+      margin-bottom: var(--space-5);
+    }
+
+    .config-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+
+    /* Radio Group */
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      height: 48px;
+      padding: var(--space-4);
+      border-radius: var(--radius-md);
+      border: 2px solid var(--border-light);
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+
+    .radio-option:hover {
+      border-color: var(--border-dark);
+    }
+
+    .radio-option.selected {
+      border-color: var(--primary-600);
+      background: var(--primary-50);
+    }
+
+    .radio-circle {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border-medium);
+      border-radius: 50%;
+      flex-shrink: 0;
+      position: relative;
+      transition: all 150ms ease;
+    }
+
+    .radio-option.selected .radio-circle {
+      border-color: var(--primary-600);
+    }
+
+    .radio-circle::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary-600);
+      transition: transform 150ms ease;
+    }
+
+    .radio-option.selected .radio-circle::after {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .radio-label {
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    /* Preset Buttons */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-3);
+      margin-top: var(--space-5);
+    }
+
+    .preset-btn {
+      height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      border-radius: var(--radius-md);
+      border: 2px solid var(--border-light);
+      background: var(--surface-base);
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--primary-500);
+      background: var(--primary-50);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .preset-btn.selected {
+      border-color: var(--primary-600);
+      background: var(--primary-100);
+    }
+
+    .preset-icon {
+      width: 24px;
+      height: 24px;
+      color: var(--text-secondary);
+    }
+
+    .preset-btn.selected .preset-icon {
+      color: var(--primary-700);
+    }
+
+    .preset-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .preset-btn.selected .preset-label {
+      color: var(--primary-700);
+    }
+
+    /* Slider */
+    .slider-container {
+      margin-top: var(--space-5);
+      margin-bottom: var(--space-6);
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-3);
+    }
+
+    .slider-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .slider-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary-600);
+    }
+
+    .slider-track {
+      position: relative;
+      width: 100%;
+      height: 6px;
+      background: var(--border-light);
+      border-radius: var(--radius-full);
+      margin-bottom: var(--space-2);
+    }
+
+    .slider-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+      border-radius: var(--radius-full);
+      transition: width 150ms ease;
+    }
+
+    .slider-thumb {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px;
+      height: 20px;
+      background: var(--primary-600);
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: var(--shadow-md);
+      cursor: grab;
+      transition: transform 150ms ease;
+    }
+
+    .slider-thumb:hover {
+      transform: translate(-50%, -50%) scale(1.2);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .slider-thumb:active {
+      cursor: grabbing;
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 var(--space-2);
+    }
+
+    .slider-label {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      text-align: center;
+    }
+
+    /* Estimate Card */
+    .estimate-card {
+      padding: var(--space-4);
+      border-radius: var(--radius-md);
+      background: var(--background-secondary);
+      border: 1px solid var(--border-light);
+      margin-top: var(--space-5);
+    }
+
+    .estimate-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 32px;
+    }
+
+    .estimate-item:not(:last-child) {
+      margin-bottom: var(--space-2);
+    }
+
+    .estimate-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .estimate-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .estimate-value.size {
+      color: var(--primary-600);
+    }
+
+    .estimate-value.ratio {
+      color: var(--success-600);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <h1>FFmpeg GUI</h1>
+      </div>
+
+      <nav class="nav">
+        <a href="#" class="nav-link">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          <span>首页</span>
+        </a>
+
+        <a href="#" class="nav-link">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>格式转换</span>
+        </a>
+
+        <a href="#" class="nav-link active">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+          <span>视频压缩</span>
+        </a>
+
+        <a href="#" class="nav-link">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+          <span>任务队列</span>
+        </a>
+
+        <a href="#" class="nav-link">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          <span>设置</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page-header">
+        <h1 class="page-title">视频压缩</h1>
+        <p class="page-description">高效压缩视频文件，减小体积同时保持质量</p>
+      </div>
+
+      <div class="two-column">
+        <!-- Left Column: File Upload -->
+        <div>
+          <div class="file-uploader" id="fileUploader">
+            <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            <p class="upload-text">拖放文件到此处</p>
+            <p class="upload-divider">或</p>
+            <button class="btn btn-primary">点击选择文件</button>
+            <p class="upload-hint">支持的格式: MP4, AVI, MKV, MOV, FLV, WMV, WebM</p>
+          </div>
+
+          <!-- File List -->
+          <div class="file-list" id="fileList" style="display: none;">
+            <h3 class="file-list-header">已选择文件 (1)</h3>
+            <div class="file-item">
+              <div class="file-item-header">
+                <svg class="file-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+                </svg>
+                <div class="file-info">
+                  <div class="file-name">video.mp4</div>
+                  <div class="file-size">1.2 GB</div>
+                </div>
+                <div class="file-actions">
+                  <button class="icon-btn" id="expandBtn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </button>
+                  <button class="icon-btn" onclick="hideFileList()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Media Info (hidden by default) -->
+              <div class="media-info" id="mediaInfo" style="display: none;">
+                <div class="media-info-title">
+                  <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  媒体信息
+                </div>
+                <div class="media-info-grid">
+                  <div class="media-label">分辨率</div>
+                  <div class="media-value">1920 × 1080</div>
+                  <div class="media-label">时长</div>
+                  <div class="media-value">10:24</div>
+                  <div class="media-label">帧率</div>
+                  <div class="media-value">30 fps</div>
+                  <div class="media-label">视频编解码器</div>
+                  <div class="media-value">H.264 (AVC)</div>
+                  <div class="media-label">视频码率</div>
+                  <div class="media-value">8.5 Mbps</div>
+                  <div class="media-label">音频编解码器</div>
+                  <div class="media-value">AAC</div>
+                  <div class="media-label">音频码率</div>
+                  <div class="media-value">192 kbps</div>
+                  <div class="media-label">声道</div>
+                  <div class="media-value">立体声 (2.0)</div>
+                  <div class="media-label">采样率</div>
+                  <div class="media-value">48 kHz</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Compress Config -->
+        <div>
+          <div class="config-panel">
+            <!-- Compression Mode -->
+            <div class="config-section">
+              <label class="config-label">压缩模式</label>
+              <div class="radio-group">
+                <div class="radio-option selected" onclick="selectMode('crf')">
+                  <div class="radio-circle"></div>
+                  <span class="radio-label">CRF 质量控制</span>
+                </div>
+                <div class="radio-option" onclick="selectMode('size')">
+                  <div class="radio-circle"></div>
+                  <span class="radio-label">目标文件大小</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Presets -->
+            <div class="config-section">
+              <label class="config-label">压缩预设</label>
+              <div class="preset-grid">
+                <button class="preset-btn" onclick="selectPreset(0)">
+                  <svg class="preset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                  </svg>
+                  <span class="preset-label">极致压缩</span>
+                </button>
+                <button class="preset-btn" onclick="selectPreset(1)">
+                  <svg class="preset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                  </svg>
+                  <span class="preset-label">高质量</span>
+                </button>
+                <button class="preset-btn selected" onclick="selectPreset(2)">
+                  <svg class="preset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+                  </svg>
+                  <span class="preset-label">平衡</span>
+                </button>
+                <button class="preset-btn" onclick="selectPreset(3)">
+                  <svg class="preset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                  </svg>
+                  <span class="preset-label">快速</span>
+                </button>
+                <button class="preset-btn" onclick="selectPreset(4)">
+                  <svg class="preset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                  </svg>
+                  <span class="preset-label">移动端</span>
+                </button>
+                <button class="preset-btn" onclick="selectPreset(5)">
+                  <svg class="preset-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                  </svg>
+                  <span class="preset-label">Web优化</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- CRF Slider -->
+            <div class="config-section">
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span class="slider-title">CRF 质量</span>
+                  <span class="slider-value" id="crfValue">23</span>
+                </div>
+                <div class="slider-track" id="sliderTrack">
+                  <div class="slider-fill" id="sliderFill" style="width: 35.7%;"></div>
+                  <div class="slider-thumb" id="sliderThumb" style="left: 35.7%;"></div>
+                </div>
+                <div class="slider-labels">
+                  <div class="slider-label">18<br>(高质量)</div>
+                  <div class="slider-label">23<br>(推荐)</div>
+                  <div class="slider-label">32<br>(高压缩)</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Estimate Card -->
+            <div class="estimate-card">
+              <div class="estimate-item">
+                <span class="estimate-label">预计大小</span>
+                <span class="estimate-value size" id="estimateSize">~450 MB</span>
+              </div>
+              <div class="estimate-item">
+                <span class="estimate-label">压缩比</span>
+                <span class="estimate-value ratio" id="estimateRatio">62%</span>
+              </div>
+            </div>
+
+            <!-- Start Button -->
+            <div style="margin-top: 32px;">
+              <button class="btn btn-primary btn-large">开始压缩</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // File uploader interaction
+    const fileUploader = document.getElementById('fileUploader');
+    const fileList = document.getElementById('fileList');
+
+    fileUploader.addEventListener('click', () => {
+      fileUploader.style.display = 'none';
+      fileList.style.display = 'block';
+    });
+
+    function hideFileList() {
+      fileList.style.display = 'none';
+      fileUploader.style.display = 'flex';
+    }
+
+    // Media info toggle
+    const expandBtn = document.getElementById('expandBtn');
+    const mediaInfo = document.getElementById('mediaInfo');
+    let isExpanded = false;
+
+    expandBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      isExpanded = !isExpanded;
+
+      if (isExpanded) {
+        mediaInfo.style.display = 'block';
+        expandBtn.classList.add('expanded');
+      } else {
+        mediaInfo.style.display = 'none';
+        expandBtn.classList.remove('expanded');
+      }
+    });
+
+    // Radio mode selection
+    function selectMode(mode) {
+      document.querySelectorAll('.radio-option').forEach(option => {
+        option.classList.remove('selected');
+      });
+      event.currentTarget.classList.add('selected');
+    }
+
+    // Preset selection
+    let selectedPreset = 2;
+    function selectPreset(index) {
+      selectedPreset = index;
+      document.querySelectorAll('.preset-btn').forEach((btn, i) => {
+        btn.classList.toggle('selected', i === index);
+      });
+
+      // Update CRF based on preset
+      const crfValues = [28, 20, 23, 25, 26, 24];
+      const crf = crfValues[index];
+      updateSlider(crf);
+    }
+
+    // CRF Slider
+    const sliderTrack = document.getElementById('sliderTrack');
+    const sliderFill = document.getElementById('sliderFill');
+    const sliderThumb = document.getElementById('sliderThumb');
+    const crfValue = document.getElementById('crfValue');
+    const estimateSize = document.getElementById('estimateSize');
+    const estimateRatio = document.getElementById('estimateRatio');
+
+    let isDragging = false;
+    let currentCRF = 23;
+
+    function updateSlider(crf) {
+      currentCRF = crf;
+      const percentage = ((crf - 18) / (32 - 18)) * 100;
+
+      sliderFill.style.width = percentage + '%';
+      sliderThumb.style.left = percentage + '%';
+      crfValue.textContent = crf;
+
+      // Update estimates
+      const originalSize = 1200; // MB
+      const compressionRatios = {
+        18: 0.15, 19: 0.20, 20: 0.25, 21: 0.30, 22: 0.35,
+        23: 0.38, 24: 0.42, 25: 0.46, 26: 0.50, 27: 0.55,
+        28: 0.60, 29: 0.65, 30: 0.70, 31: 0.75, 32: 0.80
+      };
+
+      const ratio = compressionRatios[crf] || 0.38;
+      const compressedSize = Math.round(originalSize * (1 - ratio));
+      const compressionPercent = Math.round(ratio * 100);
+
+      estimateSize.textContent = `~${compressedSize} MB`;
+      estimateRatio.textContent = `${compressionPercent}%`;
+    }
+
+    function getCRFFromPosition(x) {
+      const rect = sliderTrack.getBoundingClientRect();
+      const percentage = Math.max(0, Math.min(100, ((x - rect.left) / rect.width) * 100));
+      const crf = Math.round(18 + (percentage / 100) * (32 - 18));
+      return crf;
+    }
+
+    sliderTrack.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      const crf = getCRFFromPosition(e.clientX);
+      updateSlider(crf);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const crf = getCRFFromPosition(e.clientX);
+      updateSlider(crf);
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    // Initialize
+    updateSlider(23);
+  </script>
+</body>
+</html>

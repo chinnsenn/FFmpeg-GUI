@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FileList & FileUploader Components</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #1F2937;
+    }
+
+    .demo-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 32px;
+      color: #111827;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-top: 40px;
+      margin-bottom: 16px;
+      color: #374151;
+    }
+
+    /* FileUploader Styles */
+    .file-uploader {
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      border-radius: 12px;
+      border: 2px dashed #D1D5DB;
+      background: #F9FAFB;
+      transition: all 200ms ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .file-uploader:hover {
+      border-color: #9CA3AF;
+      background: #F3F4F6;
+    }
+
+    .file-uploader.drag-active {
+      background: #EFF6FF;
+      border-color: #3B82F6;
+      border-style: dashed;
+    }
+
+    .file-uploader.drag-accept {
+      background: #DBEAFE;
+      border-color: #2563EB;
+      border-style: solid;
+      transform: scale(1.02);
+    }
+
+    .upload-icon {
+      width: 48px;
+      height: 48px;
+      color: #9CA3AF;
+      margin-bottom: 16px;
+    }
+
+    .upload-text {
+      font-size: 16px;
+      font-weight: 500;
+      color: #111827;
+      margin-bottom: 12px;
+    }
+
+    .upload-divider {
+      font-size: 14px;
+      color: #6B7280;
+      margin-bottom: 12px;
+    }
+
+    .upload-button {
+      height: 40px;
+      padding: 0 24px;
+      border-radius: 8px;
+      background: #2563EB;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 150ms ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .upload-button:hover {
+      background: #1D4ED8;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .upload-button:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .upload-formats {
+      font-size: 12px;
+      color: #9CA3AF;
+      margin-top: 24px;
+      text-align: center;
+    }
+
+    /* FileList Styles */
+    .file-list-header {
+      font-size: 14px;
+      font-weight: 500;
+      color: #6B7280;
+      margin-bottom: 12px;
+    }
+
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .file-item {
+      border-radius: 8px;
+      border: 1px solid #E5E7EB;
+      background: #FFFFFF;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      transition: all 150ms ease;
+    }
+
+    .file-item:hover {
+      background: #F9FAFB;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .file-item-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .file-icon {
+      width: 20px;
+      height: 20px;
+      color: #2563EB;
+      flex-shrink: 0;
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #111827;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-size {
+      font-size: 12px;
+      color: #9CA3AF;
+      margin-top: 2px;
+    }
+
+    .file-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .icon-button {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: #6B7280;
+      cursor: pointer;
+      transition: all 150ms ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .icon-button:hover {
+      background: #F3F4F6;
+      color: #111827;
+    }
+
+    .icon-button.delete:hover {
+      color: #DC2626;
+    }
+
+    .icon-button svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 200ms ease;
+    }
+
+    .icon-button.expand svg {
+      transform: rotate(0deg);
+    }
+
+    .icon-button.expand.expanded svg {
+      transform: rotate(90deg);
+    }
+
+    .file-details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 300ms ease-in-out, opacity 300ms ease-in-out;
+      opacity: 0;
+    }
+
+    .file-details.expanded {
+      max-height: 500px;
+      opacity: 1;
+    }
+
+    .file-details-inner {
+      padding: 0 16px 16px 16px;
+      border-top: 1px solid #E5E7EB;
+      padding-top: 12px;
+    }
+
+    .media-info {
+      padding: 16px;
+      border-radius: 8px;
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+    }
+
+    .media-info-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .media-info-icon {
+      width: 16px;
+      height: 16px;
+      color: #6B7280;
+    }
+
+    .media-info-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .media-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 8px 16px;
+    }
+
+    .media-info-label {
+      font-size: 13px;
+      color: #6B7280;
+    }
+
+    .media-info-value {
+      font-size: 13px;
+      color: #111827;
+      font-weight: 500;
+      font-family: 'JetBrains Mono', 'Consolas', monospace;
+    }
+
+    /* SVG Icons */
+    .svg-icon {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      stroke-width: 2;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h1>FileList & FileUploader Components</h1>
+
+    <!-- FileUploader Section -->
+    <h2>File Uploader</h2>
+    <div class="file-uploader" id="fileUploader">
+      <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+        <path d="M12 12v9"></path>
+        <path d="m16 16-4-4-4 4"></path>
+      </svg>
+      <p class="upload-text" id="uploadText">拖放文件到此处</p>
+      <p class="upload-divider">或</p>
+      <button class="upload-button" id="uploadButton">点击选择文件</button>
+      <p class="upload-formats">支持的格式: MP4, AVI, MKV, MOV, FLV, WMV, WebM, MP3, WAV, AAC</p>
+    </div>
+
+    <!-- FileList Section -->
+    <h2 id="fileListHeader" style="display: none;">已选择文件 (<span id="fileCount">0</span>)</h2>
+    <div class="file-list" id="fileList">
+      <!-- File Item 1 - Collapsed -->
+      <div class="file-item">
+        <div class="file-item-header">
+          <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"></path>
+            <rect x="2" y="6" width="14" height="12" rx="2"></rect>
+          </svg>
+          <div class="file-info">
+            <div class="file-name">video1.mp4</div>
+            <div class="file-size">256 MB</div>
+          </div>
+          <div class="file-actions">
+            <button class="icon-button expand" onclick="toggleExpand(this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+            <button class="icon-button delete" onclick="removeFile(this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="file-details">
+          <div class="file-details-inner">
+            <div class="media-info">
+              <div class="media-info-header">
+                <svg class="media-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <div class="media-info-title">媒体信息</div>
+              </div>
+              <div class="media-info-grid">
+                <div class="media-info-label">分辨率</div>
+                <div class="media-info-value">1920 × 1080</div>
+                <div class="media-info-label">时长</div>
+                <div class="media-info-value">5:24</div>
+                <div class="media-info-label">帧率</div>
+                <div class="media-info-value">30 fps</div>
+                <div class="media-info-label">视频编解码器</div>
+                <div class="media-info-value">H.264 (AVC)</div>
+                <div class="media-info-label">视频码率</div>
+                <div class="media-info-value">6.2 Mbps</div>
+                <div class="media-info-label">音频编解码器</div>
+                <div class="media-info-value">AAC</div>
+                <div class="media-info-label">音频码率</div>
+                <div class="media-info-value">192 kbps</div>
+                <div class="media-info-label">声道</div>
+                <div class="media-info-value">立体声 (2.0)</div>
+                <div class="media-info-label">采样率</div>
+                <div class="media-info-value">48 kHz</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- File Item 2 - Expanded -->
+      <div class="file-item">
+        <div class="file-item-header">
+          <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"></path>
+            <rect x="2" y="6" width="14" height="12" rx="2"></rect>
+          </svg>
+          <div class="file-info">
+            <div class="file-name">video2.mp4</div>
+            <div class="file-size">512 MB</div>
+          </div>
+          <div class="file-actions">
+            <button class="icon-button expand expanded" onclick="toggleExpand(this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+            <button class="icon-button delete" onclick="removeFile(this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="file-details expanded">
+          <div class="file-details-inner">
+            <div class="media-info">
+              <div class="media-info-header">
+                <svg class="media-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <div class="media-info-title">媒体信息</div>
+              </div>
+              <div class="media-info-grid">
+                <div class="media-info-label">分辨率</div>
+                <div class="media-info-value">1920 × 1080</div>
+                <div class="media-info-label">时长</div>
+                <div class="media-info-value">10:24</div>
+                <div class="media-info-label">帧率</div>
+                <div class="media-info-value">30 fps</div>
+                <div class="media-info-label">视频编解码器</div>
+                <div class="media-info-value">H.264 (AVC)</div>
+                <div class="media-info-label">视频码率</div>
+                <div class="media-info-value">8.5 Mbps</div>
+                <div class="media-info-label">音频编解码器</div>
+                <div class="media-info-value">AAC</div>
+                <div class="media-info-label">音频码率</div>
+                <div class="media-info-value">192 kbps</div>
+                <div class="media-info-label">声道</div>
+                <div class="media-info-value">立体声 (2.0)</div>
+                <div class="media-info-label">采样率</div>
+                <div class="media-info-value">48 kHz</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- File Item 3 - Collapsed -->
+      <div class="file-item">
+        <div class="file-item-header">
+          <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"></path>
+            <rect x="2" y="6" width="14" height="12" rx="2"></rect>
+          </svg>
+          <div class="file-info">
+            <div class="file-name">video3.avi</div>
+            <div class="file-size">1.2 GB</div>
+          </div>
+          <div class="file-actions">
+            <button class="icon-button expand" onclick="toggleExpand(this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+            <button class="icon-button delete" onclick="removeFile(this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="file-details">
+          <div class="file-details-inner">
+            <div class="media-info">
+              <div class="media-info-header">
+                <svg class="media-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <div class="media-info-title">媒体信息</div>
+              </div>
+              <div class="media-info-grid">
+                <div class="media-info-label">分辨率</div>
+                <div class="media-info-value">1280 × 720</div>
+                <div class="media-info-label">时长</div>
+                <div class="media-info-value">15:42</div>
+                <div class="media-info-label">帧率</div>
+                <div class="media-info-value">24 fps</div>
+                <div class="media-info-label">视频编解码器</div>
+                <div class="media-value">MPEG-4</div>
+                <div class="media-info-label">视频码率</div>
+                <div class="media-info-value">12.3 Mbps</div>
+                <div class="media-info-label">音频编解码器</div>
+                <div class="media-info-value">MP3</div>
+                <div class="media-info-label">音频码率</div>
+                <div class="media-info-value">128 kbps</div>
+                <div class="media-info-label">声道</div>
+                <div class="media-info-value">立体声 (2.0)</div>
+                <div class="media-info-label">采样率</div>
+                <div class="media-info-value">44.1 kHz</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // FileUploader drag and drop interactions
+    const uploader = document.getElementById('fileUploader');
+    const uploadText = document.getElementById('uploadText');
+    const uploadButton = document.getElementById('uploadButton');
+
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      uploader.addEventListener(eventName, preventDefaults, false);
+      document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    // Highlight on drag over
+    ['dragenter', 'dragover'].forEach(eventName => {
+      uploader.addEventListener(eventName, () => {
+        uploader.classList.add('drag-active');
+        uploadText.textContent = '释放以添加文件';
+      });
+    });
+
+    // Remove highlight on drag leave
+    ['dragleave', 'drop'].forEach(eventName => {
+      uploader.addEventListener(eventName, () => {
+        uploader.classList.remove('drag-active');
+        uploader.classList.remove('drag-accept');
+        uploadText.textContent = '拖放文件到此处';
+      });
+    });
+
+    // Handle drag accept (files are over the drop zone)
+    uploader.addEventListener('dragover', (e) => {
+      if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+        uploader.classList.add('drag-accept');
+      }
+    });
+
+    uploader.addEventListener('dragleave', () => {
+      uploader.classList.remove('drag-accept');
+    });
+
+    // Handle file drop
+    uploader.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      console.log('Files dropped:', files);
+      // In a real implementation, you would handle the files here
+    });
+
+    // Handle click to upload
+    uploadButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      console.log('Upload button clicked');
+      // In a real implementation, you would open a file dialog
+    });
+
+    uploader.addEventListener('click', () => {
+      console.log('Uploader area clicked');
+      // In a real implementation, you would open a file dialog
+    });
+
+    // FileList interactions
+    function toggleExpand(button) {
+      button.classList.toggle('expanded');
+      const fileItem = button.closest('.file-item');
+      const details = fileItem.querySelector('.file-details');
+      details.classList.toggle('expanded');
+    }
+
+    function removeFile(button) {
+      const fileItem = button.closest('.file-item');
+      fileItem.style.opacity = '0';
+      fileItem.style.transform = 'translateX(100%)';
+      setTimeout(() => {
+        fileItem.remove();
+        updateFileCount();
+      }, 300);
+    }
+
+    function updateFileCount() {
+      const count = document.querySelectorAll('.file-item').length;
+      document.getElementById('fileCount').textContent = count;
+      if (count === 0) {
+        document.getElementById('fileListHeader').style.display = 'none';
+      }
+    }
+
+    // Initialize file count
+    updateFileCount();
+    if (document.querySelectorAll('.file-item').length > 0) {
+      document.getElementById('fileListHeader').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

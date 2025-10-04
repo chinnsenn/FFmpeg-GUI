@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Queue (任务队列) - FFmpeg GUI Design Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      /* Colors - Light Theme */
+      --primary-50: #EFF6FF;
+      --primary-500: #3B82F6;
+      --primary-600: #2563EB;
+      --primary-700: #1D4ED8;
+
+      --success-50: #F0FDF4;
+      --success-500: #22C55E;
+      --success-600: #16A34A;
+
+      --error-50: #FEF2F2;
+      --error-500: #EF4444;
+      --error-600: #DC2626;
+
+      --warning-50: #FFFBEB;
+      --warning-500: #F59E0B;
+      --warning-600: #D97706;
+
+      --background-primary: #FFFFFF;
+      --background-secondary: #F9FAFB;
+      --background-tertiary: #F3F4F6;
+      --surface-raised: #FFFFFF;
+      --surface-base: #FFFFFF;
+
+      --text-primary: #111827;
+      --text-secondary: #6B7280;
+      --text-tertiary: #9CA3AF;
+      --text-disabled: #D1D5DB;
+
+      --border-light: #E5E7EB;
+      --border-medium: #D1D5DB;
+      --border-dark: #9CA3AF;
+
+      /* Spacing */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+
+      /* Radius */
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+      --radius-full: 9999px;
+
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--background-primary);
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+
+    .app-container {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background-color: var(--background-secondary);
+      border-right: 1px solid var(--border-light);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: var(--space-4);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: var(--space-6);
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      flex: 1;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      height: 40px;
+      padding: 0 var(--space-4);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 150ms ease;
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background-color: var(--background-tertiary);
+    }
+
+    .nav-link.active {
+      color: var(--primary-600);
+      background-color: var(--primary-50);
+      font-weight: 600;
+      border-left: 3px solid var(--primary-500);
+      padding-left: 13px;
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-8);
+    }
+
+    .page-header {
+      margin-bottom: var(--space-8);
+    }
+
+    .page-title {
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 48px;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+
+    .page-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* Queue Status Bar */
+    .queue-status-bar {
+      padding: var(--space-6);
+      border-radius: var(--radius-lg);
+      background-color: var(--surface-raised);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: var(--space-6);
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-6);
+      margin-bottom: var(--space-4);
+      font-size: 14px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .status-label {
+      color: var(--text-secondary);
+    }
+
+    .status-value {
+      font-weight: 600;
+    }
+
+    .status-value.running { color: var(--primary-600); }
+    .status-value.queued { color: var(--text-tertiary); }
+    .status-value.completed { color: var(--success-600); }
+    .status-value.failed { color: var(--error-600); }
+
+    .status-divider {
+      color: var(--border-medium);
+    }
+
+    .concurrent-control {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .select {
+      height: 40px;
+      padding: 0 var(--space-3);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      background-color: var(--surface-base);
+      color: var(--text-primary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color 150ms ease;
+    }
+
+    .select:hover {
+      border-color: var(--border-dark);
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 56px;
+      padding: 0 var(--space-4);
+      border-radius: var(--radius-md);
+      background-color: var(--background-secondary);
+      border: 1px solid var(--border-light);
+      margin-bottom: var(--space-4);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      height: 40px;
+      padding: 0 var(--space-6);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 150ms ease;
+      border: none;
+    }
+
+    .button-ghost {
+      background-color: transparent;
+      color: var(--text-secondary);
+    }
+
+    .button-ghost:hover {
+      background-color: var(--background-tertiary);
+      color: var(--text-primary);
+    }
+
+    .button-destructive {
+      color: var(--error-600);
+    }
+
+    .button-destructive:hover {
+      background-color: var(--error-50);
+    }
+
+    /* Task Cards */
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .task-card {
+      width: 100%;
+      min-height: 120px;
+      padding: var(--space-6);
+      border-radius: var(--radius-lg);
+      border: 2px solid;
+      transition: all 300ms ease;
+    }
+
+    .task-card.running {
+      background-color: var(--surface-raised);
+      border-color: var(--primary-500);
+      box-shadow: var(--shadow-md);
+      animation: border-pulse 2s ease-in-out infinite;
+    }
+
+    .task-card.pending {
+      background-color: var(--background-secondary);
+      border-color: var(--border-light);
+    }
+
+    .task-card.completed {
+      background-color: var(--success-50);
+      border-color: var(--success-500);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .task-card.failed {
+      background-color: var(--error-50);
+      border-color: var(--error-500);
+      box-shadow: var(--shadow-sm);
+    }
+
+    @keyframes border-pulse {
+      0%, 100% {
+        border-color: var(--primary-500);
+        opacity: 1;
+      }
+      50% {
+        border-color: var(--primary-400);
+        opacity: 0.9;
+      }
+    }
+
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--space-4);
+    }
+
+    .task-info {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      flex: 1;
+    }
+
+    .task-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .task-icon.running {
+      color: var(--primary-600);
+      animation: spin 2s linear infinite;
+    }
+
+    .task-icon.pending {
+      color: var(--text-tertiary);
+    }
+
+    .task-icon.completed {
+      color: var(--success-600);
+    }
+
+    .task-icon.failed {
+      color: var(--error-600);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .task-status-text {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .task-status-text.running {
+      color: var(--primary-600);
+    }
+
+    .task-status-text.pending {
+      color: var(--text-secondary);
+    }
+
+    .task-status-text.completed {
+      color: var(--success-600);
+    }
+
+    .task-status-text.failed {
+      color: var(--error-600);
+    }
+
+    .task-progress-percent {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary-600);
+      margin-left: var(--space-2);
+    }
+
+    .task-files {
+      margin-top: var(--space-1);
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .task-actions {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .icon-button {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      transition: background-color 150ms ease;
+    }
+
+    .icon-button:hover {
+      background-color: var(--background-tertiary);
+    }
+
+    .icon-button.destructive:hover {
+      color: var(--error-600);
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      margin-bottom: var(--space-3);
+    }
+
+    .progress-bar {
+      position: relative;
+      width: 100%;
+      height: 8px;
+      background-color: var(--border-light);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+      border-radius: var(--radius-full);
+      transition: width 300ms ease-out;
+    }
+
+    .progress-shimmer {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .progress-details {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .task-complete-info {
+      font-size: 14px;
+      color: var(--success-600);
+    }
+
+    .task-error-message {
+      font-size: 14px;
+      color: var(--error-600);
+    }
+
+    /* Icons (inline SVG) */
+    .icon {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .icon-sm {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Container max-width */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">FFmpeg GUI</div>
+
+      <nav class="nav-menu">
+        <a href="#" class="nav-link">
+          <svg class="nav-icon icon" viewBox="0 0 24 24">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <span>首页</span>
+        </a>
+
+        <a href="#" class="nav-link">
+          <svg class="nav-icon icon" viewBox="0 0 24 24">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          <span>格式转换</span>
+        </a>
+
+        <a href="#" class="nav-link">
+          <svg class="nav-icon icon" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>视频压缩</span>
+        </a>
+
+        <a href="#" class="nav-link active">
+          <svg class="nav-icon icon" viewBox="0 0 24 24">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+          <span>任务队列</span>
+        </a>
+
+        <a href="#" class="nav-link">
+          <svg class="nav-icon icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6m5.66-13.66l-4.24 4.24m0 6.84l-4.24 4.24m13.66-5.66h-6m-6 0H1m5.66 5.66l4.24-4.24m0-6.84l4.24-4.24"></path>
+          </svg>
+          <span>设置</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+          <h1 class="page-title">任务队列</h1>
+          <p class="page-description">管理和监控所有转换/压缩任务</p>
+        </div>
+
+        <!-- Queue Status Bar -->
+        <div class="queue-status-bar">
+          <div class="status-row">
+            <div class="status-item">
+              <span class="status-label">运行中:</span>
+              <span class="status-value running">2</span>
+            </div>
+            <span class="status-divider">|</span>
+
+            <div class="status-item">
+              <span class="status-label">队列中:</span>
+              <span class="status-value queued">5</span>
+            </div>
+            <span class="status-divider">|</span>
+
+            <div class="status-item">
+              <span class="status-label">已完成:</span>
+              <span class="status-value completed">156</span>
+            </div>
+            <span class="status-divider">|</span>
+
+            <div class="status-item">
+              <span class="status-label">失败:</span>
+              <span class="status-value failed">3</span>
+            </div>
+
+            <div class="concurrent-control">
+              <span class="status-label">最大并发:</span>
+              <select class="select">
+                <option>1</option>
+                <option selected>2</option>
+                <option>3</option>
+                <option>4</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+          <div>
+            <span class="status-label" style="margin-right: 8px;">筛选:</span>
+            <select class="select">
+              <option>全部</option>
+              <option>运行中</option>
+              <option>队列中</option>
+              <option>已完成</option>
+              <option>失败</option>
+              <option>已取消</option>
+            </select>
+          </div>
+
+          <button class="button button-ghost button-destructive">
+            <svg class="icon icon-sm" viewBox="0 0 24 24">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            清空已完成
+          </button>
+        </div>
+
+        <!-- Task List -->
+        <div class="task-list">
+          <!-- Task 1: Running (45%) -->
+          <div class="task-card running">
+            <div class="task-header">
+              <div class="task-info">
+                <svg class="task-icon running" viewBox="0 0 24 24">
+                  <line x1="12" y1="2" x2="12" y2="6"></line>
+                  <line x1="12" y1="18" x2="12" y2="22"></line>
+                  <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                  <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                  <line x1="2" y1="12" x2="6" y2="12"></line>
+                  <line x1="18" y1="12" x2="22" y2="12"></line>
+                  <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                  <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                </svg>
+                <div>
+                  <div style="display: flex; align-items: center;">
+                    <span class="task-status-text running">运行中</span>
+                    <span class="task-progress-percent">45%</span>
+                  </div>
+                  <div class="task-files">
+                    <div>输入: video1.mp4</div>
+                    <div>输出: video1.webm</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="task-actions">
+                <button class="icon-button" title="暂停">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                  </svg>
+                </button>
+                <button class="icon-button destructive" title="取消">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="progress-container">
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 45%;">
+                  <div class="progress-shimmer"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="progress-details">
+              <span>速度: 1.8x</span>
+              <span>ETA: 5分32秒</span>
+              <span>FPS: 54</span>
+            </div>
+          </div>
+
+          <!-- Task 2: Running (78%) -->
+          <div class="task-card running">
+            <div class="task-header">
+              <div class="task-info">
+                <svg class="task-icon running" viewBox="0 0 24 24">
+                  <line x1="12" y1="2" x2="12" y2="6"></line>
+                  <line x1="12" y1="18" x2="12" y2="22"></line>
+                  <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                  <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                  <line x1="2" y1="12" x2="6" y2="12"></line>
+                  <line x1="18" y1="12" x2="22" y2="12"></line>
+                  <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                  <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                </svg>
+                <div>
+                  <div style="display: flex; align-items: center;">
+                    <span class="task-status-text running">运行中</span>
+                    <span class="task-progress-percent">78%</span>
+                  </div>
+                  <div class="task-files">
+                    <div>输入: video2.mp4</div>
+                    <div>输出: video2_compressed.mp4</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="task-actions">
+                <button class="icon-button" title="暂停">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                  </svg>
+                </button>
+                <button class="icon-button destructive" title="取消">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="progress-container">
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 78%;">
+                  <div class="progress-shimmer"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="progress-details">
+              <span>速度: 2.3x</span>
+              <span>ETA: 2分15秒</span>
+              <span>FPS: 68</span>
+            </div>
+          </div>
+
+          <!-- Task 3: Pending -->
+          <div class="task-card pending">
+            <div class="task-header">
+              <div class="task-info">
+                <svg class="task-icon pending" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <div>
+                  <div>
+                    <span class="task-status-text pending">队列中</span>
+                  </div>
+                  <div class="task-files">
+                    <div>输入: video3.avi</div>
+                    <div>输出: video3.mp4</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="task-actions">
+                <button class="icon-button destructive" title="取消">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Task 4: Completed -->
+          <div class="task-card completed">
+            <div class="task-header">
+              <div class="task-info">
+                <svg class="task-icon completed" viewBox="0 0 24 24">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <div>
+                  <div>
+                    <span class="task-status-text completed">已完成</span>
+                  </div>
+                  <div class="task-files">
+                    <div>输入: video4.mkv</div>
+                    <div>输出: video4.webm</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="task-actions">
+                <button class="icon-button" title="重新执行">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="task-complete-info">
+              用时: 8分12秒
+            </div>
+          </div>
+
+          <!-- Task 5: Failed -->
+          <div class="task-card failed">
+            <div class="task-header">
+              <div class="task-info">
+                <svg class="task-icon failed" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="15" y1="9" x2="9" y2="15"></line>
+                  <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+                <div>
+                  <div>
+                    <span class="task-status-text failed">失败</span>
+                  </div>
+                  <div class="task-files">
+                    <div>输入: video5.mp4</div>
+                    <div>输出: video5_converted.mp4</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="task-actions">
+                <button class="icon-button" title="重试">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="task-error-message">
+              错误: 不支持的编解码器 (codec not found)
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Add hover effects for cards
+    document.querySelectorAll('.task-card').forEach(card => {
+      if (!card.classList.contains('running')) {
+        card.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateY(-2px)';
+        });
+        card.addEventListener('mouseleave', function() {
+          this.style.transform = 'translateY(0)';
+        });
+      }
+    });
+
+    // Add click effects for buttons
+    document.querySelectorAll('.icon-button, .button').forEach(button => {
+      button.addEventListener('mousedown', function() {
+        this.style.transform = 'scale(0.95)';
+      });
+      button.addEventListener('mouseup', function() {
+        this.style.transform = 'scale(1)';
+      });
+      button.addEventListener('mouseleave', function() {
+        this.style.transform = 'scale(1)';
+      });
+    });
+
+    // Simulate progress updates for running tasks
+    setInterval(() => {
+      document.querySelectorAll('.task-card.running').forEach((card, index) => {
+        const progressFill = card.querySelector('.progress-fill');
+        const progressPercent = card.querySelector('.task-progress-percent');
+
+        if (progressFill && progressPercent) {
+          let currentProgress = parseInt(progressPercent.textContent);
+          currentProgress = Math.min(100, currentProgress + Math.random() * 2);
+
+          progressFill.style.width = currentProgress + '%';
+          progressPercent.textContent = Math.round(currentProgress) + '%';
+
+          // Update ETA
+          const details = card.querySelector('.progress-details');
+          if (details && currentProgress < 100) {
+            const remaining = 100 - currentProgress;
+            const minutes = Math.floor(remaining / 10);
+            const seconds = Math.floor((remaining % 10) * 6);
+            const etaSpan = details.children[1];
+            etaSpan.textContent = `ETA: ${minutes}分${seconds}秒`;
+          }
+        }
+      });
+    }, 1000);
+  </script>
+</body>
+</html>

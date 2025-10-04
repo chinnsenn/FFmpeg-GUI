@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设置 - FFmpeg GUI</title>
+  <style>
+    /* CSS 自定义属性 (Design Tokens) */
+    :root {
+      /* 颜色系统 - 浅色主题 */
+      --primary-50: hsl(217, 91%, 95%);
+      --primary-500: hsl(217, 91%, 60%);
+      --primary-600: hsl(217, 91%, 55%);
+      --primary-700: hsl(217, 91%, 50%);
+
+      --success-50: hsl(142, 71%, 95%);
+      --success-500: hsl(142, 71%, 45%);
+      --success-600: hsl(142, 71%, 40%);
+
+      --error-50: hsl(0, 84%, 95%);
+      --error-500: hsl(0, 84%, 60%);
+      --error-600: hsl(0, 84%, 55%);
+
+      --warning-50: hsl(45, 93%, 95%);
+      --warning-500: hsl(45, 93%, 58%);
+      --warning-600: hsl(45, 93%, 53%);
+
+      /* 背景色 */
+      --background-primary: hsl(0, 0%, 100%);
+      --background-secondary: hsl(220, 18%, 97%);
+      --background-tertiary: hsl(220, 15%, 94%);
+
+      /* 表面色 */
+      --surface-base: hsl(0, 0%, 100%);
+      --surface-raised: hsl(0, 0%, 100%);
+
+      /* 边框色 */
+      --border-light: hsl(220, 15%, 90%);
+      --border-medium: hsl(220, 14%, 80%);
+      --border-dark: hsl(220, 14%, 70%);
+
+      /* 文字色 */
+      --text-primary: hsl(220, 18%, 8%);
+      --text-secondary: hsl(220, 10%, 40%);
+      --text-tertiary: hsl(220, 8%, 60%);
+      --text-disabled: hsl(220, 5%, 75%);
+
+      /* 间距 */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+
+      /* 圆角 */
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-full: 9999px;
+
+      /* 阴影 */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    /* 深色主题 */
+    .dark {
+      --primary-50: hsl(217, 91%, 15%);
+      --background-primary: hsl(220, 18%, 8%);
+      --background-secondary: hsl(220, 18%, 12%);
+      --background-tertiary: hsl(220, 16%, 16%);
+      --surface-base: hsl(220, 17%, 14%);
+      --surface-raised: hsl(220, 16%, 18%);
+      --border-light: hsl(220, 14%, 22%);
+      --border-medium: hsl(220, 13%, 28%);
+      --border-dark: hsl(220, 12%, 35%);
+      --text-primary: hsl(0, 0%, 95%);
+      --text-secondary: hsl(220, 8%, 70%);
+      --text-tertiary: hsl(220, 6%, 50%);
+    }
+
+    /* 基础样式 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background-color: var(--background-primary);
+      color: var(--text-primary);
+      line-height: 1.5;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* 侧边栏 */
+    .sidebar {
+      width: 240px;
+      height: 100vh;
+      background-color: var(--background-secondary);
+      border-right: 1px solid var(--border-light);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      left: 0;
+      top: 0;
+    }
+
+    .sidebar-logo {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+
+    .sidebar-logo h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      height: 40px;
+      padding: 0 var(--space-4);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 150ms ease;
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background-color: var(--background-tertiary);
+    }
+
+    .nav-link.active {
+      color: var(--primary-600);
+      background-color: var(--primary-50);
+      font-weight: 600;
+      border-left: 3px solid var(--primary-500);
+      padding-left: 13px;
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    /* 主内容区 */
+    .main-content {
+      margin-left: 240px;
+      flex: 1;
+      padding: var(--space-8);
+      overflow-y: auto;
+    }
+
+    .page-header {
+      margin-bottom: var(--space-8);
+    }
+
+    .page-title {
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 48px;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+
+    .page-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .settings-container {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+
+    /* 配置卡片 */
+    .config-card {
+      background-color: var(--surface-raised);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .config-card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-5);
+    }
+
+    .config-card-icon {
+      width: 20px;
+      height: 20px;
+      color: var(--text-secondary);
+    }
+
+    .config-card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .config-card-content {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+    }
+
+    /* 表单字段 */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .field-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .field-input-group {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .field-input {
+      flex: 1;
+      height: 40px;
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      background-color: var(--surface-base);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      transition: all 150ms ease;
+    }
+
+    .field-input:hover {
+      border-color: var(--border-dark);
+    }
+
+    .field-input:focus {
+      outline: none;
+      border: 2px solid var(--primary-500);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      padding: calc(var(--space-2) - 1px) calc(var(--space-3) - 1px);
+    }
+
+    .field-button {
+      width: 80px;
+      height: 40px;
+      padding: 0 var(--space-3);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      background-color: var(--background-tertiary);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+
+    .field-button:hover {
+      background-color: var(--border-light);
+      border-color: var(--border-dark);
+    }
+
+    .field-validation {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 13px;
+      margin-top: var(--space-2);
+    }
+
+    .field-validation.success {
+      color: var(--success-600);
+    }
+
+    .field-validation-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* 单选按钮组 */
+    .radio-group {
+      display: flex;
+      gap: var(--space-4);
+    }
+
+    .radio-option {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 48px;
+      padding: var(--space-4);
+      border: 2px solid var(--border-light);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 150ms ease;
+      position: relative;
+    }
+
+    .radio-option:hover {
+      border-color: var(--border-dark);
+    }
+
+    .radio-option input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .radio-option input:checked + label {
+      border-color: var(--primary-600);
+      background-color: var(--primary-50);
+      font-weight: 600;
+    }
+
+    .radio-label {
+      font-size: 14px;
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    /* 复选框 */
+    .checkbox-field {
+      display: flex;
+      align-items: center;
+      height: 40px;
+      gap: var(--space-3);
+      cursor: pointer;
+    }
+
+    .checkbox-input {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      background-color: var(--surface-base);
+      cursor: pointer;
+      transition: all 150ms ease;
+      appearance: none;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .checkbox-input:hover {
+      border-color: var(--border-dark);
+    }
+
+    .checkbox-input:checked {
+      background-color: var(--primary-600);
+      border-color: var(--primary-600);
+    }
+
+    .checkbox-input:checked::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .checkbox-label {
+      font-size: 14px;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    /* 下拉菜单 */
+    .select-field {
+      height: 40px;
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      background-color: var(--surface-base);
+      color: var(--text-primary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+
+    .select-field:hover {
+      border-color: var(--border-dark);
+    }
+
+    .select-field:focus {
+      outline: none;
+      border: 2px solid var(--primary-500);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      padding: calc(var(--space-2) - 1px) calc(var(--space-3) - 1px);
+    }
+
+    /* 保存按钮 */
+    .save-button {
+      width: 200px;
+      height: 48px;
+      border: none;
+      border-radius: var(--radius-md);
+      background-color: var(--primary-600);
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 150ms ease;
+      margin-top: var(--space-8);
+    }
+
+    .save-button:hover {
+      background-color: var(--primary-700);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .save-button:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    /* 重新检测按钮 */
+    .redetect-button {
+      width: auto;
+      padding: 0 var(--space-6);
+      height: 40px;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      background-color: var(--background-tertiary);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+
+    .redetect-button:hover {
+      background-color: var(--border-light);
+      border-color: var(--border-dark);
+    }
+
+    /* 响应式 */
+    @media (max-width: 1024px) {
+      .sidebar {
+        width: 200px;
+      }
+      .main-content {
+        margin-left: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>FFmpeg GUI</h1>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-link">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+        <span>首页</span>
+      </a>
+
+      <a href="#" class="nav-link">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        <span>转换</span>
+      </a>
+
+      <a href="#" class="nav-link">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 2v6h6M18 16v6h-6M2 12h20M12 2v20"/>
+        </svg>
+        <span>压缩</span>
+      </a>
+
+      <a href="#" class="nav-link">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+        <span>队列</span>
+      </a>
+
+      <a href="#" class="nav-link active">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <span>设置</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1 class="page-title">设置</h1>
+      <p class="page-description">配置 FFmpeg 和应用偏好</p>
+    </div>
+
+    <div class="settings-container">
+      <!-- FFmpeg 配置 -->
+      <div class="config-card">
+        <div class="config-card-header">
+          <svg class="config-card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          <h2 class="config-card-title">FFmpeg 配置</h2>
+        </div>
+
+        <div class="config-card-content">
+          <div class="field">
+            <label class="field-label">FFmpeg 路径</label>
+            <div class="field-input-group">
+              <input type="text" class="field-input" value="/usr/local/bin/ffmpeg" readonly>
+              <button class="field-button">浏览</button>
+            </div>
+            <div class="field-validation success">
+              <svg class="field-validation-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>FFmpeg 已检测到 (版本: 6.0)</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">FFprobe 路径</label>
+            <div class="field-input-group">
+              <input type="text" class="field-input" value="/usr/local/bin/ffprobe" readonly>
+              <button class="field-button">浏览</button>
+            </div>
+            <div class="field-validation success">
+              <svg class="field-validation-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>FFprobe 已检测到 (版本: 6.0)</span>
+            </div>
+          </div>
+
+          <div>
+            <button class="redetect-button">重新检测</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 外观 -->
+      <div class="config-card">
+        <div class="config-card-header">
+          <svg class="config-card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+          </svg>
+          <h2 class="config-card-title">外观</h2>
+        </div>
+
+        <div class="config-card-content">
+          <div class="field">
+            <label class="field-label">主题</label>
+            <div class="radio-group">
+              <div class="radio-option">
+                <input type="radio" name="theme" id="theme-light" value="light">
+                <label class="radio-label" for="theme-light">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                  </svg>
+                  浅色
+                </label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" name="theme" id="theme-dark" value="dark">
+                <label class="radio-label" for="theme-dark">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                  </svg>
+                  深色
+                </label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" name="theme" id="theme-system" value="system" checked>
+                <label class="radio-label" for="theme-system">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
+                  跟随系统
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 任务设置 -->
+      <div class="config-card">
+        <div class="config-card-header">
+          <svg class="config-card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+          </svg>
+          <h2 class="config-card-title">任务设置</h2>
+        </div>
+
+        <div class="config-card-content">
+          <div class="field">
+            <label class="field-label">最大并发任务数</label>
+            <select class="select-field">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+
+          <label class="checkbox-field">
+            <input type="checkbox" class="checkbox-input" id="auto-start" checked>
+            <span class="checkbox-label">任务完成后自动开始下一个</span>
+          </label>
+
+          <label class="checkbox-field">
+            <input type="checkbox" class="checkbox-input" id="notification">
+            <span class="checkbox-label">任务完成后发送系统通知</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 文件设置 -->
+      <div class="config-card">
+        <div class="config-card-header">
+          <svg class="config-card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+          </svg>
+          <h2 class="config-card-title">文件设置</h2>
+        </div>
+
+        <div class="config-card-content">
+          <div class="field">
+            <label class="field-label">默认输出目录</label>
+            <div class="field-input-group">
+              <input type="text" class="field-input" value="~/Videos/FFmpeg-Output" readonly>
+              <button class="field-button">浏览</button>
+            </div>
+          </div>
+
+          <label class="checkbox-field">
+            <input type="checkbox" class="checkbox-input" id="keep-original" checked>
+            <span class="checkbox-label">转换后保留原文件</span>
+          </label>
+
+          <label class="checkbox-field">
+            <input type="checkbox" class="checkbox-input" id="auto-rename">
+            <span class="checkbox-label">文件名冲突时自动重命名</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 保存按钮 -->
+      <button class="save-button">保存设置</button>
+    </div>
+  </main>
+
+  <script>
+    // 主题切换逻辑
+    const themeRadios = document.querySelectorAll('input[name="theme"]');
+    themeRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const theme = e.target.value;
+        if (theme === 'dark') {
+          document.body.classList.add('dark');
+        } else if (theme === 'light') {
+          document.body.classList.remove('dark');
+        } else if (theme === 'system') {
+          // 检测系统主题
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (prefersDark) {
+            document.body.classList.add('dark');
+          } else {
+            document.body.classList.remove('dark');
+          }
+        }
+      });
+    });
+
+    // 初始化系统主题
+    const systemTheme = document.getElementById('theme-system');
+    if (systemTheme.checked) {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) {
+        document.body.classList.add('dark');
+      }
+    }
+
+    // 单选按钮样式切换
+    document.querySelectorAll('.radio-option').forEach(option => {
+      const input = option.querySelector('input');
+      const label = option.querySelector('label');
+
+      option.addEventListener('click', () => {
+        input.checked = true;
+        input.dispatchEvent(new Event('change'));
+        updateRadioStyles();
+      });
+
+      function updateRadioStyles() {
+        document.querySelectorAll('.radio-option').forEach(opt => {
+          const inp = opt.querySelector('input');
+          if (inp.checked) {
+            opt.style.borderColor = 'var(--primary-600)';
+            opt.style.backgroundColor = 'var(--primary-50)';
+            opt.querySelector('label').style.fontWeight = '600';
+          } else {
+            opt.style.borderColor = 'var(--border-light)';
+            opt.style.backgroundColor = 'transparent';
+            opt.querySelector('label').style.fontWeight = '400';
+          }
+        });
+      }
+
+      updateRadioStyles();
+    });
+
+    // 保存设置按钮
+    document.querySelector('.save-button').addEventListener('click', () => {
+      // 收集所有设置
+      const settings = {
+        theme: document.querySelector('input[name="theme"]:checked').value,
+        maxConcurrentTasks: document.querySelector('.select-field').value,
+        autoStart: document.getElementById('auto-start').checked,
+        notification: document.getElementById('notification').checked,
+        keepOriginal: document.getElementById('keep-original').checked,
+        autoRename: document.getElementById('auto-rename').checked
+      };
+
+      console.log('保存设置:', settings);
+
+      // 显示保存成功提示
+      const button = document.querySelector('.save-button');
+      const originalText = button.textContent;
+      button.textContent = '设置已保存 ✓';
+      button.style.backgroundColor = 'var(--success-600)';
+
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.style.backgroundColor = 'var(--primary-600)';
+      }, 2000);
+    });
+
+    // 浏览按钮交互
+    document.querySelectorAll('.field-button').forEach(button => {
+      button.addEventListener('click', () => {
+        console.log('打开文件选择对话框');
+      });
+    });
+
+    // 重新检测按钮
+    document.querySelector('.redetect-button').addEventListener('click', (e) => {
+      const button = e.target;
+      const originalText = button.textContent;
+      button.textContent = '检测中...';
+      button.disabled = true;
+
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.disabled = false;
+        console.log('重新检测 FFmpeg');
+      }, 1500);
+    });
+  </script>
+</body>
+</html>

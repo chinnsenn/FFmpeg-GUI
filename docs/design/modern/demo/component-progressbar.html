@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProgressBar Component Examples - FFmpeg GUI Design System</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+    }
+
+    h1 {
+      color: white;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-align: center;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .subtitle {
+      color: rgba(255, 255, 255, 0.9);
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1F2937;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #E5E7EB;
+    }
+
+    .progress-item {
+      margin-bottom: 24px;
+    }
+
+    .progress-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .label-text {
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .label-value {
+      color: #2563EB;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+    }
+
+    /* Progress Bar Styles */
+    .progress-track {
+      position: relative;
+      width: 100%;
+      height: 8px;
+      background: hsl(220, 15%, 90%);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      position: relative;
+      height: 100%;
+      background: linear-gradient(90deg, #3B82F6, #2563EB);
+      border-radius: 9999px;
+      transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Shimmer Effect */
+    .progress-fill.with-shimmer::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 100%
+      );
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        transform: translateX(-100%);
+      }
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    /* Indeterminate Progress Bar */
+    .progress-indeterminate {
+      position: relative;
+      width: 100%;
+      height: 8px;
+      background: hsl(220, 15%, 90%);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-indeterminate::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        #3B82F6 50%,
+        transparent 100%
+      );
+      background-size: 200% 100%;
+      animation: indeterminate 1.5s ease-in-out infinite;
+    }
+
+    @keyframes indeterminate {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    /* Dark Mode Toggle */
+    .dark-mode-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 150ms ease;
+    }
+
+    .dark-mode-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .dark-mode-toggle:active {
+      transform: translateY(0);
+    }
+
+    /* Dark Mode Styles */
+    body.dark {
+      background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
+    }
+
+    body.dark .card {
+      background: #1F2937;
+    }
+
+    body.dark .section-title {
+      color: #F9FAFB;
+      border-bottom-color: #374151;
+    }
+
+    body.dark .label-text {
+      color: #D1D5DB;
+    }
+
+    body.dark .label-value {
+      color: #60A5FA;
+    }
+
+    body.dark .progress-track {
+      background: hsl(220, 14%, 22%);
+    }
+
+    body.dark .progress-indeterminate {
+      background: hsl(220, 14%, 22%);
+    }
+
+    body.dark .dark-mode-toggle {
+      background: #374151;
+      color: white;
+    }
+
+    /* Info Badge */
+    .info-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #EFF6FF;
+      color: #1E40AF;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 16px;
+    }
+
+    body.dark .info-badge {
+      background: rgba(59, 130, 246, 0.1);
+      color: #93C5FD;
+    }
+
+    .info-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Code Block */
+    .code-block {
+      background: #F3F4F6;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 13px;
+      color: #1F2937;
+      overflow-x: auto;
+    }
+
+    body.dark .code-block {
+      background: #111827;
+      color: #D1D5DB;
+    }
+
+    .code-comment {
+      color: #6B7280;
+    }
+
+    body.dark .code-comment {
+      color: #9CA3AF;
+    }
+  </style>
+</head>
+<body>
+  <button class="dark-mode-toggle" onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
+
+  <div class="container">
+    <h1>ProgressBar Component</h1>
+    <p class="subtitle">Interactive examples of progress bar variants with animations</p>
+
+    <!-- Static Progress Bars -->
+    <div class="card">
+      <div class="section-title">Static Progress Bars</div>
+
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="label-text">Empty</span>
+          <span class="label-value">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="label-text">Quarter Progress</span>
+          <span class="label-value">25%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width: 25%"></div>
+        </div>
+      </div>
+
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="label-text">Half Progress</span>
+          <span class="label-value">50%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width: 50%"></div>
+        </div>
+      </div>
+
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="label-text">Three Quarters</span>
+          <span class="label-value">75%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width: 75%"></div>
+        </div>
+      </div>
+
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="label-text">Complete</span>
+          <span class="label-value">100%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <div class="info-badge">
+        <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Width transitions use 300ms ease-out timing
+      </div>
+    </div>
+
+    <!-- Animated Progress Bar with Shimmer -->
+    <div class="card">
+      <div class="section-title">Animated Progress with Shimmer Effect</div>
+
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="label-text">With Shimmer Animation</span>
+          <span class="label-value">60%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill with-shimmer" style="width: 60%"></div>
+        </div>
+      </div>
+
+      <div class="info-badge">
+        <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+        Shimmer: white semi-transparent gradient, 2s infinite animation
+      </div>
+
+      <div class="code-block">
+        <span class="code-comment">/* Shimmer CSS Animation */</span><br>
+        @keyframes shimmer {<br>
+        &nbsp;&nbsp;0% { transform: translateX(-100%); }<br>
+        &nbsp;&nbsp;100% { transform: translateX(100%); }<br>
+        }
+      </div>
+    </div>
+
+    <!-- Indeterminate Progress Bar -->
+    <div class="card">
+      <div class="section-title">Indeterminate Progress Bar</div>
+
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="label-text">Indeterminate (Unknown Duration)</span>
+          <span class="label-value">⏳</span>
+        </div>
+        <div class="progress-indeterminate"></div>
+      </div>
+
+      <div class="info-badge">
+        <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        Continuous sliding animation, 1.5s ease-in-out infinite
+      </div>
+
+      <div class="code-block">
+        <span class="code-comment">/* Indeterminate CSS Animation */</span><br>
+        @keyframes indeterminate {<br>
+        &nbsp;&nbsp;0% { background-position: 200% 0; }<br>
+        &nbsp;&nbsp;100% { background-position: -200% 0; }<br>
+        }
+      </div>
+    </div>
+
+    <!-- Interactive Demo -->
+    <div class="card">
+      <div class="section-title">Interactive Demo</div>
+
+      <div class="progress-item">
+        <div class="progress-label">
+          <span class="label-text">Simulated Task Progress</span>
+          <span class="label-value" id="dynamic-percent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill with-shimmer" id="dynamic-progress" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; display: flex; gap: 12px;">
+        <button onclick="startProgress()" style="flex: 1; padding: 12px; background: #2563EB; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 150ms;">
+          Start Simulation
+        </button>
+        <button onclick="resetProgress()" style="flex: 1; padding: 12px; background: #6B7280; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 150ms;">
+          Reset
+        </button>
+      </div>
+
+      <div class="info-badge">
+        <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Click "Start Simulation" to see smooth progress updates
+      </div>
+    </div>
+
+    <!-- Specifications -->
+    <div class="card">
+      <div class="section-title">Design Specifications</div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; color: #374151;">
+        <div>
+          <div style="font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; margin-bottom: 4px;">Height</div>
+          <div style="font-size: 18px; font-weight: 600; color: #2563EB;">8px</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; margin-bottom: 4px;">Border Radius</div>
+          <div style="font-size: 18px; font-weight: 600; color: #2563EB;">Full (9999px)</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; margin-bottom: 4px;">Track Color</div>
+          <div style="font-size: 18px; font-weight: 600; color: #2563EB;">hsl(220, 15%, 90%)</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; margin-bottom: 4px;">Fill Gradient</div>
+          <div style="font-size: 18px; font-weight: 600; color: #2563EB;">primary-500 → 600</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; margin-bottom: 4px;">Shimmer Duration</div>
+          <div style="font-size: 18px; font-weight: 600; color: #2563EB;">2s infinite</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; margin-bottom: 4px;">Indeterminate</div>
+          <div style="font-size: 18px; font-weight: 600; color: #2563EB;">1.5s ease-in-out</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Dark Mode Toggle
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+    }
+
+    // Initialize dark mode from localStorage
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark');
+    }
+
+    // Interactive Progress Demo
+    let progressInterval = null;
+    let currentProgress = 0;
+
+    function startProgress() {
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+
+      currentProgress = 0;
+      updateProgress(0);
+
+      progressInterval = setInterval(() => {
+        if (currentProgress >= 100) {
+          clearInterval(progressInterval);
+          progressInterval = null;
+          return;
+        }
+
+        // Simulate variable progress speed (FFmpeg-like behavior)
+        const increment = Math.random() * 3 + 1; // 1-4% increment
+        currentProgress = Math.min(100, currentProgress + increment);
+        updateProgress(currentProgress);
+      }, 200); // Update every 200ms
+    }
+
+    function resetProgress() {
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+      currentProgress = 0;
+      updateProgress(0);
+    }
+
+    function updateProgress(percent) {
+      const progressBar = document.getElementById('dynamic-progress');
+      const percentLabel = document.getElementById('dynamic-percent');
+
+      progressBar.style.width = percent + '%';
+      percentLabel.textContent = Math.round(percent) + '%';
+    }
+
+    // Add hover effects to buttons
+    document.querySelectorAll('button').forEach(button => {
+      button.addEventListener('mouseenter', (e) => {
+        if (!e.target.classList.contains('dark-mode-toggle')) {
+          e.target.style.transform = 'translateY(-2px)';
+          e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+        }
+      });
+
+      button.addEventListener('mouseleave', (e) => {
+        if (!e.target.classList.contains('dark-mode-toggle')) {
+          e.target.style.transform = 'translateY(0)';
+          e.target.style.boxShadow = 'none';
+        }
+      });
+
+      button.addEventListener('mousedown', (e) => {
+        if (!e.target.classList.contains('dark-mode-toggle')) {
+          e.target.style.transform = 'scale(0.98)';
+        }
+      });
+
+      button.addEventListener('mouseup', (e) => {
+        if (!e.target.classList.contains('dark-mode-toggle')) {
+          e.target.style.transform = 'translateY(-2px)';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

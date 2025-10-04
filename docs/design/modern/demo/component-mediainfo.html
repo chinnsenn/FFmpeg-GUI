@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediaInfo Component Examples - FFmpeg GUI Design System</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 48px 24px;
+      color: #1a1a1a;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .page-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .page-subtitle {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 400;
+    }
+
+    .examples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 32px;
+      margin-bottom: 48px;
+    }
+
+    .example-card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .example-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+    }
+
+    .example-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    /* MediaInfo Component Styles */
+    .media-info {
+      padding: 16px;
+      border-radius: 8px;
+      background-color: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+
+    .media-info-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .media-info-icon {
+      width: 16px;
+      height: 16px;
+      color: #6b7280;
+    }
+
+    .media-info-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .media-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 8px 16px;
+    }
+
+    .media-info-label {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 28px;
+      font-weight: 400;
+    }
+
+    .media-info-value {
+      font-size: 13px;
+      color: #111827;
+      font-weight: 500;
+      font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, 'Courier New', monospace;
+      line-height: 28px;
+    }
+
+    /* Dark Mode Toggle */
+    .dark-mode-toggle {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      background: white;
+      border: none;
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      z-index: 100;
+    }
+
+    .dark-mode-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
+    }
+
+    .dark-mode-toggle:active {
+      transform: scale(0.95);
+    }
+
+    /* Dark Mode Styles */
+    body.dark-mode {
+      background: linear-gradient(135deg, #1a1f2e 0%, #2d1b3d 100%);
+    }
+
+    body.dark-mode .page-title {
+      color: white;
+    }
+
+    body.dark-mode .page-subtitle {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    body.dark-mode .example-card {
+      background: #242933;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    body.dark-mode .example-card:hover {
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7);
+    }
+
+    body.dark-mode .example-title {
+      color: #e5e7eb;
+      border-bottom-color: #374151;
+    }
+
+    body.dark-mode .media-info {
+      background-color: #1a1f29;
+      border-color: #374151;
+    }
+
+    body.dark-mode .media-info-title {
+      color: #f3f4f6;
+    }
+
+    body.dark-mode .media-info-label {
+      color: #9ca3af;
+    }
+
+    body.dark-mode .media-info-value {
+      color: #f3f4f6;
+    }
+
+    body.dark-mode .dark-mode-toggle {
+      background: #374151;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Info Icon SVG */
+    .info-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .page-title {
+        font-size: 28px;
+      }
+
+      .page-subtitle {
+        font-size: 16px;
+      }
+
+      .examples-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .example-card {
+        padding: 24px;
+      }
+
+      .dark-mode-toggle {
+        top: 16px;
+        right: 16px;
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+      }
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.8);
+      padding: 32px 0;
+      font-size: 14px;
+    }
+
+    body.dark-mode .footer {
+      color: rgba(255, 255, 255, 0.6);
+    }
+  </style>
+</head>
+<body>
+  <button class="dark-mode-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode">
+    <span id="theme-icon">🌙</span>
+  </button>
+
+  <div class="container">
+    <header class="page-header">
+      <h1 class="page-title">MediaInfo Component Examples</h1>
+      <p class="page-subtitle">Structured media metadata display for video and audio files</p>
+    </header>
+
+    <div class="examples-grid">
+      <!-- Example 1: Full Video with Audio -->
+      <div class="example-card">
+        <h2 class="example-title">Example 1: Full Video with Audio</h2>
+        <div class="media-info">
+          <div class="media-info-header">
+            <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="media-info-title">📊 媒体信息</h3>
+          </div>
+          <div class="media-info-grid">
+            <div class="media-info-label">分辨率</div>
+            <div class="media-info-value">1920 × 1080</div>
+
+            <div class="media-info-label">时长</div>
+            <div class="media-info-value">1:23:45</div>
+
+            <div class="media-info-label">帧率</div>
+            <div class="media-info-value">30 fps</div>
+
+            <div class="media-info-label">视频编解码器</div>
+            <div class="media-info-value">H.264 (AVC)</div>
+
+            <div class="media-info-label">视频码率</div>
+            <div class="media-info-value">8.5 Mbps</div>
+
+            <div class="media-info-label">音频编解码器</div>
+            <div class="media-info-value">AAC</div>
+
+            <div class="media-info-label">音频码率</div>
+            <div class="media-info-value">192 kbps</div>
+
+            <div class="media-info-label">声道</div>
+            <div class="media-info-value">立体声 (2.0)</div>
+
+            <div class="media-info-label">采样率</div>
+            <div class="media-info-value">48 kHz</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example 2: 4K Video with 5.1 Audio -->
+      <div class="example-card">
+        <h2 class="example-title">Example 2: 4K Video with 5.1 Audio</h2>
+        <div class="media-info">
+          <div class="media-info-header">
+            <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="media-info-title">📊 媒体信息</h3>
+          </div>
+          <div class="media-info-grid">
+            <div class="media-info-label">分辨率</div>
+            <div class="media-info-value">3840 × 2160</div>
+
+            <div class="media-info-label">时长</div>
+            <div class="media-info-value">45:12</div>
+
+            <div class="media-info-label">帧率</div>
+            <div class="media-info-value">60 fps</div>
+
+            <div class="media-info-label">视频编解码器</div>
+            <div class="media-info-value">H.265 (HEVC)</div>
+
+            <div class="media-info-label">视频码率</div>
+            <div class="media-info-value">25 Mbps</div>
+
+            <div class="media-info-label">音频编解码器</div>
+            <div class="media-info-value">AC3</div>
+
+            <div class="media-info-label">音频码率</div>
+            <div class="media-info-value">640 kbps</div>
+
+            <div class="media-info-label">声道</div>
+            <div class="media-info-value">5.1 环绕声</div>
+
+            <div class="media-info-label">采样率</div>
+            <div class="media-info-value">48 kHz</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example 3: Audio Only -->
+      <div class="example-card">
+        <h2 class="example-title">Example 3: Audio Only</h2>
+        <div class="media-info">
+          <div class="media-info-header">
+            <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="media-info-title">📊 媒体信息</h3>
+          </div>
+          <div class="media-info-grid">
+            <div class="media-info-label">时长</div>
+            <div class="media-info-value">3:24</div>
+
+            <div class="media-info-label">音频编解码器</div>
+            <div class="media-info-value">MP3</div>
+
+            <div class="media-info-label">音频码率</div>
+            <div class="media-info-value">320 kbps</div>
+
+            <div class="media-info-label">声道</div>
+            <div class="media-info-value">立体声 (2.0)</div>
+
+            <div class="media-info-label">采样率</div>
+            <div class="media-info-value">44.1 kHz</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>FFmpeg GUI Design System - MediaInfo Component</p>
+      <p style="margin-top: 8px; opacity: 0.8;">Click the moon/sun button to toggle dark mode</p>
+    </footer>
+  </div>
+
+  <script>
+    // Dark mode toggle functionality
+    function toggleDarkMode() {
+      const body = document.body;
+      const icon = document.getElementById('theme-icon');
+
+      body.classList.toggle('dark-mode');
+
+      if (body.classList.contains('dark-mode')) {
+        icon.textContent = '☀️';
+        localStorage.setItem('theme', 'dark');
+      } else {
+        icon.textContent = '🌙';
+        localStorage.setItem('theme', 'light');
+      }
+    }
+
+    // Check for saved theme preference or default to light mode
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark-mode');
+      document.getElementById('theme-icon').textContent = '☀️';
+    }
+
+    // Add subtle animation on load
+    window.addEventListener('load', () => {
+      const cards = document.querySelectorAll('.example-card');
+      cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        }, index * 100);
+      });
+    });
+  </script>
+</body>
+</html>

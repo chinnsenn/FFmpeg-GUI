@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FFmpeg GUI - Dashboard Demo</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons (CDN version using unpkg) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* CSS Custom Properties - Light Theme */
+    :root {
+      /* Background Colors */
+      --background-primary: 0 0% 100%;           /* #FFFFFF */
+      --background-secondary: 210 20% 98%;       /* #F9FAFB */
+      --background-tertiary: 210 20% 95%;        /* #F1F3F5 */
+
+      /* Surface Colors */
+      --surface-base: 0 0% 100%;                 /* #FFFFFF */
+      --surface-raised: 0 0% 100%;               /* #FFFFFF */
+
+      /* Text Colors */
+      --text-primary: 220 20% 10%;               /* #171A1F */
+      --text-secondary: 220 10% 45%;             /* #6B7280 */
+      --text-tertiary: 220 8% 60%;               /* #9CA3AF */
+
+      /* Primary Colors */
+      --primary-50: 215 100% 97%;                /* #EFF6FF */
+      --primary-500: 217 91% 60%;                /* #3B82F6 */
+      --primary-600: 217 91% 52%;                /* #2563EB */
+      --primary-700: 217 85% 45%;                /* #1D4ED8 */
+
+      /* Success Colors */
+      --success-600: 142 76% 36%;                /* #059669 */
+
+      /* Error Colors */
+      --error-600: 0 72% 51%;                    /* #DC2626 */
+
+      /* Warning Colors */
+      --warning-600: 38 92% 50%;                 /* #D97706 */
+
+      /* Border Colors */
+      --border-light: 220 15% 90%;               /* #E5E7EB */
+      --border-medium: 220 15% 85%;              /* #D1D5DB */
+    }
+
+    /* Dark Theme */
+    .dark {
+      /* Background Colors */
+      --background-primary: 220 18% 8%;          /* #0F1419 */
+      --background-secondary: 220 16% 12%;       /* #1A1F29 */
+      --background-tertiary: 220 15% 16%;        /* #242933 */
+
+      /* Surface Colors */
+      --surface-base: 220 16% 12%;               /* #1A1F29 */
+      --surface-raised: 220 15% 16%;             /* #242933 */
+
+      /* Text Colors */
+      --text-primary: 210 20% 98%;               /* #F9FAFB */
+      --text-secondary: 215 15% 75%;             /* #B4BCD0 */
+      --text-tertiary: 215 12% 60%;              /* #8B94A8 */
+
+      /* Primary Colors (Brightened for dark mode) */
+      --primary-50: 215 100% 97%;
+      --primary-500: 213 94% 68%;                /* #60A5FA */
+      --primary-600: 213 90% 62%;                /* #3B82F6 */
+      --primary-700: 213 85% 55%;
+
+      /* Success Colors (Brightened) */
+      --success-600: 142 71% 50%;                /* #10B981 */
+
+      /* Error Colors (Brightened) */
+      --error-600: 0 84% 65%;                    /* #EF4444 */
+
+      /* Warning Colors (Brightened) */
+      --warning-600: 45 93% 58%;                 /* #F59E0B */
+
+      /* Border Colors */
+      --border-light: 220 14% 22%;               /* #2E3440 */
+      --border-medium: 220 13% 28%;              /* #3A4250 */
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: hsl(var(--background-primary));
+      color: hsl(var(--text-primary));
+      transition: background-color 200ms ease, color 200ms ease;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: hsl(var(--background-secondary));
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: hsl(var(--border-medium));
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: hsl(var(--border-light));
+    }
+
+    /* Animations */
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .animate-shimmer {
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes pulse-border {
+      0%, 100% {
+        border-color: hsl(var(--primary-500));
+        opacity: 1;
+      }
+      50% {
+        border-color: hsl(var(--primary-600));
+        opacity: 0.8;
+      }
+    }
+
+    .animate-pulse-border {
+      animation: pulse-border 2s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+
+    /* Custom Tailwind Config */
+    .bg-background-primary { background-color: hsl(var(--background-primary)); }
+    .bg-background-secondary { background-color: hsl(var(--background-secondary)); }
+    .bg-background-tertiary { background-color: hsl(var(--background-tertiary)); }
+    .bg-surface-raised { background-color: hsl(var(--surface-raised)); }
+
+    .text-text-primary { color: hsl(var(--text-primary)); }
+    .text-text-secondary { color: hsl(var(--text-secondary)); }
+    .text-text-tertiary { color: hsl(var(--text-tertiary)); }
+
+    .text-primary-600 { color: hsl(var(--primary-600)); }
+    .bg-primary-50 { background-color: hsl(var(--primary-50)); }
+    .bg-primary-600 { background-color: hsl(var(--primary-600)); }
+    .bg-primary-700 { background-color: hsl(var(--primary-700)); }
+    .border-primary-500 { border-color: hsl(var(--primary-500)); }
+
+    .text-success-600 { color: hsl(var(--success-600)); }
+    .text-error-600 { color: hsl(var(--error-600)); }
+    .text-warning-600 { color: hsl(var(--warning-600)); }
+
+    .border-border-light { border-color: hsl(var(--border-light)); }
+    .border-border-medium { border-color: hsl(var(--border-medium)); }
+
+    .dark .dark\:bg-primary-500\/10 { background-color: hsl(var(--primary-500) / 0.1); }
+  </style>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          spacing: {
+            0: '0px',
+            1: '4px',
+            2: '8px',
+            3: '12px',
+            4: '16px',
+            5: '20px',
+            6: '24px',
+            8: '32px'
+          },
+          borderRadius: {
+            'lg': '12px',
+            'md': '8px',
+            'full': '9999px'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="overflow-hidden">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-60 h-screen bg-background-secondary border-r border-border-light p-4 flex flex-col">
+      <!-- Logo -->
+      <div class="h-16 flex items-center px-4 mb-6">
+        <h1 class="text-lg font-bold text-text-primary">FFmpeg GUI</h1>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="space-y-1 flex-1">
+        <a href="#" class="nav-link active flex items-center gap-3 h-10 px-4 rounded-lg text-sm font-medium transition-all duration-150">
+          <i data-lucide="home" class="w-5 h-5"></i>
+          <span>首页</span>
+        </a>
+        <a href="#" class="nav-link flex items-center gap-3 h-10 px-4 rounded-lg text-sm font-medium transition-all duration-150">
+          <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+          <span>转换</span>
+        </a>
+        <a href="#" class="nav-link flex items-center gap-3 h-10 px-4 rounded-lg text-sm font-medium transition-all duration-150">
+          <i data-lucide="archive" class="w-5 h-5"></i>
+          <span>压缩</span>
+        </a>
+        <a href="#" class="nav-link flex items-center gap-3 h-10 px-4 rounded-lg text-sm font-medium transition-all duration-150">
+          <i data-lucide="list" class="w-5 h-5"></i>
+          <span>队列</span>
+        </a>
+        <a href="#" class="nav-link flex items-center gap-3 h-10 px-4 rounded-lg text-sm font-medium transition-all duration-150">
+          <i data-lucide="settings" class="w-5 h-5"></i>
+          <span>设置</span>
+        </a>
+      </nav>
+
+      <!-- Theme Toggle -->
+      <button id="themeToggle" class="h-12 flex items-center justify-center rounded-lg hover:bg-background-tertiary transition-all duration-150 hover:scale-105">
+        <i id="themeIcon" data-lucide="sun" class="w-6 h-6"></i>
+      </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-8">
+      <div class="max-w-6xl mx-auto">
+        <!-- Page Header -->
+        <div class="mb-8">
+          <h1 class="text-4xl font-bold tracking-tight text-text-primary mb-2" style="letter-spacing: -0.02em;">首页</h1>
+          <p class="text-sm text-text-secondary">查看任务概览和快速开始</p>
+        </div>
+
+        <!-- Task Statistics Cards -->
+        <div class="grid grid-cols-4 gap-6 mb-8">
+          <!-- Running Tasks -->
+          <div class="h-30 p-6 rounded-lg bg-surface-raised border border-border-light shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-1">
+            <div class="text-sm font-medium text-text-secondary mb-2">运行中</div>
+            <div class="text-4xl font-bold text-primary-600">2</div>
+          </div>
+
+          <!-- Queued Tasks -->
+          <div class="h-30 p-6 rounded-lg bg-surface-raised border border-border-light shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-1">
+            <div class="text-sm font-medium text-text-secondary mb-2">队列中</div>
+            <div class="text-4xl font-bold text-text-tertiary">5</div>
+          </div>
+
+          <!-- Completed Tasks -->
+          <div class="h-30 p-6 rounded-lg bg-surface-raised border border-border-light shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-1">
+            <div class="text-sm font-medium text-text-secondary mb-2">已完成</div>
+            <div class="text-4xl font-bold text-success-600">156</div>
+          </div>
+
+          <!-- Failed Tasks -->
+          <div class="h-30 p-6 rounded-lg bg-surface-raised border border-border-light shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-1">
+            <div class="text-sm font-medium text-text-secondary mb-2">失败</div>
+            <div class="text-4xl font-bold text-error-600">3</div>
+          </div>
+        </div>
+
+        <!-- Quick Action Cards -->
+        <div class="grid grid-cols-2 gap-6 mb-8">
+          <!-- Quick Convert -->
+          <div class="h-40 p-8 rounded-lg bg-surface-raised border-2 border-border-light shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary-500 hover:-translate-y-0.5 cursor-pointer flex flex-col items-center justify-center text-center">
+            <i data-lucide="refresh-cw" class="w-12 h-12 text-primary-600 mb-3"></i>
+            <h3 class="text-lg font-semibold text-text-primary mb-1">快速转换</h3>
+            <p class="text-sm text-text-secondary">点击开始格式转换</p>
+          </div>
+
+          <!-- Quick Compress -->
+          <div class="h-40 p-8 rounded-lg bg-surface-raised border-2 border-border-light shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary-500 hover:-translate-y-0.5 cursor-pointer flex flex-col items-center justify-center text-center">
+            <i data-lucide="archive" class="w-12 h-12 text-primary-600 mb-3"></i>
+            <h3 class="text-lg font-semibold text-text-primary mb-1">快速压缩</h3>
+            <p class="text-sm text-text-secondary">点击开始视频压缩</p>
+          </div>
+        </div>
+
+        <!-- Recent Tasks -->
+        <div class="mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-text-primary">最近任务</h2>
+            <a href="#" class="text-sm font-medium text-primary-600 hover:text-primary-700">查看全部</a>
+          </div>
+
+          <div class="space-y-3">
+            <!-- Task Card 1 - Completed -->
+            <div class="task-card w-full min-h-30 p-6 rounded-lg border border-border-light bg-surface-raised transition-all duration-300">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3 flex-1">
+                  <i data-lucide="check-circle-2" class="w-5 h-5 text-success-600"></i>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-medium text-success-600">已完成</span>
+                    </div>
+                    <div class="mt-1 space-y-0.5 text-xs text-text-secondary">
+                      <div>输入: video1.mp4</div>
+                      <div>输出: video1.webm</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="text-sm text-success-600">用时: 8分12秒</div>
+            </div>
+
+            <!-- Task Card 2 - Running -->
+            <div class="task-card w-full min-h-30 p-6 rounded-lg border-2 border-primary-500 bg-surface-raised shadow-md transition-all duration-300 animate-pulse-border">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3 flex-1">
+                  <i data-lucide="loader-2" class="w-5 h-5 text-primary-600 animate-spin"></i>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-medium text-primary-600">运行中</span>
+                      <span class="text-base font-semibold text-primary-600">45%</span>
+                    </div>
+                    <div class="mt-1 space-y-0.5 text-xs text-text-secondary">
+                      <div>输入: video2.mp4</div>
+                      <div>输出: video2.mp4</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <button class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background-tertiary transition-colors">
+                    <i data-lucide="pause" class="w-4 h-4"></i>
+                  </button>
+                  <button class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background-tertiary hover:text-error-600 transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="space-y-3">
+                <!-- Progress Bar -->
+                <div class="relative w-full h-2 bg-border-light rounded-full overflow-hidden">
+                  <div class="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 transition-all duration-300" style="width: 45%">
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" style="background-size: 200% 100%;"></div>
+                  </div>
+                </div>
+                <!-- Progress Info -->
+                <div class="flex justify-between text-xs text-text-secondary">
+                  <span>速度: 1.8x</span>
+                  <span>ETA: 5分32秒</span>
+                  <span>FPS: 54</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Task Card 3 - Pending -->
+            <div class="task-card w-full min-h-30 p-6 rounded-lg border border-border-light bg-background-secondary transition-all duration-300">
+              <div class="flex items-start justify-between">
+                <div class="flex items-center gap-3 flex-1">
+                  <i data-lucide="clock" class="w-5 h-5 text-text-tertiary"></i>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-medium text-text-secondary">队列中</span>
+                    </div>
+                    <div class="mt-1 space-y-0.5 text-xs text-text-secondary">
+                      <div>输入: video3.avi</div>
+                      <div>输出: video3.mp4</div>
+                    </div>
+                  </div>
+                </div>
+                <button class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background-tertiary hover:text-error-600 transition-colors">
+                  <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Task Card 4 - Running (Second) -->
+            <div class="task-card w-full min-h-30 p-6 rounded-lg border-2 border-primary-500 bg-surface-raised shadow-md transition-all duration-300 animate-pulse-border">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3 flex-1">
+                  <i data-lucide="loader-2" class="w-5 h-5 text-primary-600 animate-spin"></i>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-medium text-primary-600">运行中</span>
+                      <span class="text-base font-semibold text-primary-600">78%</span>
+                    </div>
+                    <div class="mt-1 space-y-0.5 text-xs text-text-secondary">
+                      <div>输入: video4.mkv</div>
+                      <div>输出: video4.webm</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <button class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background-tertiary transition-colors">
+                    <i data-lucide="pause" class="w-4 h-4"></i>
+                  </button>
+                  <button class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background-tertiary hover:text-error-600 transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="space-y-3">
+                <!-- Progress Bar -->
+                <div class="relative w-full h-2 bg-border-light rounded-full overflow-hidden">
+                  <div class="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 transition-all duration-300" style="width: 78%">
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" style="background-size: 200% 100%;"></div>
+                  </div>
+                </div>
+                <!-- Progress Info -->
+                <div class="flex justify-between text-xs text-text-secondary">
+                  <span>速度: 2.3x</span>
+                  <span>ETA: 2分15秒</span>
+                  <span>FPS: 68</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Task Card 5 - Failed -->
+            <div class="task-card w-full min-h-30 p-6 rounded-lg border border-border-light bg-surface-raised transition-all duration-300">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3 flex-1">
+                  <i data-lucide="x-circle" class="w-5 h-5 text-error-600"></i>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-medium text-error-600">失败</span>
+                    </div>
+                    <div class="mt-1 space-y-0.5 text-xs text-text-secondary">
+                      <div>输入: video5.mp4</div>
+                      <div>输出: video5.mp4</div>
+                    </div>
+                  </div>
+                </div>
+                <button class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background-tertiary hover:text-primary-600 transition-colors">
+                  <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <div class="text-sm text-error-600">错误: 不支持的编解码器</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Theme Toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const html = document.documentElement;
+
+    // Load saved theme or use system preference
+    const savedTheme = localStorage.getItem('theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+    html.classList.remove('light', 'dark');
+    html.classList.add(savedTheme);
+    updateThemeIcon(savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+      html.classList.remove('light', 'dark');
+      html.classList.add(newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+
+      // Reinitialize icons after theme change
+      setTimeout(() => lucide.createIcons(), 50);
+    });
+
+    function updateThemeIcon(theme) {
+      themeIcon.setAttribute('data-lucide', theme === 'dark' ? 'moon' : 'sun');
+      lucide.createIcons();
+    }
+
+    // Navigation Link Active State
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        // Remove active class from all links
+        navLinks.forEach(l => {
+          l.classList.remove('active', 'text-primary-600', 'bg-primary-50', 'dark:bg-primary-500/10', 'font-semibold', 'border-l-3', 'border-primary-500');
+          l.classList.add('text-text-secondary');
+        });
+
+        // Add active class to clicked link
+        link.classList.add('active', 'text-primary-600', 'bg-primary-50', 'dark:bg-primary-500/10', 'font-semibold');
+        link.classList.remove('text-text-secondary');
+        link.style.borderLeft = '3px solid hsl(var(--primary-500))';
+        link.style.paddingLeft = '13px';
+      });
+
+      // Style for non-active links
+      if (!link.classList.contains('active')) {
+        link.classList.add('text-text-secondary', 'hover:text-text-primary', 'hover:bg-background-tertiary');
+      } else {
+        link.classList.add('text-primary-600', 'bg-primary-50', 'dark:bg-primary-500/10', 'font-semibold');
+        link.style.borderLeft = '3px solid hsl(var(--primary-500))';
+        link.style.paddingLeft = '13px';
+      }
+    });
+
+    // Simulate progress update for running tasks
+    const progressBars = document.querySelectorAll('.task-card:nth-child(2) .relative > div:first-child, .task-card:nth-child(4) .relative > div:first-child');
+    let progress1 = 45;
+    let progress2 = 78;
+
+    setInterval(() => {
+      progress1 = (progress1 + 1) % 100;
+      progress2 = (progress2 + 1) % 100;
+
+      if (progressBars[0]) {
+        progressBars[0].style.width = `${progress1}%`;
+        const percentText = progressBars[0].closest('.task-card').querySelector('.text-base');
+        if (percentText) percentText.textContent = `${progress1}%`;
+      }
+
+      if (progressBars[1]) {
+        progressBars[1].style.width = `${progress2}%`;
+        const percentText = progressBars[1].closest('.task-card').querySelector('.text-base');
+        if (percentText) percentText.textContent = `${progress2}%`;
+      }
+    }, 500);
+  </script>
+</body>
+</html>
