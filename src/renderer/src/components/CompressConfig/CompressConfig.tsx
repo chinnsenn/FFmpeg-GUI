@@ -149,7 +149,7 @@ export function CompressConfig({
         <Card>
           <label className="block text-sm font-semibold mb-3 text-text-primary">选择压缩预设</label>
           <div className="space-y-2">
-            {COMPRESSION_PRESETS.map((preset) => (
+            {COMPRESSION_PRESETS.map((preset: typeof COMPRESSION_PRESETS[number]) => (
               <button
                 key={preset.name}
                 type="button"
@@ -182,7 +182,7 @@ export function CompressConfig({
           </label>
           <p className="text-xs text-text-tertiary mb-3">较低的值 = 更高的质量</p>
           <div className="space-y-2">
-            {CRF_LEVELS.map((level) => (
+            {CRF_LEVELS.map((level: typeof CRF_LEVELS[number]) => (
               <button
                 key={level.value}
                 type="button"
@@ -259,7 +259,7 @@ export function CompressConfig({
                 onChange={(e) => setVideoCodec(e.target.value)}
                 className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                {VIDEO_CODECS.slice(0, -1).map((codec) => (
+                {VIDEO_CODECS.slice(0, -1).map((codec: typeof VIDEO_CODECS[number]) => (
                   <option key={codec.value} value={codec.value}>
                     {codec.label} - {codec.description}
                   </option>
@@ -275,7 +275,7 @@ export function CompressConfig({
                 onChange={(e) => setPreset(e.target.value)}
                 className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                {QUALITY_PRESETS.map((p) => (
+                {QUALITY_PRESETS.map((p: typeof QUALITY_PRESETS[number]) => (
                   <option key={p.value} value={p.value}>
                     {p.label} - {p.description}
                   </option>
@@ -291,7 +291,7 @@ export function CompressConfig({
                 onChange={(e) => setResolution(e.target.value)}
                 className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                {RESOLUTIONS.map((res) => (
+                {RESOLUTIONS.map((res: typeof RESOLUTIONS[number]) => (
                   <option key={res.value} value={res.value}>
                     {res.label}
                   </option>
@@ -307,7 +307,7 @@ export function CompressConfig({
                 onChange={(e) => setAudioCodec(e.target.value)}
                 className="w-full rounded-lg border border-border-light bg-background-primary px-3 py-2.5 text-sm text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                {AUDIO_CODECS.slice(0, -1).map((codec) => (
+                {AUDIO_CODECS.slice(0, -1).map((codec: typeof AUDIO_CODECS[number]) => (
                   <option key={codec.value} value={codec.value}>
                     {codec.label} - {codec.description}
                   </option>

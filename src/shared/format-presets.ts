@@ -296,3 +296,83 @@ export const CRF_LEVELS = [
   { value: 28, label: '较低质量 (CRF 28)', description: '文件较小,质量可接受' },
   { value: 32, label: '低质量 (CRF 32)', description: '小文件,质量下降明显' },
 ] as const;
+
+/**
+ * 快速预设配置（6个简化版本）- 用于 UI 显示
+ * 对应 demo HTML 中的图标化预设按钮
+ */
+export const QUICK_PRESETS = [
+  {
+    id: 'high-quality',
+    icon: '⭐',
+    label: '高质量',
+    config: {
+      videoCodec: 'libx264' as VideoCodec,
+      audioCodec: 'aac' as AudioCodec,
+      quality: 'slow' as VideoQuality,
+      videoBitrate: '8M',
+      audioBitrate: '192k',
+    }
+  },
+  {
+    id: 'medium',
+    icon: '⚡',
+    label: '中等',
+    config: {
+      videoCodec: 'libx264' as VideoCodec,
+      audioCodec: 'aac' as AudioCodec,
+      quality: 'medium' as VideoQuality,
+      videoBitrate: '4M',
+      audioBitrate: '128k',
+    }
+  },
+  {
+    id: 'low-quality',
+    icon: '💨',
+    label: '低质量',
+    config: {
+      videoCodec: 'libx264' as VideoCodec,
+      audioCodec: 'aac' as AudioCodec,
+      quality: 'fast' as VideoQuality,
+      videoBitrate: '2M',
+      audioBitrate: '96k',
+    }
+  },
+  {
+    id: 'fast',
+    icon: '🚀',
+    label: '快速',
+    config: {
+      videoCodec: 'libx264' as VideoCodec,
+      audioCodec: 'aac' as AudioCodec,
+      quality: 'ultrafast' as VideoQuality,
+      videoBitrate: '4M',
+      audioBitrate: '128k',
+    }
+  },
+  {
+    id: 'mobile',
+    icon: '📱',
+    label: '移动端',
+    config: {
+      videoCodec: 'libx265' as VideoCodec,
+      audioCodec: 'aac' as AudioCodec,
+      quality: 'medium' as VideoQuality,
+      videoBitrate: '2M',
+      audioBitrate: '128k',
+      resolution: '1280x720',
+    }
+  },
+  {
+    id: 'web',
+    icon: '🌐',
+    label: 'Web优化',
+    config: {
+      videoCodec: 'vp9' as VideoCodec,
+      audioCodec: 'opus' as AudioCodec,
+      quality: 'medium' as VideoQuality,
+      videoBitrate: '4M',
+      audioBitrate: '128k',
+    }
+  },
+];
