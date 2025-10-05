@@ -42,8 +42,10 @@ function createWindow() {
   });
 
   // 错误处理
-  mainWindow.webContents.on('crashed', () => {
-    logger.error('Window', 'Renderer process crashed');
+  // Note: 'crashed' event was removed in Electron 38
+  // Use 'render-process-gone' instead for crash handling
+  mainWindow.webContents.on('render-process-gone', (_event, details) => {
+    logger.error('Window', 'Renderer process gone', { reason: details.reason, exitCode: details.exitCode });
   });
 
   mainWindow.webContents.on('unresponsive', () => {

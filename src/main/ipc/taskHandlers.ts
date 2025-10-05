@@ -3,6 +3,7 @@ import { IPC_CHANNELS } from '@shared/constants';
 import { FFmpegManager } from '../ffmpeg/manager';
 import { FFmpegDetector } from '../ffmpeg/detector';
 import { FFmpegCommandBuilder } from '../ffmpeg/command-builder';
+import { logger } from '../utils/logger';
 import type { ConvertOptions, CompressOptions } from '@shared/types';
 
 let manager: FFmpegManager | null = null;
