@@ -463,7 +463,7 @@ npm run build
 - [Electron Builder 文档](https://www.electron.build/)
 - [代码签名指南](https://www.electron.build/code-signing)
 - [项目开发指南](./CONTRIBUTING.md)
-- [发布流程](./RELEASE.md)
+- [用户使用指南](./USER_GUIDE.md)
 
 ---
 

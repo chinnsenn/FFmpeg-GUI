@@ -39,6 +39,7 @@
 - FFmpeg 自动检测和下载
 - 文件拖拽上传
 - 媒体信息查看
+- 深色/浅色主题切换（跟随系统）
 - 详细的错误提示
 - 完整的日志系统
 
@@ -130,7 +131,6 @@ sudo apt-get install -f
 ### 详细文档
 
 - [用户使用指南](docs/USER_GUIDE.md) - 完整的功能说明
-- [常见问题](docs/FAQ.md) - 常见问题解答
 
 ---
 
@@ -226,8 +226,6 @@ npm run test:ui
 
 - [开发指南](docs/CONTRIBUTING.md) - 贡献代码指南
 - [构建指南](docs/BUILD.md) - 多平台构建说明
-- [开发路线图](docs/plan01/plan-development-roadmap.md) - 开发计划
-- [进度追踪](docs/plan01/progress.md) - 开发进度
 
 ---
 
@@ -271,12 +269,11 @@ chore: 构建/工具相关
 - [x] 错误处理和日志
 - [x] 单元测试
 - [x] 多平台打包
-- [ ] 用户文档完善
+- [x] Modern Minimalist UI 重构
+- [x] 深色模式支持
 - [ ] 发布 v1.0.0
 
-查看完整路线图：[Development Roadmap](docs/plan01/plan-development-roadmap.md)
-
-**当前进度**: 20/22 任务完成 (91%)
+**当前进度**: 21/22 任务完成 (95%)
 
 ---
 

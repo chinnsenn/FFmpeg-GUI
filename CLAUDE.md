@@ -91,6 +91,7 @@ window.electronAPI.on('task:progress', (data) => { });
 
 **Shared Hooks/Utils:**
 - `useFileManager.ts`: Centralized file selection and media info fetching
+- `useTheme.ts`: Theme management and dark mode support
 - `lib/formatters.ts`: Format bytes, bitrate, duration, time (used across components)
 
 **Component Architecture:**
@@ -202,6 +203,38 @@ global.window.electronAPI = {
 };
 ```
 
+## Theme System
+
+**Dark Mode Implementation:**
+
+The app supports three theme modes managed by the `useTheme` hook:
+- **light**: Force light theme
+- **dark**: Force dark theme
+- **system**: Auto-detect system preference
+
+**Key Files:**
+- `src/renderer/src/hooks/useTheme.ts`: Theme management hook
+- `src/renderer/src/index.css`: CSS variables for light/dark themes
+- `src/renderer/src/App.tsx`: Theme initialization
+- `src/renderer/src/pages/Settings.tsx`: Theme switcher UI
+
+**How It Works:**
+1. `useTheme` hook loads theme from config on app start
+2. Applies theme by toggling `dark` class on `document.documentElement`
+3. Monitors system theme changes when set to "system" mode
+4. Settings page saves theme immediately on change
+
+**CSS Variables:**
+- Tailwind v4 `@theme` block defines static colors (primary, success, error, etc.)
+- `:root` defines light theme variables (backgrounds, text, borders)
+- `.dark` defines dark theme variables (override light values)
+- All components use semantic CSS variables like `hsl(var(--background-primary))`
+
+**Important Notes:**
+- Do NOT define responsive colors (background, text, border) in `@theme` block
+- Only static theme colors (primary, success, warning, error) go in `@theme`
+- Responsive colors must be in `@layer base` `:root` and `.dark` selectors
+
 ## Code Quality Notes
 
 **Recent Refactoring (see `docs/code-review-report.md`):**
@@ -221,8 +254,14 @@ global.window.electronAPI = {
 ## Current Status
 
 **Version:** 0.1.0
-**Progress:** 20/22 tasks complete (91%)
-**Pending:** User documentation refinement, v1.0.0 release
+**Progress:** 21/22 tasks complete (95%)
+**Pending:** v1.0.0 release
+
+**Recent Updates:**
+- ✅ Modern Minimalist UI refactoring complete
+- ✅ Dark mode fully implemented
+- ✅ Code quality improved (67→98/100)
+- ✅ Tailwind CSS 4 migration complete
 
 **Known Limitations:**
 - Path handling uses `/` separator (may need cross-platform improvement)
