@@ -1,15 +1,60 @@
 @import 'tailwindcss';
-
-/* 字体导入（可选，如果 HTML 中已加载可跳过） */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* Tailwind v4 Theme Configuration */
+@theme {
+  /* ============ 主色（Primary Blue） ============ */
+  --color-primary-50: #EFF6FF;
+  --color-primary-100: #DBEAFE;
+  --color-primary-500: #3B82F6;
+  --color-primary-600: #2563EB;
+  --color-primary-700: #1D4ED8;
+
+  /* ============ 成功色（Success Green） ============ */
+  --color-success-50: #ECFDF5;
+  --color-success-500: #10B981;
+  --color-success-600: #059669;
+
+  /* ============ 警告色（Warning Yellow） ============ */
+  --color-warning-50: #FEFCE8;
+  --color-warning-500: #F59E0B;
+  --color-warning-600: #D97706;
+
+  /* ============ 错误色（Error Red） ============ */
+  --color-error-50: #FEF2F2;
+  --color-error-500: #EF4444;
+  --color-error-600: #DC2626;
+  --color-error-700: #B91C1C;
+
+  /* ============ 文本颜色 ============ */
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
+  --color-text-tertiary: #9CA3AF;
+  --color-text-disabled: #D1D5DB;
+
+  /* ============ 背景颜色 ============ */
+  --color-background-primary: #FFFFFF;
+  --color-background-secondary: #F9FAFB;
+  --color-background-tertiary: #F3F4F6;
+  --color-background-elevated: #FFFFFF;
+
+  /* ============ 表面颜色 ============ */
+  --color-surface-base: #FFFFFF;
+  --color-surface-raised: #FFFFFF;
+
+  /* ============ 边框颜色 ============ */
+  --color-border-light: #E5E7EB;
+  --color-border-medium: #D1D5DB;
+  --color-border-dark: #9CA3AF;
+}
 
 @layer base {
   :root {
     /* ============ 基础颜色（浅色主题） ============ */
     --background-primary: 0 0% 100%;           /* #FFFFFF - 主要背景 */
     --background-secondary: 210 20% 98%;       /* #F9FAFB - 次要背景 */
-    --background-tertiary: 210 20% 95%;        /* #F1F3F5 - 第三级背景 */
+    --background-tertiary: 214 14% 96%;        /* #F3F4F6 - 第三级背景 */
     --background-elevated: 0 0% 100%;          /* #FFFFFF - 浮起元素背景 */
 
     /* ============ 表面颜色 ============ */
@@ -18,10 +63,10 @@
     --surface-overlay: 0 0% 100% / 0.95;       /* rgba(255, 255, 255, 0.95) - 覆盖层 */
 
     /* ============ 文本颜色 ============ */
-    --text-primary: 220 20% 10%;               /* #171A1F - 主文本 */
-    --text-secondary: 220 10% 45%;             /* #6B7280 - 次要文本 */
-    --text-tertiary: 220 8% 60%;               /* #9CA3AF - 辅助文本 */
-    --text-disabled: 220 5% 75%;               /* #C4C4C4 - 禁用文本 */
+    --text-primary: 217 38% 11%;               /* #111827 - 主文本 */
+    --text-secondary: 220 9% 46%;              /* #6B7280 - 次要文本 */
+    --text-tertiary: 220 9% 65%;               /* #9CA3AF - 辅助文本 */
+    --text-disabled: 214 12% 83%;              /* #D1D5DB - 禁用文本 */
 
     /* ============ 主色（Primary Blue） ============ */
     --primary-50: 215 100% 97%;                /* #EFF6FF */
@@ -44,11 +89,12 @@
     --error-50: 0 86% 97%;                     /* #FEF2F2 */
     --error-500: 0 84% 60%;                    /* #EF4444 - 错误色 */
     --error-600: 0 72% 51%;                    /* #DC2626 - 深色错误色 */
+    --error-700: 0 75% 42%;                    /* #B91C1C - 更深色错误色 */
 
     /* ============ 边框颜色 ============ */
-    --border-light: 220 15% 90%;               /* #E5E7EB - 浅边框 */
-    --border-medium: 220 15% 85%;              /* #D1D5DB - 中等边框 */
-    --border-dark: 220 15% 75%;                /* #9CA3AF - 深边框 */
+    --border-light: 214 13% 92%;               /* #E5E7EB - 浅边框 */
+    --border-medium: 214 12% 83%;              /* #D1D5DB - 中等边框 */
+    --border-dark: 220 9% 65%;                 /* #9CA3AF - 深边框 */
 
     /* ============ 保留 ShadCN UI 兼容性 ============ */
     --color-background: 0 0% 100%;

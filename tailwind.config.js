@@ -53,6 +53,7 @@ export default {
           50: 'hsl(var(--error-50) / <alpha-value>)',
           500: 'hsl(var(--error-500) / <alpha-value>)',
           600: 'hsl(var(--error-600) / <alpha-value>)',
+          700: 'hsl(var(--error-700) / <alpha-value>)',
         },
 
         // 边框色
