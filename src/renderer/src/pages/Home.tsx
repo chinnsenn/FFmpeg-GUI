@@ -6,6 +6,7 @@ import { TaskCard } from '@renderer/components/TaskCard/TaskCard';
 import { Task } from '@shared/types';
 import { IPC_CHANNELS } from '@shared/constants';
 import { cn } from '@renderer/lib/utils';
+import { logger } from '@renderer/utils/logger';
 
 export function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -17,7 +18,7 @@ export function Home() {
       const allTasks = await window.electronAPI.task.getAll();
       setTasks(allTasks);
     } catch (error) {
-      console.error('加载任务列表失败:', error);
+      logger.errorFromCatch('Home', '加载任务列表失败', error);
     } finally {
       setLoading(false);
     }
@@ -38,8 +39,8 @@ export function Home() {
     });
 
     // 任务开始
-    const unsubTaskStarted = window.electronAPI.on(IPC_CHANNELS.TASK_STARTED, (task: Task) => {
-      setTasks(prev => prev.map(t => (t.id === task.id ? task : t)));
+    const unsubTaskStarted = window.electronAPI.on(IPC_CHANNELS.TASK_STARTED, (payload) => {
+      setTasks(prev => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
     });
 
     // 任务进度
@@ -53,18 +54,18 @@ export function Home() {
     );
 
     // 任务完成
-    const unsubTaskCompleted = window.electronAPI.on(IPC_CHANNELS.TASK_COMPLETED, (task: Task) => {
-      setTasks(prev => prev.map(t => (t.id === task.id ? task : t)));
+    const unsubTaskCompleted = window.electronAPI.on(IPC_CHANNELS.TASK_COMPLETED, (payload) => {
+      setTasks(prev => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
     });
 
     // 任务失败
-    const unsubTaskFailed = window.electronAPI.on(IPC_CHANNELS.TASK_FAILED, (task: Task) => {
-      setTasks(prev => prev.map(t => (t.id === task.id ? task : t)));
+    const unsubTaskFailed = window.electronAPI.on(IPC_CHANNELS.TASK_FAILED, (payload) => {
+      setTasks(prev => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
     });
 
     // 任务取消
-    const unsubTaskCancelled = window.electronAPI.on(IPC_CHANNELS.TASK_CANCELLED, (task: Task) => {
-      setTasks(prev => prev.map(t => (t.id === task.id ? task : t)));
+    const unsubTaskCancelled = window.electronAPI.on(IPC_CHANNELS.TASK_CANCELLED, (payload) => {
+      setTasks(prev => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
     });
 
     unsubscribers.push(
@@ -86,7 +87,7 @@ export function Home() {
     try {
       await window.electronAPI.task.pause(taskId);
     } catch (error) {
-      console.error('暂停任务失败:', error);
+      logger.errorFromCatch('Home', '暂停任务失败', error);
     }
   }, []);
 
@@ -94,7 +95,7 @@ export function Home() {
     try {
       await window.electronAPI.task.resume(taskId);
     } catch (error) {
-      console.error('恢复任务失败:', error);
+      logger.errorFromCatch('Home', '恢复任务失败', error);
     }
   }, []);
 
@@ -102,7 +103,7 @@ export function Home() {
     try {
       await window.electronAPI.task.cancel(taskId);
     } catch (error) {
-      console.error('取消任务失败:', error);
+      logger.errorFromCatch('Home', '取消任务失败', error);
     }
   }, []);
 
@@ -114,7 +115,7 @@ export function Home() {
           await window.electronAPI.task.add(task.command, task.priority);
         }
       } catch (error) {
-        console.error('重试任务失败:', error);
+        logger.errorFromCatch('Home', '重试任务失败', error);
       }
     },
     [tasks]

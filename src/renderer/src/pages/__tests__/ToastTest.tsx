@@ -4,7 +4,6 @@ import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
 import {
   Play,
-  Pause,
   Check,
   AlertCircle,
   AlertTriangle,

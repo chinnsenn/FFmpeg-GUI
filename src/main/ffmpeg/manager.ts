@@ -4,8 +4,13 @@ import type { Task, TaskStatus, TaskManagerStatus } from '@shared/types';
 import { FFmpegParser } from './parser';
 import { logger } from '../utils/logger';
 
+// Constants for task management
+const DEFAULT_MAX_CONCURRENT_TASKS = 2;
+const DEFAULT_MAX_COMPLETED_TASKS = 100;
+const DEFAULT_TASK_PRIORITY = 0;
+
 /**
- * 任务事件接口
+ * Task event interface
  */
 export interface TaskEvents {
   taskAdded: (task: Task) => void;
@@ -18,7 +23,7 @@ export interface TaskEvents {
 }
 
 /**
- * 内部任务接口（包含进程引用和解析器）
+ * Internal task interface (includes process reference and parser)
  */
 interface InternalTask extends Task {
   process?: ChildProcess;
@@ -26,15 +31,15 @@ interface InternalTask extends Task {
 }
 
 /**
- * FFmpeg 进程管理器
- * 负责管理 FFmpeg 任务队列、并发控制和进程生命周期
+ * FFmpeg process manager
+ * Manages FFmpeg task queue, concurrency control, and process lifecycle
  */
 export class FFmpegManager extends EventEmitter {
   private queue: InternalTask[] = [];
   private running: Map<string, InternalTask> = new Map();
   private completed: Map<string, InternalTask> = new Map();
-  private maxConcurrent = 2;
-  private maxCompletedTasks = 100; // 最多保留 100 个已完成的任务
+  private maxConcurrent = DEFAULT_MAX_CONCURRENT_TASKS;
+  private maxCompletedTasks = DEFAULT_MAX_COMPLETED_TASKS;
   private ffmpegPath: string;
 
   constructor(ffmpegPath: string) {
@@ -44,9 +49,9 @@ export class FFmpegManager extends EventEmitter {
   }
 
   /**
-   * 添加任务到队列
+   * Add task to queue
    */
-  async addTask(command: string[], priority = 0): Promise<string> {
+  async addTask(command: string[], priority = DEFAULT_TASK_PRIORITY): Promise<string> {
     const taskId = this.generateId();
     logger.info('FFmpegManager', 'Adding task', { taskId, priority, commandLength: command.length });
 

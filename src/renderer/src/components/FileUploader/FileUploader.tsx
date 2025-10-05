@@ -3,6 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import { Upload, FileVideo, FolderOpen } from 'lucide-react';
 import { cn } from '@renderer/lib/utils';
 import { Button } from '@renderer/components/ui/button';
+import { logger } from '@renderer/utils/logger';
 import type { FileInfo } from '@shared/types';
 
 interface FileUploaderProps {
@@ -56,7 +57,7 @@ export function FileUploader({
         onFilesFromDialog(fileInfos);
       }
     } catch (error) {
-      console.error('选择文件失败:', error);
+      logger.errorFromCatch('FileUploader', '选择文件失败', error);
     }
   };
 

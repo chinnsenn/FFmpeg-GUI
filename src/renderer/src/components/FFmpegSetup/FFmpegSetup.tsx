@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/u
 import { Progress } from '@renderer/components/ui/progress';
 import { Alert, AlertDescription } from '@renderer/components/ui/alert';
 import { CheckCircle2, XCircle, Download, Loader2 } from 'lucide-react';
+import { logger } from '@renderer/utils/logger';
 import type { FFmpegInfo } from '@renderer/global';
 
 export function FFmpegSetup() {
@@ -34,7 +35,7 @@ export function FFmpegSetup() {
       await window.electronAPI.ffmpeg.download();
       await checkFFmpeg();
     } catch (error) {
-      console.error('Download failed:', error);
+      logger.errorFromCatch('FFmpegSetup', 'FFmpeg 下载失败', error);
     } finally {
       setIsDownloading(false);
       setDownloadProgress(0);

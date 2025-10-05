@@ -7,6 +7,7 @@ export const IPC_CHANNELS = {
   // 文件相关
   FILE_SELECT: 'file:select',
   FILE_SELECT_MULTIPLE: 'file:selectMultiple',
+  FILE_SELECT_DIRECTORY: 'file:selectDirectory',
   FILE_GET_INFO: 'file:getInfo',
   FILE_OPEN_FOLDER: 'file:openFolder',
 

@@ -126,20 +126,56 @@ export function registerTaskHandlers() {
 
   // 取消任务
   ipcMain.handle(IPC_CHANNELS.TASK_CANCEL, async (_event: IpcMainInvokeEvent, taskId: string) => {
-    if (!manager) throw new Error('Manager not initialized');
-    return manager.cancelTask(taskId);
+    if (!manager) {
+      logger.error('TaskHandlers', 'Cancel failed - manager not initialized', { taskId });
+      throw new Error(
+        'FFmpeg manager not initialized. Please restart the application or check FFmpeg installation.'
+      );
+    }
+    const result = manager.cancelTask(taskId);
+    if (!result) {
+      logger.warn('TaskHandlers', 'Unable to cancel task', { taskId });
+      throw new Error(
+        `Unable to cancel task ${taskId}. It may have already completed or been removed.`
+      );
+    }
+    return result;
   });
 
   // 暂停任务
   ipcMain.handle(IPC_CHANNELS.TASK_PAUSE, async (_event: IpcMainInvokeEvent, taskId: string) => {
-    if (!manager) throw new Error('Manager not initialized');
-    return manager.pauseTask(taskId);
+    if (!manager) {
+      logger.error('TaskHandlers', 'Pause failed - manager not initialized', { taskId });
+      throw new Error(
+        'FFmpeg manager not initialized. Please restart the application or check FFmpeg installation.'
+      );
+    }
+    const result = manager.pauseTask(taskId);
+    if (!result) {
+      logger.warn('TaskHandlers', 'Unable to pause task', { taskId });
+      throw new Error(
+        `Unable to pause task ${taskId}. It may not be running or may have already completed.`
+      );
+    }
+    return result;
   });
 
   // 恢复任务
   ipcMain.handle(IPC_CHANNELS.TASK_RESUME, async (_event: IpcMainInvokeEvent, taskId: string) => {
-    if (!manager) throw new Error('Manager not initialized');
-    return manager.resumeTask(taskId);
+    if (!manager) {
+      logger.error('TaskHandlers', 'Resume failed - manager not initialized', { taskId });
+      throw new Error(
+        'FFmpeg manager not initialized. Please restart the application or check FFmpeg installation.'
+      );
+    }
+    const result = manager.resumeTask(taskId);
+    if (!result) {
+      logger.warn('TaskHandlers', 'Unable to resume task', { taskId });
+      throw new Error(
+        `Unable to resume task ${taskId}. It may not be paused or may have already completed.`
+      );
+    }
+    return result;
   });
 
   // 获取单个任务

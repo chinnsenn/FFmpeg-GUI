@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { FileUploader } from '@renderer/components/FileUploader/FileUploader';
 import { FileList } from '@renderer/components/FileList/FileList';
 import { ConvertConfig } from '@renderer/components/ConvertConfig/ConvertConfig';
 import { useFileManager } from '@renderer/hooks/useFileManager';
-import { toast } from 'sonner';
+import { logger } from '@renderer/utils/logger';
 import type { ConvertOptions } from '@shared/types';
 
 export function Convert() {
@@ -18,7 +19,8 @@ export function Convert() {
 
   const handleConvert = async (options: Partial<ConvertOptions>) => {
     if (!options.input || !options.output) {
-      console.error('缺少输入或输出路径');
+      logger.warn('Convert', '缺少输入或输出路径', { options });
+      toast.error('缺少输入或输出路径');
       return;
     }
 
@@ -27,16 +29,16 @@ export function Convert() {
     try {
       // 调用 IPC 添加转换任务
       const taskId = await window.electronAPI.task.addConvert(options as ConvertOptions);
-      console.log(`转换任务已添加: ${taskId}`);
+      logger.info('Convert', '转换任务已添加', { taskId, options });
 
       // 显示成功提示
       toast.success('转换任务已添加', {
         description: `任务 ID: ${taskId}\n可前往任务队列查看进度。`,
       });
     } catch (error) {
-      console.error('添加转换任务失败:', error);
+      logger.errorFromCatch('Convert', '添加转换任务失败', error);
       toast.error('添加转换任务失败', {
-        description: error instanceof Error ? error.message : String(error),
+        description: error instanceof Error ? error.message : '未知错误',
       });
     } finally {
       setConverting(false);

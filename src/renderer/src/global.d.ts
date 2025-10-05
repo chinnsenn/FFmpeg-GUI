@@ -9,17 +9,12 @@ import type {
   MediaFileInfo,
   ConvertOptions,
   CompressOptions,
+  IPCEventPayloads,
+  FFmpegInfo,
 } from '../../shared/types';
 
-/**
- * FFmpeg 信息
- */
-export interface FFmpegInfo {
-  isInstalled: boolean;
-  path?: string;
-  version?: string;
-  isVersionValid?: boolean;
-}
+// Re-export FFmpegInfo for use in other files
+export type { FFmpegInfo } from '../../shared/types';
 
 /**
  * Electron API 接口定义
@@ -32,6 +27,7 @@ export interface ElectronAPI {
   // 文件相关
   selectFile: (filters?: { name: string; extensions: string[] }[]) => Promise<string | null>;
   selectFiles: (filters?: { name: string; extensions: string[] }[]) => Promise<FileInfo[]>;
+  selectDirectory: () => Promise<string | null>;
   getFileInfo: (filePath: string) => Promise<FileInfo>;
   openFolder: (folderPath: string) => Promise<void>;
 
@@ -65,7 +61,10 @@ export interface ElectronAPI {
   };
 
   // 事件监听
-  on: (channel: string, callback: (...args: any[]) => void) => () => void;
+  on: <K extends keyof IPCEventPayloads>(
+    channel: K,
+    callback: (payload: IPCEventPayloads[K]) => void,
+  ) => () => void;
 }
 
 /**

@@ -1,6 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '../ui/button';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { logger } from '@renderer/utils/logger';
 
 interface Props {
   children: ReactNode;
@@ -28,22 +29,58 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(_error: Error): Partial<State> {
-    // 更新 state 使下一次渲染能够显示降级 UI
+    // Update state to show fallback UI on next render
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // 记录错误到控制台
-    console.error('Error Boundary caught an error:', error, errorInfo);
+  /**
+   * Categorize error by type for better handling
+   * @param error - The caught error
+   * @returns Error severity level
+   */
+  private categorizeError(error: Error): 'critical' | 'warning' | 'info' {
+    const message = error.message.toLowerCase();
 
-    // 更新状态
+    // Network and loading errors are usually recoverable
+    if (message.includes('chunkloaderror') || message.includes('chunk')) {
+      return 'warning';
+    }
+    if (message.includes('network') || message.includes('fetch')) {
+      return 'warning';
+    }
+
+    // Everything else is critical
+    return 'critical';
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Categorize error type
+    const errorType = this.categorizeError(error);
+
+    // Log with comprehensive context
+    logger.error('ErrorBoundary', 'React Error Boundary caught an error', {
+      error: {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        type: errorType,
+      },
+      componentStack: errorInfo.componentStack,
+      userAgent: navigator.userAgent,
+      timestamp: new Date().toISOString(),
+      url: window.location.href,
+    });
+
+    // Update state
     this.setState({
       error,
       errorInfo,
     });
 
-    // 可以在这里将错误发送到错误报告服务
-    // 例如: logErrorToService(error, errorInfo);
+    // Send to error tracking based on severity (future implementation)
+    // if (errorType === 'critical') {
+    //   this.reportToService(error, errorInfo);
+    // }
   }
 
   handleReset = () => {

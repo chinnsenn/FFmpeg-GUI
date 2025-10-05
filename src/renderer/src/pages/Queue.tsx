@@ -1,10 +1,12 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
+import { toast } from 'sonner';
 import { TaskCard } from '@renderer/components/TaskCard/TaskCard';
 import { Card } from '@renderer/components/ui/card';
 import { Task, TaskManagerStatus } from '@shared/types';
 import { IPC_CHANNELS } from '@shared/constants';
 import { Trash2 } from 'lucide-react';
 import { cn } from '@renderer/lib/utils';
+import { logger } from '@renderer/utils/logger';
 
 export function Queue() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -18,24 +20,39 @@ export function Queue() {
   const [loading, setLoading] = useState(true);
 
   // 加载任务列表
-  const loadTasks = useCallback(async () => {
+  const loadTasks = useCallback(async (isMounted: () => boolean) => {
     try {
       const allTasks = await window.electronAPI.task.getAll();
+      if (!isMounted()) return; // Check before state update
       setTasks(allTasks);
 
       const managerStatus = await window.electronAPI.task.getStatus();
+      if (!isMounted()) return; // Check before state update
       setStatus(managerStatus);
     } catch (error) {
-      console.error('加载任务列表失败:', error);
+      if (!isMounted()) return; // Don't show error if unmounted
+      logger.errorFromCatch('Queue', '加载任务列表失败', error);
+      toast.error('加载任务列表失败', {
+        description: error instanceof Error ? error.message : '未知错误',
+      });
     } finally {
-      setLoading(false);
+      if (isMounted()) {
+        setLoading(false);
+      }
     }
   }, []);
 
   // 初始加载
   useEffect(() => {
-    loadTasks();
-  }, []);
+    let mounted = true;
+    const isMounted = () => mounted;
+
+    loadTasks(isMounted);
+
+    return () => {
+      mounted = false;
+    };
+  }, [loadTasks]);
 
   // 监听任务事件
   useEffect(() => {
@@ -48,8 +65,8 @@ export function Queue() {
     });
 
     // 任务开始
-    const unsubTaskStarted = window.electronAPI.on(IPC_CHANNELS.TASK_STARTED, (task: Task) => {
-      setTasks((prev: Task[]) => prev.map(t => (t.id === task.id ? task : t)));
+    const unsubTaskStarted = window.electronAPI.on(IPC_CHANNELS.TASK_STARTED, (payload) => {
+      setTasks((prev: Task[]) => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
       setStatus((prev: TaskManagerStatus) => ({ ...prev, queued: Math.max(0, prev.queued - 1), running: prev.running + 1 }));
     });
 
@@ -66,20 +83,20 @@ export function Queue() {
     );
 
     // 任务完成
-    const unsubTaskCompleted = window.electronAPI.on(IPC_CHANNELS.TASK_COMPLETED, (task: Task) => {
-      setTasks((prev: Task[]) => prev.map(t => (t.id === task.id ? task : t)));
+    const unsubTaskCompleted = window.electronAPI.on(IPC_CHANNELS.TASK_COMPLETED, (payload) => {
+      setTasks((prev: Task[]) => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
       setStatus((prev: TaskManagerStatus) => ({ ...prev, running: Math.max(0, prev.running - 1), completed: prev.completed + 1 }));
     });
 
     // 任务失败
-    const unsubTaskFailed = window.electronAPI.on(IPC_CHANNELS.TASK_FAILED, (task: Task) => {
-      setTasks((prev: Task[]) => prev.map(t => (t.id === task.id ? task : t)));
+    const unsubTaskFailed = window.electronAPI.on(IPC_CHANNELS.TASK_FAILED, (payload) => {
+      setTasks((prev: Task[]) => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
       setStatus((prev: TaskManagerStatus) => ({ ...prev, running: Math.max(0, prev.running - 1) }));
     });
 
     // 任务取消
-    const unsubTaskCancelled = window.electronAPI.on(IPC_CHANNELS.TASK_CANCELLED, (task: Task) => {
-      setTasks((prev: Task[]) => prev.map(t => (t.id === task.id ? task : t)));
+    const unsubTaskCancelled = window.electronAPI.on(IPC_CHANNELS.TASK_CANCELLED, (payload) => {
+      setTasks((prev: Task[]) => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
       setStatus((prev: TaskManagerStatus) => ({
         ...prev,
         queued: Math.max(0, prev.queued - 1),
@@ -106,7 +123,10 @@ export function Queue() {
     try {
       await window.electronAPI.task.pause(taskId);
     } catch (error) {
-      console.error('暂停任务失败:', error);
+      logger.errorFromCatch('Queue', '暂停任务失败', error);
+      toast.error('暂停任务失败', {
+        description: error instanceof Error ? error.message : '未知错误',
+      });
     }
   }, []);
 
@@ -114,7 +134,10 @@ export function Queue() {
     try {
       await window.electronAPI.task.resume(taskId);
     } catch (error) {
-      console.error('恢复任务失败:', error);
+      logger.errorFromCatch('Queue', '恢复任务失败', error);
+      toast.error('恢复任务失败', {
+        description: error instanceof Error ? error.message : '未知错误',
+      });
     }
   }, []);
 
@@ -122,28 +145,40 @@ export function Queue() {
     try {
       await window.electronAPI.task.cancel(taskId);
     } catch (error) {
-      console.error('取消任务失败:', error);
+      logger.errorFromCatch('Queue', '取消任务失败', error);
+      toast.error('取消任务失败', {
+        description: error instanceof Error ? error.message : '未知错误',
+      });
     }
   }, []);
 
   const handleRetry = useCallback(async (taskId: string) => {
     try {
-      const task = tasks.find(t => t.id === taskId);
+      // Fetch task directly from API instead of relying on stale state
+      const task = await window.electronAPI.task.get(taskId);
       if (task) {
         await window.electronAPI.task.add(task.command, task.priority);
+        toast.info('正在重试任务');
       }
     } catch (error) {
-      console.error('重试任务失败:', error);
+      logger.errorFromCatch('Queue', '重试任务失败', error);
+      toast.error('重试任务失败', {
+        description: error instanceof Error ? error.message : '未知错误',
+      });
     }
-  }, [tasks]);
+  }, []);
 
   const handleClearCompleted = useCallback(async () => {
     try {
       await window.electronAPI.task.clearCompleted();
       setTasks((prev: Task[]) => prev.filter(t => t.status !== 'completed'));
       setStatus((prev: TaskManagerStatus) => ({ ...prev, completed: 0 }));
+      toast.success('已清除已完成任务');
     } catch (error) {
-      console.error('清除已完成任务失败:', error);
+      logger.errorFromCatch('Queue', '清除已完成任务失败', error);
+      toast.error('清除已完成任务失败', {
+        description: error instanceof Error ? error.message : '未知错误',
+      });
     }
   }, []);
 
@@ -174,10 +209,19 @@ export function Queue() {
     try {
       await window.electronAPI.task.setMaxConcurrent(value);
       setStatus((prev: TaskManagerStatus) => ({ ...prev, maxConcurrent: value }));
+      toast.success(`最大并发数已设置为 ${value}`);
     } catch (error) {
-      console.error('设置最大并发数失败:', error);
+      logger.errorFromCatch('Queue', '设置最大并发数失败', error);
+      toast.error('设置最大并发数失败', {
+        description: error instanceof Error ? error.message : '未知错误',
+      });
     }
   }, []);
+
+  // 处理最大并发下拉框变化
+  const handleMaxConcurrentSelect = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    handleMaxConcurrentChange(Number(e.target.value));
+  }, [handleMaxConcurrentChange]);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -206,11 +250,15 @@ export function Queue() {
 
             {/* 右侧：最大并发下拉框 */}
             <div className="flex items-center gap-2">
-              <label className="text-sm text-text-secondary">最大并发:</label>
+              <label htmlFor="queue-max-concurrent" className="text-sm text-text-secondary">
+                最大并发:
+              </label>
               <select
+                id="queue-max-concurrent"
                 value={status.maxConcurrent}
-                onChange={(e) => handleMaxConcurrentChange(Number(e.target.value))}
+                onChange={handleMaxConcurrentSelect}
                 className="h-8 px-2 py-1 rounded border border-border-medium bg-surface-base text-text-primary text-sm transition-all hover:border-border-dark focus:outline-none focus:border-primary-500"
+                aria-label="设置最大并发任务数"
               >
                 <option value={1}>1</option>
                 <option value={2}>2</option>
@@ -226,11 +274,15 @@ export function Queue() {
         <div className="flex items-center justify-between">
           {/* 左侧：筛选下拉菜单 */}
           <div className="flex items-center gap-2">
-            <label className="text-sm text-text-secondary">筛选:</label>
+            <label htmlFor="task-filter" className="text-sm text-text-secondary">
+              筛选:
+            </label>
             <select
+              id="task-filter"
               value={filter}
               onChange={(e) => setFilter(e.target.value as typeof filter)}
               className="h-10 px-3 py-2 rounded-lg border border-border-medium bg-surface-base text-text-primary text-sm transition-all hover:border-border-dark focus:outline-none focus:border-primary-500"
+              aria-label="筛选任务列表"
             >
               <option value="all">全部</option>
               <option value="pending">等待中</option>
@@ -250,8 +302,9 @@ export function Queue() {
               'hover:bg-error-100 hover:border-error-300',
               'disabled:opacity-50 disabled:cursor-not-allowed'
             )}
+            aria-label="清空所有已完成的任务"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4" aria-hidden="true" />
             清空已完成
           </button>
         </div>
@@ -259,8 +312,14 @@ export function Queue() {
         {/* 任务列表 */}
         <div className="space-y-3">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
+            <div
+              className="flex items-center justify-center py-12"
+              role="status"
+              aria-live="polite"
+              aria-label="正在加载任务列表"
+            >
               <div className="text-text-secondary">加载中...</div>
+              <span className="sr-only">正在加载任务列表，请稍候</span>
             </div>
           ) : filteredTasks.length === 0 ? (
             <Card padding="default" className="text-center py-12">

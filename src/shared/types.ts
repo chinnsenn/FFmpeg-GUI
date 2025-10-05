@@ -29,10 +29,15 @@ export interface FileInfo {
  */
 export interface AppConfig {
   ffmpegPath?: string;
+  ffprobePath?: string;
   outputPath?: string;
   theme: 'light' | 'dark' | 'system';
   language: 'zh-CN' | 'en-US';
   maxConcurrentTasks: number;
+  autoStartNext?: boolean;
+  enableNotifications?: boolean;
+  keepOriginalFile?: boolean;
+  autoRenameOnConflict?: boolean;
 }
 
 /**
@@ -176,4 +181,29 @@ export interface MediaFileInfo {
   tags?: {
     [key: string]: string;
   };
+}
+
+/**
+ * FFmpeg 检测结果
+ */
+export interface FFmpegInfo {
+  isInstalled: boolean;
+  path?: string;
+  version?: string;
+  isVersionValid?: boolean;
+}
+
+/**
+ * IPC 事件负载类型映射
+ * 定义每个事件通道的具体数据类型，确保类型安全
+ */
+export interface IPCEventPayloads {
+  'task:added': Task;
+  'task:started': { taskId: string; task: Task };
+  'task:progress': { taskId: string; progress: number; progressInfo?: FFmpegProgress };
+  'task:output': { taskId: string; output: string };
+  'task:completed': { taskId: string; task: Task };
+  'task:failed': { taskId: string; task: Task; error: string };
+  'task:cancelled': { taskId: string; task: Task };
+  'ffmpeg:downloadProgress': { percent: number; transferred: number; total: number };
 }

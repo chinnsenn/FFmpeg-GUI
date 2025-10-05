@@ -4,22 +4,49 @@ import type {
   BuildResult,
 } from '@shared/types';
 import { existsSync } from 'fs';
-import { resolve } from 'path';
+import { resolve, normalize } from 'path';
+
+// Dangerous system paths that should not be accessed
+const DANGEROUS_PATHS = [
+  '/System',
+  '/etc',
+  '/bin',
+  '/sbin',
+  '/usr/bin',
+  '/usr/sbin',
+  '/private',
+  '/var/root',
+  'C:\\Windows',
+  'C:\\Program Files',
+  'C:\\Program Files (x86)',
+  'C:\\ProgramData',
+] as const;
 
 /**
- * FFmpeg 命令构建器
- * 负责根据不同的转换选项生成正确的 FFmpeg 命令参数
+ * FFmpeg command builder
+ * Responsible for generating correct FFmpeg command arguments based on conversion options
  */
 export class FFmpegCommandBuilder {
   /**
-   * 验证输入文件
+   * Validate input file path for security
+   * Prevents path traversal and access to system directories
    */
   private validateInput(input: string): string | null {
     if (!input) {
       return '输入文件路径不能为空';
     }
 
-    const resolvedPath = resolve(input);
+    const resolvedPath = resolve(normalize(input));
+
+    // Check for dangerous path access
+    const isDangerous = DANGEROUS_PATHS.some(dangerousPath =>
+      resolvedPath.startsWith(dangerousPath)
+    );
+
+    if (isDangerous) {
+      return 'Access to system directories is not allowed';
+    }
+
     if (!existsSync(resolvedPath)) {
       return `输入文件不存在: ${resolvedPath}`;
     }
@@ -28,7 +55,7 @@ export class FFmpegCommandBuilder {
   }
 
   /**
-   * 验证输出文件
+   * Validate output file path
    */
   private validateOutput(output: string): string | null {
     if (!output) {

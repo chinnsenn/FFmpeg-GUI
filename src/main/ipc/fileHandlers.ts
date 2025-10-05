@@ -70,6 +70,22 @@ export function registerFileHandlers() {
     }
   );
 
+  // 选择目录
+  ipcMain.handle(
+    IPC_CHANNELS.FILE_SELECT_DIRECTORY,
+    async (): Promise<string | null> => {
+      const result = await dialog.showOpenDialog({
+        properties: ['openDirectory', 'createDirectory'],
+      });
+
+      if (result.canceled || result.filePaths.length === 0) {
+        return null;
+      }
+
+      return result.filePaths[0];
+    }
+  );
+
   // 获取文件信息
   ipcMain.handle(
     IPC_CHANNELS.FILE_GET_INFO,

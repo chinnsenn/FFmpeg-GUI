@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { logger } from '@renderer/utils/logger';
 import type { MediaFileInfo, FileInfo } from '@shared/types';
 
 /**
@@ -43,7 +44,7 @@ export function useFileManager() {
       try {
         // 检查文件是否有 path 属性（Electron 环境下拖拽的文件会有）
         if (!fileItem.file.path) {
-          console.warn(`文件 ${fileItem.file.name} 没有 path 属性，跳过获取媒体信息`);
+          logger.warn('useFileManager', `文件 ${fileItem.file.name} 没有 path 属性，跳过获取媒体信息`);
           continue;
         }
 
@@ -61,7 +62,7 @@ export function useFileManager() {
           current?.id === fileItem.id ? { ...current, mediaInfo } : current
         );
       } catch (error) {
-        console.error(`获取文件 ${fileItem.file.name} 的媒体信息失败:`, error);
+        logger.errorFromCatch('useFileManager', `获取文件 ${fileItem.file.name} 的媒体信息失败`, error);
         // 即使失败也不影响文件列表显示
       }
     }
@@ -104,7 +105,7 @@ export function useFileManager() {
           current?.id === fileItem.id ? { ...current, mediaInfo } : current
         );
       } catch (error) {
-        console.error(`获取文件 ${fileItem.file.name} 的媒体信息失败:`, error);
+        logger.errorFromCatch('useFileManager', `获取文件 ${fileItem.file.name} 的媒体信息失败`, error);
         // 即使失败也不影响文件列表显示
       }
     }

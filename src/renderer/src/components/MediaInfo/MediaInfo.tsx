@@ -1,4 +1,4 @@
-import { Info, Film, Music } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { formatDuration, formatFileSize, formatBitrate } from '@renderer/lib/formatters';
 import type { MediaFileInfo } from '@shared/types';
 

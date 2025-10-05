@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { FileUploader } from '@renderer/components/FileUploader/FileUploader';
 import { FileList } from '@renderer/components/FileList/FileList';
 import { CompressConfig } from '@renderer/components/CompressConfig/CompressConfig';
 import { useFileManager } from '@renderer/hooks/useFileManager';
-import { toast } from 'sonner';
+import { logger } from '@renderer/utils/logger';
 import type { CompressOptions } from '@shared/types';
 
 export function Compress() {
@@ -18,13 +19,15 @@ export function Compress() {
 
   const handleCompress = async (options: Omit<CompressOptions, 'input' | 'output'>) => {
     if (!selectedFile) {
-      console.error('没有选中的文件');
+      logger.warn('Compress', '没有选中的文件');
+      toast.error('请先选择要压缩的文件');
       return;
     }
 
     const inputPath = selectedFile.file.path;
     if (!inputPath) {
-      console.error('文件路径不存在');
+      logger.error('Compress', '文件路径不存在', { file: selectedFile.file.name });
+      toast.error('文件路径不存在');
       return;
     }
 
@@ -51,16 +54,16 @@ export function Compress() {
     try {
       // 调用 IPC 添加压缩任务
       const taskId = await window.electronAPI.task.addCompress(compressOptions);
-      console.log(`压缩任务已添加: ${taskId}`);
+      logger.info('Compress', '压缩任务已添加', { taskId, options: compressOptions });
 
       // 显示成功提示
       toast.success('压缩任务已添加', {
         description: `任务 ID: ${taskId}\n可前往任务队列查看进度。`,
       });
     } catch (error) {
-      console.error('添加压缩任务失败:', error);
+      logger.errorFromCatch('Compress', '添加压缩任务失败', error);
       toast.error('添加压缩任务失败', {
-        description: error instanceof Error ? error.message : String(error),
+        description: error instanceof Error ? error.message : '未知错误',
       });
     } finally {
       setCompressing(false);

@@ -16,7 +16,11 @@ interface ConvertConfigProps {
   disabled?: boolean;
 }
 
-export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigProps) {
+export function ConvertConfig({
+  inputFile,
+  onConvert,
+  disabled = false // Explicit default value
+}: ConvertConfigProps) {
   // 基本状态
   const [outputFormat, setOutputFormat] = useState('mp4');
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
@@ -57,11 +61,10 @@ export function ConvertConfig({ inputFile, onConvert, disabled }: ConvertConfigP
 
     const outputPath = `${dirPath}/${nameWithoutExt}_converted.${outputFormat}`;
 
-    // 构建转换选项
+    // 构建转换选项 (format is inferred from output file extension)
     const options: Partial<ConvertOptions> = {
       input: inputPath,
       output: outputPath,
-      format: outputFormat,
       videoCodec: videoCodec || undefined,
       audioCodec: audioCodec || undefined,
       videoBitrate: videoBitrate || undefined,

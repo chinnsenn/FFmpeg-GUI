@@ -13,105 +13,129 @@ interface TaskCardProps {
   onResume?: (taskId: string) => void;
   onCancel?: (taskId: string) => void;
   onRetry?: (taskId: string) => void;
-  onDelete?: (taskId: string) => void;
 }
+
+/**
+ * Status configuration for task cards
+ * Moved outside component to prevent recreation on every render
+ */
+const getStatusConfig = (status: TaskStatus) => {
+  switch (status) {
+    case 'pending':
+      return {
+        icon: <Clock className="w-5 h-5" />,
+        label: '等待中',
+        iconColor: 'text-text-tertiary',
+        labelColor: 'text-text-secondary',
+        cardClass: 'bg-background-secondary border-border-light',
+        animation: '',
+      };
+    case 'running':
+      return {
+        icon: <Loader2 className="w-5 h-5 animate-spin" />,
+        label: '运行中',
+        iconColor: 'text-primary-600',
+        labelColor: 'text-primary-600',
+        cardClass: 'bg-surface-raised border-primary-500 border-2 shadow-md animate-border-pulse',
+        animation: 'animate-border-pulse',
+      };
+    case 'paused':
+      return {
+        icon: <Pause className="w-5 h-5" />,
+        label: '已暂停',
+        iconColor: 'text-warning-600',
+        labelColor: 'text-warning-600',
+        cardClass: 'bg-warning-50 dark:bg-warning-600/10 border-warning-500',
+        animation: '',
+      };
+    case 'completed':
+      return {
+        icon: <CheckCircle2 className="w-5 h-5 animate-scale-in" />,
+        label: '已完成',
+        iconColor: 'text-success-600',
+        labelColor: 'text-success-600',
+        cardClass: 'bg-success-50 dark:bg-success-600/10 border-success-500',
+        animation: 'animate-scale-in',
+      };
+    case 'failed':
+      return {
+        icon: <XCircle className="w-5 h-5 animate-shake" />,
+        label: '失败',
+        iconColor: 'text-error-600',
+        labelColor: 'text-error-600',
+        cardClass: 'bg-error-50 dark:bg-error-600/10 border-error-500',
+        animation: 'animate-shake',
+      };
+    case 'cancelled':
+      return {
+        icon: <X className="w-5 h-5 animate-fade-out" />,
+        label: '已取消',
+        iconColor: 'text-text-tertiary',
+        labelColor: 'text-text-secondary',
+        cardClass: 'bg-background-secondary border-border-light opacity-60',
+        animation: 'animate-fade-out',
+      };
+    default:
+      return {
+        icon: <Clock className="w-5 h-5" />,
+        label: '未知',
+        iconColor: 'text-text-tertiary',
+        labelColor: 'text-text-secondary',
+        cardClass: 'bg-background-secondary border-border-light',
+        animation: '',
+      };
+  }
+};
+
+/**
+ * Extract file name from full path (cross-platform)
+ * @param path - Full file path
+ * @returns File name without directory path
+ */
+const extractFileName = (path: string): string => {
+  // Handle both Unix (/) and Windows (\) path separators
+  const parts = path.split(/[/\\]/);
+  return parts[parts.length - 1] || path;
+};
+
+/**
+ * Extract input file name from FFmpeg command
+ * @param command - FFmpeg command array
+ * @returns Input file name or fallback text
+ */
+const extractInputFile = (command: string[]): string => {
+  const inputIndex = command.findIndex((arg: string) => arg === '-i');
+  if (inputIndex !== -1 && inputIndex + 1 < command.length) {
+    return extractFileName(command[inputIndex + 1]);
+  }
+  return '未知文件';
+};
+
+/**
+ * Extract output file name from FFmpeg command
+ * @param command - FFmpeg command array
+ * @returns Output file name or fallback text
+ */
+const extractOutputFile = (command: string[]): string => {
+  const lastArg = command[command.length - 1];
+  if (lastArg && !lastArg.startsWith('-')) {
+    return extractFileName(lastArg);
+  }
+  return '未知';
+};
 
 export const TaskCard = memo(function TaskCard({
   task,
   onPause,
   onResume,
   onCancel,
-  onRetry,
-  onDelete
+  onRetry
 }: TaskCardProps) {
-  // 状态图标和样式配置
-  const getStatusConfig = (status: TaskStatus) => {
-    switch (status) {
-      case 'pending':
-        return {
-          icon: <Clock className="w-5 h-5" />,
-          label: '等待中',
-          iconColor: 'text-text-tertiary',
-          labelColor: 'text-text-secondary',
-          cardClass: 'bg-background-secondary border-border-light',
-          animation: '',
-        };
-      case 'running':
-        return {
-          icon: <Loader2 className="w-5 h-5 animate-spin" />,
-          label: '运行中',
-          iconColor: 'text-primary-600',
-          labelColor: 'text-primary-600',
-          cardClass: 'bg-surface-raised border-primary-500 border-2 shadow-md animate-border-pulse',
-          animation: 'animate-border-pulse',
-        };
-      case 'paused':
-        return {
-          icon: <Pause className="w-5 h-5" />,
-          label: '已暂停',
-          iconColor: 'text-warning-600',
-          labelColor: 'text-warning-600',
-          cardClass: 'bg-warning-50 dark:bg-warning-600/10 border-warning-500',
-          animation: '',
-        };
-      case 'completed':
-        return {
-          icon: <CheckCircle2 className="w-5 h-5 animate-scale-in" />,
-          label: '已完成',
-          iconColor: 'text-success-600',
-          labelColor: 'text-success-600',
-          cardClass: 'bg-success-50 dark:bg-success-600/10 border-success-500',
-          animation: 'animate-scale-in',
-        };
-      case 'failed':
-        return {
-          icon: <XCircle className="w-5 h-5 animate-shake" />,
-          label: '失败',
-          iconColor: 'text-error-600',
-          labelColor: 'text-error-600',
-          cardClass: 'bg-error-50 dark:bg-error-600/10 border-error-500',
-          animation: 'animate-shake',
-        };
-      case 'cancelled':
-        return {
-          icon: <X className="w-5 h-5 animate-fade-out" />,
-          label: '已取消',
-          iconColor: 'text-text-tertiary',
-          labelColor: 'text-text-secondary',
-          cardClass: 'bg-background-secondary border-border-light opacity-60',
-          animation: 'animate-fade-out',
-        };
-      default:
-        return {
-          icon: <Clock className="w-5 h-5" />,
-          label: '未知',
-          iconColor: 'text-text-tertiary',
-          labelColor: 'text-text-secondary',
-          cardClass: 'bg-background-secondary border-border-light',
-          animation: '',
-        };
-    }
-  };
-
   const statusConfig = useMemo(() => getStatusConfig(task.status), [task.status]);
 
-  // 提取输入/输出文件名
-  const inputFile = useMemo(() => {
-    const inputIndex = task.command.findIndex(arg => arg === '-i');
-    if (inputIndex !== -1 && inputIndex + 1 < task.command.length) {
-      const path = task.command[inputIndex + 1];
-      return path.split('/').pop() || path;
-    }
-    return '未知文件';
-  }, [task.command]);
-
-  const outputFile = useMemo(() => {
-    const lastArg = task.command[task.command.length - 1];
-    if (lastArg && !lastArg.startsWith('-')) {
-      return lastArg.split('/').pop() || lastArg;
-    }
-    return '未知';
-  }, [task.command]);
+  // Use optimized utility functions for file name extraction
+  const inputFile = useMemo(() => extractInputFile(task.command), [task.command]);
+  const outputFile = useMemo(() => extractOutputFile(task.command), [task.command]);
 
   // 计算剩余时间
   const getETA = (): string => {
@@ -189,9 +213,10 @@ export const TaskCard = memo(function TaskCard({
                 size="sm"
                 variant="icon"
                 onClick={() => onPause(task.id)}
-                title="暂停"
+                title="暂停任务"
+                aria-label="暂停任务"
               >
-                <Pause className="w-4 h-4" />
+                <Pause className="w-4 h-4" aria-hidden="true" />
               </Button>
             )}
 
@@ -200,9 +225,10 @@ export const TaskCard = memo(function TaskCard({
                 size="sm"
                 variant="icon"
                 onClick={() => onResume(task.id)}
-                title="继续"
+                title="继续任务"
+                aria-label="继续任务"
               >
-                <Play className="w-4 h-4" />
+                <Play className="w-4 h-4" aria-hidden="true" />
               </Button>
             )}
 
@@ -211,9 +237,10 @@ export const TaskCard = memo(function TaskCard({
                 size="sm"
                 variant="icon"
                 onClick={() => onCancel(task.id)}
-                title="取消"
+                title="取消任务"
+                aria-label="取消任务"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" aria-hidden="true" />
               </Button>
             )}
 
@@ -222,9 +249,10 @@ export const TaskCard = memo(function TaskCard({
                 size="sm"
                 variant="icon"
                 onClick={() => onRetry(task.id)}
-                title="重试"
+                title="重试任务"
+                aria-label="重试任务"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4" aria-hidden="true" />
               </Button>
             )}
           </div>
