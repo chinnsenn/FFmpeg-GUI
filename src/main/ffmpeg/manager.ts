@@ -1,6 +1,6 @@
 import { spawn, ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
-import type { Task, TaskStatus, TaskManagerStatus } from '@shared/types';
+import type { Task, TaskManagerStatus } from '@shared/types';
 import { FFmpegParser } from './parser';
 import { logger } from '../utils/logger';
 
@@ -384,7 +384,7 @@ export class FFmpegManager extends EventEmitter {
    * 移除进程引用和解析器以便安全传输到渲染进程
    */
   private sanitizeTask(task: InternalTask): Task {
-    const { process, parser, ...sanitized } = task;
+    const { process: _process, parser: _parser, ...sanitized } = task;
     return sanitized;
   }
 }

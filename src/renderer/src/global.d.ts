@@ -38,7 +38,6 @@ export interface ElectronAPI {
   // FFmpeg 相关
   ffmpeg: {
     detect: () => Promise<FFmpegInfo>;
-    download: () => Promise<void>;
     getMediaInfo: (filePath: string) => Promise<MediaFileInfo>;
   };
 

@@ -375,7 +375,7 @@
    - 查找错误信息
 
 2. **搜索已知问题**
-   - [GitHub Issues](https://github.com/your-repo/FFmpeg-GUI/issues)
+   - [GitHub Issues](https://github.com/chinnsenn/FFmpeg-GUI/issues)
 
 3. **提交新问题**
    - 提供详细描述
@@ -383,7 +383,7 @@
    - 说明操作系统和版本
 
 4. **社区讨论**
-   - [GitHub Discussions](https://github.com/your-repo/FFmpeg-GUI/discussions)
+   - [GitHub Discussions](https://github.com/chinnsenn/FFmpeg-GUI/discussions)
 
 ---
 
@@ -400,4 +400,4 @@
 
 **祝您使用愉快！**
 
-如有建议，欢迎反馈到 [GitHub](https://github.com/your-repo/FFmpeg-GUI/issues)。
+如有建议，欢迎反馈到 [GitHub](https://github.com/chinnsenn/FFmpeg-GUI/issues)。

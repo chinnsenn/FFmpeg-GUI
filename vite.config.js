@@ -22,6 +22,9 @@ export default defineConfig({
                     },
                     build: {
                         outDir: resolve(__dirname, 'dist-electron'),
+                        rollupOptions: {
+                            external: ['@ffmpeg-installer/ffmpeg', '@ffprobe-installer/ffprobe'],
+                        },
                     },
                 },
             },

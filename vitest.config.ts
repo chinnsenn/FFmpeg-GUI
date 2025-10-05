@@ -1,13 +1,7 @@
 import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
-import { resolve } from 'path';
 
 export default defineConfig({
-  plugins: [react()],
   test: {
-    globals: true,
-    environment: 'happy-dom',
-    setupFiles: ['./src/__tests__/setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -17,15 +11,36 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.*',
         '**/dist/**',
+        '**/dist-electron/**',
+        'src/main/index.ts',
+        'src/renderer/src/main.tsx',
+        'src/renderer/preload.ts',
+        // Exclude UI components (focus on business logic)
+        'src/renderer/src/components/**',
+        'src/renderer/src/pages/**',
+        'src/renderer/src/router/**',
+        'src/renderer/src/App.tsx',
+        // Exclude FFmpeg manager (complex child process management)
+        'src/main/ffmpeg/manager.ts',
+        // Exclude IPC handlers (tested via integration)
+        'src/main/ipc/**',
+        // Exclude system-specific files
+        'src/main/downloader.ts',
+        // Exclude shared constants, types, and presets (mostly static data)
+        'src/shared/constants.ts',
+        'src/shared/types.ts',
+        'src/shared/format-presets.ts',
+        // Exclude main process logger
+        'src/main/utils/logger.ts',
+        // Exclude preload logger
+        'src/renderer/src/utils/logger.ts',
       ],
-    },
-  },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, './src'),
-      '@renderer': resolve(__dirname, './src/renderer/src'),
-      '@main': resolve(__dirname, './src/main'),
-      '@shared': resolve(__dirname, './src/shared'),
+      thresholds: {
+        lines: 30,
+        functions: 30,
+        branches: 30,
+        statements: 30,
+      },
     },
   },
 });

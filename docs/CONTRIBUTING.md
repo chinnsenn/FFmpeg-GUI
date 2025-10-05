@@ -548,8 +548,8 @@ PR 通过 review 并且 CI 检查通过后，维护者会合并您的 PR。
 
 ## 获取帮助
 
-- **问题讨论**: [GitHub Discussions](https://github.com/your-repo/FFmpeg-GUI/discussions)
-- **Bug 报告**: [GitHub Issues](https://github.com/your-repo/FFmpeg-GUI/issues)
+- **问题讨论**: [GitHub Discussions](https://github.com/chinnsenn/FFmpeg-GUI/discussions)
+- **Bug 报告**: [GitHub Issues](https://github.com/chinnsenn/FFmpeg-GUI/issues)
 - **邮件联系**: dev@ffmpeg-gui.com
 
 ---
@@ -558,7 +558,7 @@ PR 通过 review 并且 CI 检查通过后，维护者会合并您的 PR。
 
 感谢所有贡献者的付出！您的贡献让这个项目变得更好。
 
-查看所有贡献者：[Contributors](https://github.com/your-repo/FFmpeg-GUI/graphs/contributors)
+查看所有贡献者：[Contributors](https://github.com/chinnsenn/FFmpeg-GUI/graphs/contributors)
 
 ---
 

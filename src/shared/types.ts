@@ -199,11 +199,10 @@ export interface FFmpegInfo {
  */
 export interface IPCEventPayloads {
   'task:added': Task;
-  'task:started': { taskId: string; task: Task };
+  'task:started': Task;
   'task:progress': { taskId: string; progress: number; progressInfo?: FFmpegProgress };
   'task:output': { taskId: string; output: string };
-  'task:completed': { taskId: string; task: Task };
-  'task:failed': { taskId: string; task: Task; error: string };
-  'task:cancelled': { taskId: string; task: Task };
-  'ffmpeg:downloadProgress': { percent: number; transferred: number; total: number };
+  'task:completed': Task;
+  'task:failed': Task;
+  'task:cancelled': Task;
 }

@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   darkMode: ['class'], // 深色模式使用 class 策略
   content: [
     './src/renderer/index.html',

@@ -72,7 +72,7 @@ export function Convert() {
         {/* 右侧：转换配置 */}
         <div>
           <ConvertConfig
-            inputFile={selectedFile ? { name: selectedFile.file.name, path: selectedFile.file.path } : undefined}
+            inputFile={selectedFile ? { name: selectedFile.file.name, path: selectedFile.file.path || undefined } : undefined}
             onConvert={handleConvert}
             disabled={converting}
           />

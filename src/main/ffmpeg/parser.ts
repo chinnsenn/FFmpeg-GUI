@@ -124,8 +124,8 @@ export class FFmpegParser {
    * 解析输入文件信息
    * 提取输入文件的元数据（编解码器、分辨率等）
    */
-  parseInputInfo(output: string): Record<string, any> | null {
-    const info: Record<string, any> = {};
+  parseInputInfo(output: string): Record<string, string> | null {
+    const info: Record<string, string> = {};
 
     // 提取视频流信息
     const videoMatch = output.match(
@@ -145,7 +145,7 @@ export class FFmpegParser {
     // 提取帧率
     const fpsMatch = output.match(/([\d.]+)\s*fps/);
     if (fpsMatch) {
-      info.fps = parseFloat(fpsMatch[1]);
+      info.fps = fpsMatch[1];
     }
 
     return Object.keys(info).length > 0 ? info : null;

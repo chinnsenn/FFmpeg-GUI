@@ -17,8 +17,6 @@ export const IPC_CHANNELS = {
 
   // FFmpeg 相关
   FFMPEG_DETECT: 'ffmpeg:detect',
-  FFMPEG_DOWNLOAD: 'ffmpeg:download',
-  FFMPEG_DOWNLOAD_PROGRESS: 'ffmpeg:downloadProgress',
 
   // FFprobe 相关
   FFPROBE_GET_MEDIA_INFO: 'ffprobe:getMediaInfo',
@@ -53,33 +51,6 @@ export const IPC_CHANNELS = {
   LOG_GET_FILE: 'log:get-file',
   LOG_READ: 'log:read',
   LOG_CLEAR: 'log:clear',
-} as const;
-
-// FFmpeg 下载源配置
-export const FFMPEG_DOWNLOAD_SOURCES = {
-  'win32-x64': {
-    github:
-      'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip',
-    mirror: 'https://cdn.example.com/ffmpeg/win64/ffmpeg.zip',
-  },
-  'win32-arm64': {
-    github:
-      'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-winarm64-gpl.zip',
-    mirror: 'https://cdn.example.com/ffmpeg/winarm64/ffmpeg.zip',
-  },
-  'darwin-x64': {
-    github: 'https://evermeet.cx/ffmpeg/getrelease/zip',
-    mirror: 'https://cdn.example.com/ffmpeg/macos-intel/ffmpeg.zip',
-  },
-  'darwin-arm64': {
-    github: 'https://evermeet.cx/ffmpeg/getrelease/arm64/zip',
-    mirror: 'https://cdn.example.com/ffmpeg/macos-arm/ffmpeg.zip',
-  },
-  'linux-x64': {
-    github:
-      'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz',
-    mirror: 'https://cdn.example.com/ffmpeg/linux64/ffmpeg.tar.xz',
-  },
 } as const;
 
 export const MIN_FFMPEG_VERSION = '4.4';

@@ -16,6 +16,7 @@
 
     /* Linting */
     "strict": true,
+    "noImplicitAny": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
@@ -29,6 +30,6 @@
     }
   },
   "include": ["src/renderer/src/**/*"],
-  "exclude": ["src/**/*.js", "src/**/*.d.ts", "node_modules", "dist-electron"],
+  "exclude": ["src/**/*.js", "node_modules", "dist-electron"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

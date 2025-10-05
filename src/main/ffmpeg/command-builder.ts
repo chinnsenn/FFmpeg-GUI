@@ -22,6 +22,18 @@ const DANGEROUS_PATHS = [
   'C:\\ProgramData',
 ] as const;
 
+// Check if a path is dangerous by normalizing both paths for comparison
+const isDangerousPath = (path: string): boolean => {
+  // Normalize the input path to forward slashes for comparison
+  const normalizedPath = path.replace(/\\/g, '/').toLowerCase();
+
+  return DANGEROUS_PATHS.some(dangerousPath => {
+    // Normalize the dangerous path as well
+    const normalizedDangerousPath = dangerousPath.replace(/\\/g, '/').toLowerCase();
+    return normalizedPath.startsWith(normalizedDangerousPath);
+  });
+};
+
 /**
  * FFmpeg command builder
  * Responsible for generating correct FFmpeg command arguments based on conversion options
@@ -36,14 +48,17 @@ export class FFmpegCommandBuilder {
       return '输入文件路径不能为空';
     }
 
+    // Check for dangerous path access in the original input path first
+    const isDangerousOriginal = isDangerousPath(input);
+    if (isDangerousOriginal) {
+      return 'Access to system directories is not allowed';
+    }
+
     const resolvedPath = resolve(normalize(input));
 
-    // Check for dangerous path access
-    const isDangerous = DANGEROUS_PATHS.some(dangerousPath =>
-      resolvedPath.startsWith(dangerousPath)
-    );
-
-    if (isDangerous) {
+    // Also check resolved path for dangerous paths (in case of symlinks or other resolution)
+    const isDangerousResolved = isDangerousPath(resolvedPath);
+    if (isDangerousResolved) {
       return 'Access to system directories is not allowed';
     }
 
@@ -88,7 +103,7 @@ export class FFmpegCommandBuilder {
     }
 
     // 输入文件
-    args.push('-i', resolve(options.input));
+    args.push('-i', options.input);
 
     // 视频编解码器
     if (options.videoCodec) {
@@ -157,7 +172,7 @@ export class FFmpegCommandBuilder {
     }
 
     // 输入文件
-    args.push('-i', resolve(options.input));
+    args.push('-i', options.input);
 
     // 视频编解码器（默认使用 libx264）
     const videoCodec = options.videoCodec || 'libx264';
@@ -220,10 +235,10 @@ export class FFmpegCommandBuilder {
 
     const args: string[] = [
       '-y',
-      '-i', resolve(input),
+      '-i', input,
       '-vn', // 不包含视频
       '-acodec', audioCodec,
-      resolve(output),
+      output,
     ];
 
     return {
@@ -260,7 +275,7 @@ export class FFmpegCommandBuilder {
     }
 
     // 输入文件
-    args.push('-i', resolve(input));
+    args.push('-i', input);
 
     // 持续时间或结束时间
     if (duration) {
@@ -273,7 +288,7 @@ export class FFmpegCommandBuilder {
     args.push('-c', 'copy');
 
     // 输出文件
-    args.push(resolve(output));
+    args.push(output);
 
     return {
       success: true,
@@ -306,7 +321,7 @@ export class FFmpegCommandBuilder {
 
     // 添加所有输入文件
     for (const input of inputs) {
-      args.push('-i', resolve(input));
+      args.push('-i', input);
     }
 
     // 使用 concat filter
@@ -317,7 +332,7 @@ export class FFmpegCommandBuilder {
       '-filter_complex', filterComplex,
       '-map', '[outv]',
       '-map', '[outa]',
-      resolve(output),
+      output,
     );
 
     return {
@@ -370,10 +385,10 @@ export class FFmpegCommandBuilder {
 
     const args: string[] = [
       '-y',
-      '-i', resolve(videoInput),
-      '-i', resolve(watermarkInput),
+      '-i', videoInput,
+      '-i', watermarkInput,
       '-filter_complex', `overlay=${overlayPosition}`,
-      resolve(output),
+      output,
     ];
 
     return {

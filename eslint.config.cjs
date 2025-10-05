@@ -1,90 +1,78 @@
-const {
-    defineConfig,
-} = require("eslint/config");
-
 const globals = require("globals");
-
-const {
-    fixupConfigRules,
-    fixupPluginRules,
-} = require("@eslint/compat");
-
-const tsParser = require("@typescript-eslint/parser");
-const react = require("eslint-plugin-react");
-const typescriptEslint = require("@typescript-eslint/eslint-plugin");
 const js = require("@eslint/js");
+const tsParser = require("@typescript-eslint/parser");
+const tsPlugin = require("@typescript-eslint/eslint-plugin");
+const reactPlugin = require("eslint-plugin-react");
+const reactHooksPlugin = require("eslint-plugin-react-hooks");
 
-const {
-    FlatCompat,
-} = require("@eslint/eslintrc");
-
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
-});
-
-module.exports = defineConfig([
-    {
-        ignores: [
-            "**/dist/**",
-            "**/dist-electron/**",
-            "**/release/**",
-            "**/coverage/**",
-            "**/node_modules/**",
-            "**/.vite/**",
-            "tailwind.config.js",
-            "postcss.config.js",
-            "vite.config.mjs",
-            "eslint.config.cjs",
-        ],
+module.exports = [
+  js.configs.recommended,
+  {
+    ignores: [
+      "**/dist/**",
+      "**/dist-electron/**",
+      "**/node_modules/**",
+      "**/release/**",
+      "**/coverage/**",
+      "src/**/*.js",
+      "src/**/*.d.ts",
+    ],
+  },
+  {
+    files: ["**/*.test.{ts,tsx}", "**/__tests__/**"],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        ...globals.vitest,
+      },
     },
-    {
-        languageOptions: {
-            globals: {
-                ...globals.browser,
-                ...globals.node,
-            },
-
-            parser: tsParser,
-            ecmaVersion: "latest",
-            sourceType: "module",
-
-            parserOptions: {
-                ecmaFeatures: {
-                    jsx: true,
-                },
-            },
+  },
+  {
+    files: ["**/*.{ts,tsx,js,jsx}"],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        ...globals.es2021,
+        NodeJS: "readonly",
+        FileInfo: "readonly",
+        React: "readonly",
+      },
+      parser: tsParser,
+      ecmaVersion: "latest",
+      sourceType: "module",
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
         },
-
-        extends: fixupConfigRules(compat.extends(
-            "eslint:recommended",
-            "plugin:react/recommended",
-            "plugin:react-hooks/recommended",
-            "plugin:@typescript-eslint/recommended",
-        )),
-
-        plugins: {
-            react: fixupPluginRules(react),
-            "@typescript-eslint": fixupPluginRules(typescriptEslint),
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tsPlugin,
+      react: reactPlugin,
+      "react-hooks": reactHooksPlugin,
+    },
+    rules: {
+      ...tsPlugin.configs.recommended.rules,
+      ...reactPlugin.configs.recommended.rules,
+      ...reactHooksPlugin.configs.recommended.rules,
+      "react/react-in-jsx-scope": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
         },
-
-        rules: {
-            "react/react-in-jsx-scope": "off",
-            "react/no-unescaped-entities": "off",
-            "@typescript-eslint/no-explicit-any": "warn",
-
-            "@typescript-eslint/no-unused-vars": ["warn", {
-                argsIgnorePattern: "^_",
-            }],
-
-            "@typescript-eslint/no-unsafe-function-type": "warn",
-        },
-
-        settings: {
-            react: {
-                version: "detect",
-            },
-        },
-    }
-]);
+      ],
+    },
+    settings: {
+      react: {
+        version: "detect",
+      },
+    },
+  },
+];

@@ -20,7 +20,7 @@ export interface LogEntry {
   level: string;
   category: string;
   message: string;
-  data?: any;
+  data?: unknown;
 }
 
 /**
@@ -74,28 +74,28 @@ export class Logger {
   /**
    * 调试日志
    */
-  public debug(category: string, message: string, data?: any) {
+  public debug(category: string, message: string, data?: unknown) {
     this.log(LogLevel.DEBUG, category, message, data);
   }
 
   /**
    * 信息日志
    */
-  public info(category: string, message: string, data?: any) {
+  public info(category: string, message: string, data?: unknown) {
     this.log(LogLevel.INFO, category, message, data);
   }
 
   /**
    * 警告日志
    */
-  public warn(category: string, message: string, data?: any) {
+  public warn(category: string, message: string, data?: unknown) {
     this.log(LogLevel.WARN, category, message, data);
   }
 
   /**
    * 错误日志
    */
-  public error(category: string, message: string, error?: any) {
+  public error(category: string, message: string, error?: unknown) {
     const errorData = error instanceof Error
       ? { message: error.message, stack: error.stack }
       : error;
@@ -105,7 +105,7 @@ export class Logger {
   /**
    * 记录日志
    */
-  private log(level: LogLevel, category: string, message: string, data?: any) {
+  private log(level: LogLevel, category: string, message: string, data?: unknown) {
     // 检查日志级别
     if (level < this.logLevel) {
       return;
@@ -177,7 +177,7 @@ export class Logger {
     if (data) {
       try {
         logLine += ` | ${JSON.stringify(data)}`;
-      } catch (error) {
+      } catch (_error) {
         logLine += ` | [Unserializable data]`;
       }
     }

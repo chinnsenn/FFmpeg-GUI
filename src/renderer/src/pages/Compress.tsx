@@ -24,8 +24,12 @@ export function Compress() {
       return;
     }
 
-    const inputPath = selectedFile.file.path;
-    if (!inputPath) {
+    let inputPath: string | undefined;
+
+    // Check if the selected file has a path property (FileInfo) or if it's just a File object
+    if ('path' in selectedFile.file && selectedFile.file.path) {
+      inputPath = selectedFile.file.path;
+    } else {
       logger.error('Compress', '文件路径不存在', { file: selectedFile.file.name });
       toast.error('文件路径不存在');
       return;
@@ -97,7 +101,7 @@ export function Compress() {
         {/* 右侧：压缩配置 */}
         <div>
           <CompressConfig
-            inputFile={selectedFile?.file.path}
+            inputFile={selectedFile?.file.path || undefined}
             fileName={selectedFile?.file.name}
             onCompress={handleCompress}
             disabled={compressing}

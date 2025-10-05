@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { RefreshCw, Archive, ArrowRight } from 'lucide-react';
 import { Card } from '@renderer/components/ui/card';
 import { TaskCard } from '@renderer/components/TaskCard/TaskCard';
-import { Task } from '@shared/types';
+import { Task, FFmpegProgress } from '@shared/types';
 import { IPC_CHANNELS } from '@shared/constants';
 import { cn } from '@renderer/lib/utils';
 import { logger } from '@renderer/utils/logger';
@@ -39,14 +39,14 @@ export function Home() {
     });
 
     // 任务开始
-    const unsubTaskStarted = window.electronAPI.on(IPC_CHANNELS.TASK_STARTED, (payload) => {
-      setTasks(prev => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
+    const unsubTaskStarted = window.electronAPI.on(IPC_CHANNELS.TASK_STARTED, (task) => {
+      setTasks(prev => prev.map(t => (t.id === task.id ? task : t)));
     });
 
     // 任务进度
     const unsubTaskProgress = window.electronAPI.on(
       IPC_CHANNELS.TASK_PROGRESS,
-      ({ taskId, progress, progressInfo }: { taskId: string; progress: number; progressInfo?: any }) => {
+      ({ taskId, progress, progressInfo }: { taskId: string; progress: number; progressInfo?: FFmpegProgress }) => {
         setTasks(prev =>
           prev.map(t => (t.id === taskId ? { ...t, progress, progressInfo } : t))
         );
@@ -54,18 +54,18 @@ export function Home() {
     );
 
     // 任务完成
-    const unsubTaskCompleted = window.electronAPI.on(IPC_CHANNELS.TASK_COMPLETED, (payload) => {
-      setTasks(prev => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
+    const unsubTaskCompleted = window.electronAPI.on(IPC_CHANNELS.TASK_COMPLETED, (task) => {
+      setTasks(prev => prev.map(t => (t.id === task.id ? task : t)));
     });
 
     // 任务失败
-    const unsubTaskFailed = window.electronAPI.on(IPC_CHANNELS.TASK_FAILED, (payload) => {
-      setTasks(prev => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
+    const unsubTaskFailed = window.electronAPI.on(IPC_CHANNELS.TASK_FAILED, (task) => {
+      setTasks(prev => prev.map(t => (t.id === task.id ? task : t)));
     });
 
     // 任务取消
-    const unsubTaskCancelled = window.electronAPI.on(IPC_CHANNELS.TASK_CANCELLED, (payload) => {
-      setTasks(prev => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
+    const unsubTaskCancelled = window.electronAPI.on(IPC_CHANNELS.TASK_CANCELLED, (task) => {
+      setTasks(prev => prev.map(t => (t.id === task.id ? task : t)));
     });
 
     unsubscribers.push(

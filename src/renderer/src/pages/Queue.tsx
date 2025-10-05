@@ -1,8 +1,8 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { TaskCard } from '@renderer/components/TaskCard/TaskCard';
 import { Card } from '@renderer/components/ui/card';
-import { Task, TaskManagerStatus } from '@shared/types';
+import { Task, TaskManagerStatus, FFmpegProgress } from '@shared/types';
 import { IPC_CHANNELS } from '@shared/constants';
 import { Trash2 } from 'lucide-react';
 import { cn } from '@renderer/lib/utils';
@@ -65,15 +65,15 @@ export function Queue() {
     });
 
     // 任务开始
-    const unsubTaskStarted = window.electronAPI.on(IPC_CHANNELS.TASK_STARTED, (payload) => {
-      setTasks((prev: Task[]) => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
+    const unsubTaskStarted = window.electronAPI.on(IPC_CHANNELS.TASK_STARTED, (task: Task) => {
+      setTasks((prev: Task[]) => prev.map(t => (t.id === task.id ? task : t)));
       setStatus((prev: TaskManagerStatus) => ({ ...prev, queued: Math.max(0, prev.queued - 1), running: prev.running + 1 }));
     });
 
     // 任务进度
     const unsubTaskProgress = window.electronAPI.on(
       IPC_CHANNELS.TASK_PROGRESS,
-      ({ taskId, progress, progressInfo }: { taskId: string; progress: number; progressInfo?: any }) => {
+      ({ taskId, progress, progressInfo }: { taskId: string; progress: number; progressInfo?: FFmpegProgress }) => {
         setTasks(prev =>
           prev.map(t =>
             t.id === taskId ? { ...t, progress, progressInfo } : t
@@ -83,20 +83,20 @@ export function Queue() {
     );
 
     // 任务完成
-    const unsubTaskCompleted = window.electronAPI.on(IPC_CHANNELS.TASK_COMPLETED, (payload) => {
-      setTasks((prev: Task[]) => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
+    const unsubTaskCompleted = window.electronAPI.on(IPC_CHANNELS.TASK_COMPLETED, (task: Task) => {
+      setTasks((prev: Task[]) => prev.map(t => (t.id === task.id ? task : t)));
       setStatus((prev: TaskManagerStatus) => ({ ...prev, running: Math.max(0, prev.running - 1), completed: prev.completed + 1 }));
     });
 
     // 任务失败
-    const unsubTaskFailed = window.electronAPI.on(IPC_CHANNELS.TASK_FAILED, (payload) => {
-      setTasks((prev: Task[]) => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
+    const unsubTaskFailed = window.electronAPI.on(IPC_CHANNELS.TASK_FAILED, (task: Task) => {
+      setTasks((prev: Task[]) => prev.map(t => (t.id === task.id ? task : t)));
       setStatus((prev: TaskManagerStatus) => ({ ...prev, running: Math.max(0, prev.running - 1) }));
     });
 
     // 任务取消
-    const unsubTaskCancelled = window.electronAPI.on(IPC_CHANNELS.TASK_CANCELLED, (payload) => {
-      setTasks((prev: Task[]) => prev.map(t => (t.id === payload.task.id ? payload.task : t)));
+    const unsubTaskCancelled = window.electronAPI.on(IPC_CHANNELS.TASK_CANCELLED, (task: Task) => {
+      setTasks((prev: Task[]) => prev.map(t => (t.id === task.id ? task : t)));
       setStatus((prev: TaskManagerStatus) => ({
         ...prev,
         queued: Math.max(0, prev.queued - 1),

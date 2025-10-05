@@ -30,6 +30,8 @@ npm run build:renderer        # Build React renderer process only
 npm run build:main            # Build Electron main process only
 npm run build:dir             # Quick build (directory output, no installer)
 npm run build                 # Full build with installers (macOS/Windows/Linux)
+npm run build:mac:arm64       # Build macOS app for Apple Silicon only
+npm run build:mac:x64         # Build macOS app for Intel only
 
 # Code Quality
 npm run lint                  # ESLint check
@@ -167,17 +169,22 @@ const taskId = await window.electronAPI.task.add(['ffmpeg', '-i', 'input.mp4']);
 
 ## FFmpeg Integration
 
-**Detection Flow:**
-1. Check system PATH for `ffmpeg`/`ffprobe`
-2. Check app data directory for downloaded binary
-3. Prompt user to download if not found
+**FFmpeg & FFprobe 已内置** (`@ffmpeg-installer/ffmpeg` + `@ffprobe-installer/ffprobe`):
+- 应用已集成静态 FFmpeg 和 FFprobe 二进制文件，无需下载
+- 自动适配平台：macOS (Intel/Apple Silicon), Windows (x64), Linux (x64)
+- electron-builder 自动解包到 `app.asar.unpacked` 目录
 
-**Task Execution:**
-1. Command built from high-level options (ConvertOptions/CompressOptions)
-2. Task added to queue with priority
-3. FFmpegManager spawns child process with concurrency control
-4. Progress parsed from stderr and emitted via IPC events
-5. Task status updated: pending → running → completed/failed/cancelled
+**检测流程（优先级）:**
+1. 检查内置 FFmpeg/FFprobe（installer 提供的路径）
+2. 处理 ASAR 打包路径（`app.asar` → `app.asar.unpacked`）
+3. 回退到系统环境变量的 FFmpeg/FFprobe（备用）
+
+**任务执行流程:**
+1. 命令由高层选项构建（ConvertOptions/CompressOptions）
+2. 任务添加到队列（支持优先级）
+3. FFmpegManager 生成子进程（支持并发控制）
+4. 从 stderr 解析进度并通过 IPC 事件发送
+5. 任务状态更新：pending → running → completed/failed/cancelled
 
 **Progress Parsing:**
 FFmpeg outputs progress to stderr in format:
@@ -253,7 +260,7 @@ The app supports three theme modes managed by the `useTheme` hook:
 
 ## Current Status
 
-**Version:** 0.1.0
+**Version:** 0.1.5
 **Progress:** 21/22 tasks complete (95%)
 **Pending:** v1.0.0 release
 
@@ -262,6 +269,8 @@ The app supports three theme modes managed by the `useTheme` hook:
 - ✅ Dark mode fully implemented
 - ✅ Code quality improved (67→98/100)
 - ✅ Tailwind CSS 4 migration complete
+- ✅ Fixed macOS packaged app blank screen issue (v0.1.5)
+- ✅ Added architecture-specific build scripts (v0.1.5)
 
 **Known Limitations:**
 - Path handling uses `/` separator (may need cross-platform improvement)

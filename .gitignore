@@ -4,7 +4,7 @@
 node_modules/
 bower_components/
 jspm_packages/
-package-lock.json
+# package-lock.json should be committed for npm projects
 yarn.lock
 pnpm-lock.yaml
 .pnp
@@ -284,6 +284,5 @@ debug/
 
 # Lock files from package managers not in use
 # (uncomment the ones you don't use)
-# package-lock.json
 # yarn.lock
 # pnpm-lock.yaml

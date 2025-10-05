@@ -10,11 +10,29 @@ permissions:
 
 jobs:
   release:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.runs-on }}
 
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        include:
+          - os: macos
+            arch: x64
+            runs-on: macos-latest
+          - os: macos
+            arch: arm64
+            runs-on: macos-latest
+          - os: windows
+            arch: x64
+            runs-on: windows-latest
+          - os: windows
+            arch: arm64
+            runs-on: windows-11-arm
+          - os: linux
+            arch: x64
+            runs-on: ubuntu-latest
+          - os: linux
+            arch: arm64
+            runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -23,28 +41,43 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Run lint
+        run: npm run lint
+
       - name: Run tests
-        run: npm test
+        run: npm run test:coverage -- --run
 
       - name: Type check
         run: npm run type-check
 
       - name: Build application
-        run: npm run build
+        run: |
+          if [ "${{ matrix.os }}" = "windows" ] && [ "${{ matrix.arch }}" = "arm64" ]; then
+            npm run build:win:arm64
+          elif [ "${{ matrix.os }}" = "linux" ] && [ "${{ matrix.arch }}" = "arm64" ]; then
+            npm run build:linux:arm64
+          elif [ "${{ matrix.os }}" = "windows" ]; then
+            npm run build:win
+          elif [ "${{ matrix.os }}" = "macos" ]; then
+            npm run build:mac
+          elif [ "${{ matrix.os }}" = "linux" ]; then
+            npm run build:linux
+          fi
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts (macOS)
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos'
         uses: actions/upload-artifact@v4
         with:
-          name: macos-build
+          name: macos-${{ matrix.arch }}-build
           path: |
             release/**/*.dmg
             release/**/*.zip
@@ -52,31 +85,94 @@ jobs:
             release/**/*.zip.blockmap
 
       - name: Upload artifacts (Windows)
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows'
         uses: actions/upload-artifact@v4
         with:
-          name: windows-build
+          name: windows-${{ matrix.arch }}-build
           path: |
             release/**/*.exe
             release/**/*.exe.blockmap
 
       - name: Upload artifacts (Linux)
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'linux'
         uses: actions/upload-artifact@v4
         with:
-          name: linux-build
+          name: linux-${{ matrix.arch }}-build
           path: |
             release/**/*.AppImage
             release/**/*.deb
             release/**/*.AppImage.blockmap
 
+      - name: Extract version from tag
+        if: startsWith(github.ref, 'refs/tags/')
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          files: release/**/*
+          files: |
+            release/**/FFmpeg-GUI-*.dmg
+            release/**/FFmpeg-GUI-*.zip
+            release/**/FFmpeg-GUI-*.exe
+            release/**/FFmpeg-GUI-*.AppImage
+            release/**/FFmpeg-GUI-*.deb
+            release/**/FFmpeg-GUI-*.dmg.blockmap
+            release/**/FFmpeg-GUI-*.zip.blockmap
+            release/**/FFmpeg-GUI-*.exe.blockmap
+            release/**/FFmpeg-GUI-*.AppImage.blockmap
           draft: false
           prerelease: false
           generate_release_notes: true
+          body: |
+            ## 📦 Download
+
+            | Platform | Architecture | Download Link |
+            |----------|--------------|---------------|
+            | **macOS** | Intel (x64) | [FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-mac-x64.dmg](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-mac-x64.dmg) |
+            | **macOS** | Apple Silicon (arm64) | [FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-mac-arm64.dmg](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-mac-arm64.dmg) |
+            | **Windows** | x64 | [FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-win-x64.exe](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-win-x64.exe) |
+            | **Windows** | ARM64 | [FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-win-arm64.exe](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-win-arm64.exe) |
+            | **Linux** | x64 (AppImage) | [FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-linux-x64.AppImage](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-linux-x64.AppImage) |
+            | **Linux** | x64 (deb) | [FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-linux-x64.deb](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-linux-x64.deb) |
+            | **Linux** | ARM64 (AppImage) | [FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-linux-arm64.AppImage](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-linux-arm64.AppImage) |
+            | **Linux** | ARM64 (deb) | [FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-linux-arm64.deb](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FFmpeg-GUI-${{ steps.version.outputs.VERSION }}-linux-arm64.deb) |
+
+            ### 💡 Installation Notes
+
+            #### macOS
+
+            ⚠️ **Important**: This app is not signed with an Apple Developer certificate. You'll need to remove the quarantine attribute or self-sign the app.
+
+            1. Download the `.dmg` file for your architecture
+            2. Open the DMG and drag the app to Applications folder
+            3. **Remove quarantine attribute** (Recommended):
+               ```bash
+               sudo xattr -r -d com.apple.quarantine /Applications/FFmpeg\ GUI.app
+               ```
+            4. **Alternative - Self-sign the app**:
+               ```bash
+               # Remove extended attributes first
+               xattr -cr /Applications/FFmpeg\ GUI.app
+               # Ad-hoc sign the app
+               sudo codesign -fs - /Applications/FFmpeg\ GUI.app
+               ```
+
+            > 💡 After running either command, you should be able to open the app normally.
+
+            #### Windows
+
+            Download the `.exe` installer for your architecture and run it.
+
+            #### Linux
+
+            - **AppImage**: Download, make executable (`chmod +x`), and run
+            - **deb**: Install with `sudo dpkg -i <filename>.deb`
+
+            ---
+
+            ## 📝 What's Changed
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

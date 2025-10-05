@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import { IPC_CHANNELS } from '../shared/constants';
 import type {
   SystemInfo,
@@ -22,7 +22,6 @@ const ALLOWED_EVENT_CHANNELS: readonly (keyof IPCEventPayloads)[] = [
   IPC_CHANNELS.TASK_COMPLETED,
   IPC_CHANNELS.TASK_FAILED,
   IPC_CHANNELS.TASK_CANCELLED,
-  IPC_CHANNELS.FFMPEG_DOWNLOAD_PROGRESS,
 ] as const;
 
 // Expose protected methods that allow the renderer process to use
@@ -60,8 +59,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // FFmpeg 相关
   ffmpeg: {
     detect: (): Promise<FFmpegInfo> => ipcRenderer.invoke(IPC_CHANNELS.FFMPEG_DETECT),
-
-    download: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.FFMPEG_DOWNLOAD),
 
     getMediaInfo: (filePath: string): Promise<MediaFileInfo> =>
       ipcRenderer.invoke(IPC_CHANNELS.FFPROBE_GET_MEDIA_INFO, filePath),
@@ -116,7 +113,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     }
 
     // 创建包装的回调函数，保持引用以便后续移除
-    const wrappedCallback = (_event: Electron.IpcRendererEvent, payload: IPCEventPayloads[K]) => {
+    const wrappedCallback = (_event: IpcRendererEvent, payload: IPCEventPayloads[K]) => {
       callback(payload);
     };
 

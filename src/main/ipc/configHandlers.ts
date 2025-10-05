@@ -26,7 +26,7 @@ async function readConfig(): Promise<AppConfig> {
     const data = await readFile(configPath, 'utf-8');
     const config = JSON.parse(data);
     return { ...DEFAULT_CONFIG, ...config };
-  } catch (error) {
+  } catch (_error) {
     // Configuration file does not exist or parse failed, return default configuration
     return DEFAULT_CONFIG;
   }

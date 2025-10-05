@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { AppConfig } from '@shared/types';
 
 export type Theme = 'light' | 'dark' | 'system';
@@ -21,7 +21,7 @@ export function useTheme() {
   };
 
   // 应用主题到 DOM
-  const applyTheme = (newTheme: Theme) => {
+  const applyTheme = useCallback((newTheme: Theme) => {
     let shouldBeDark = false;
 
     if (newTheme === 'dark') {
@@ -40,7 +40,7 @@ export function useTheme() {
     }
 
     setIsDark(shouldBeDark);
-  };
+  }, []);
 
   // 设置主题
   const setTheme = (newTheme: Theme) => {
@@ -64,7 +64,7 @@ export function useTheme() {
     };
 
     loadTheme();
-  }, []);
+  }, [applyTheme]);
 
   // 监听系统主题变化（仅当设置为 system 时）
   useEffect(() => {

@@ -217,7 +217,12 @@ export function Settings() {
               {ffmpegDetected && (
                 <div className="flex items-center gap-2 text-[13px] text-success-600 mt-2">
                   <CheckCircle className="w-4 h-4" aria-hidden="true" />
-                  <span>FFmpeg 已检测到 (版本: {ffmpegVersion})</span>
+                  <span>FFmpeg 已检测到 (版本: {ffmpegVersion}) - 已内置</span>
+                </div>
+              )}
+              {!ffmpegDetected && (
+                <div className="flex items-center gap-2 text-[13px] text-text-secondary mt-2">
+                  <span>FFmpeg 已内置，无需手动安装或下载</span>
                 </div>
               )}
             </div>

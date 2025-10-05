@@ -3,7 +3,7 @@
 <div align="center">
 
 ![FFmpeg GUI](https://img.shields.io/badge/FFmpeg-GUI-blue)
-![Version](https://img.shields.io/badge/version-0.1.0-green)
+![Version](https://img.shields.io/badge/version-0.1.5-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)
 
@@ -50,8 +50,8 @@
 ### macOS
 
 **下载安装包**：
-- [FFmpeg GUI-0.1.0-mac-arm64.dmg](https://github.com/your-repo/releases) (Apple Silicon)
-- [FFmpeg GUI-0.1.0-mac-arm64.zip](https://github.com/your-repo/releases) (Apple Silicon)
+- [FFmpeg GUI-0.1.5-mac-arm64.dmg](https://github.com/chinnsenn/FFmpeg-GUI/releases) (Apple Silicon)
+- [FFmpeg GUI-0.1.5-mac-arm64.zip](https://github.com/chinnsenn/FFmpeg-GUI/releases) (Apple Silicon)
 
 **安装步骤**：
 1. 下载 DMG 文件
@@ -62,7 +62,7 @@
 ### Windows
 
 **下载安装包**：
-- [FFmpeg GUI-0.1.0-win-x64.exe](https://github.com/your-repo/releases)
+- [FFmpeg GUI-0.1.5-win-x64.exe](https://github.com/chinnsenn/FFmpeg-GUI/releases)
 
 **安装步骤**：
 1. 下载 EXE 安装程序
@@ -75,22 +75,22 @@
 **AppImage**（推荐）：
 ```bash
 # 下载 AppImage
-wget https://github.com/your-repo/releases/FFmpeg-GUI-0.1.0-linux-x64.AppImage
+wget https://github.com/chinnsenn/FFmpeg-GUI/releases/FFmpeg-GUI-0.1.5-linux-x64.AppImage
 
 # 添加执行权限
-chmod +x FFmpeg-GUI-0.1.0-linux-x64.AppImage
+chmod +x FFmpeg-GUI-0.1.5-linux-x64.AppImage
 
 # 运行
-./FFmpeg-GUI-0.1.0-linux-x64.AppImage
+./FFmpeg-GUI-0.1.5-linux-x64.AppImage
 ```
 
 **Debian/Ubuntu (.deb)**：
 ```bash
 # 下载 deb 包
-wget https://github.com/your-repo/releases/FFmpeg-GUI-0.1.0-linux-amd64.deb
+wget https://github.com/chinnsenn/FFmpeg-GUI/releases/FFmpeg-GUI-0.1.5-linux-amd64.deb
 
 # 安装
-sudo dpkg -i FFmpeg-GUI-0.1.0-linux-amd64.deb
+sudo dpkg -i FFmpeg-GUI-0.1.5-linux-amd64.deb
 
 # 修复依赖（如果需要）
 sudo apt-get install -f
@@ -156,7 +156,7 @@ sudo apt-get install -f
 ### 安装依赖
 
 ```bash
-git clone https://github.com/your-repo/FFmpeg-GUI.git
+git clone https://github.com/chinnsenn/FFmpeg-GUI.git
 cd FFmpeg-GUI
 npm install
 ```
@@ -294,13 +294,11 @@ chore: 构建/工具相关
 
 ## 联系方式
 
-- Issues: [GitHub Issues](https://github.com/your-repo/FFmpeg-GUI/issues)
-- Discussions: [GitHub Discussions](https://github.com/your-repo/FFmpeg-GUI/discussions)
+- Issues: [GitHub Issues](https://github.com/chinnsenn/FFmpeg-GUI/issues)
+- Discussions: [GitHub Discussions](https://github.com/chinnsenn/FFmpeg-GUI/discussions)
 
 ---
 
 <div align="center">
-
-**Made with ❤️ by FFmpeg GUI Team**
 
 </div>

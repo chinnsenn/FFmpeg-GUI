@@ -61,7 +61,9 @@ function createWindow() {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
     mainWindow.webContents.openDevTools();
   } else {
-    const indexPath = join(__dirname, '../renderer/index.html');
+    // Load the built renderer process
+    // __dirname points to dist-electron/ in both dev build and production ASAR
+    const indexPath = join(__dirname, 'renderer', 'index.html');
     logger.debug('Window', 'Loading HTML file', { path: indexPath });
     mainWindow.loadFile(indexPath);
   }

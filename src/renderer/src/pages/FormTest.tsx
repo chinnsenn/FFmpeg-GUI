@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Search, Mail } from 'lucide-react';
 import { Input } from '@renderer/components/ui/input';
 import {
