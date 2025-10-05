@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Card } from '@renderer/components/ui/card';
-import { Settings as SettingsIcon, Palette, Sliders, Folder, CheckCircle } from 'lucide-react';
-import { cn } from '@renderer/lib/utils';
+import { Settings as SettingsIcon, Sliders, Folder, CheckCircle } from 'lucide-react';
 import { logger } from '@renderer/utils/logger';
-import { useTheme } from '@renderer/hooks/useTheme';
 import type { AppConfig } from '@shared/types';
 
 export function Settings() {
@@ -15,20 +13,6 @@ export function Settings() {
   const [ffprobeVersion, _setFfprobeVersion] = useState('6.0'); // TODO: Implement FFprobe detection
   const [ffmpegDetected, setFfmpegDetected] = useState(true);
   const [ffprobeDetected, _setFfprobeDetected] = useState(true); // TODO: Implement FFprobe detection
-
-  // 外观设置 - 使用 useTheme hook
-  const { theme, setTheme } = useTheme();
-
-  // 处理主题切换 - 立即应用并保存
-  const handleThemeChange = async (newTheme: 'light' | 'dark' | 'system') => {
-    setTheme(newTheme);
-    try {
-      await window.electronAPI.setConfig({ theme: newTheme });
-      logger.info('Settings', '主题已切换', { theme: newTheme });
-    } catch (error) {
-      logger.errorFromCatch('Settings', '保存主题失败', error);
-    }
-  };
 
   // 任务设置
   const [maxConcurrent, setMaxConcurrent] = useState(2);
@@ -160,7 +144,6 @@ export function Settings() {
         ffmpegPath,
         ffprobePath,
         outputPath: outputDir,
-        theme,
         maxConcurrentTasks: maxConcurrent,
         autoStartNext: autoStart,
         enableNotifications: notification,
@@ -282,76 +265,7 @@ export function Settings() {
           </div>
         </Card>
 
-        {/* 2. 外观 */}
-        <Card className="p-6 bg-surface-raised border border-border-light rounded-lg shadow-sm">
-          <div className="flex items-center gap-3 mb-5">
-            <Palette className="w-5 h-5 text-text-secondary" />
-            <h2 className="text-lg font-semibold text-text-primary">外观</h2>
-          </div>
-
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-text-primary">主题</label>
-              <div className="flex gap-4">
-                {/* 浅色 */}
-                <div
-                  onClick={() => handleThemeChange('light')}
-                  className={cn(
-                    'flex-1 flex items-center justify-center h-12 px-4 rounded-lg border-2 cursor-pointer transition-all',
-                    theme === 'light'
-                      ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/20'
-                      : 'border-border-light hover:border-border-dark'
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    <span className={cn('text-sm', theme === 'light' ? 'font-semibold' : '')}>浅色</span>
-                  </div>
-                </div>
-
-                {/* 深色 */}
-                <div
-                  onClick={() => handleThemeChange('dark')}
-                  className={cn(
-                    'flex-1 flex items-center justify-center h-12 px-4 rounded-lg border-2 cursor-pointer transition-all',
-                    theme === 'dark'
-                      ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/20'
-                      : 'border-border-light hover:border-border-dark'
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                    </svg>
-                    <span className={cn('text-sm', theme === 'dark' ? 'font-semibold' : '')}>深色</span>
-                  </div>
-                </div>
-
-                {/* 跟随系统 */}
-                <div
-                  onClick={() => handleThemeChange('system')}
-                  className={cn(
-                    'flex-1 flex items-center justify-center h-12 px-4 rounded-lg border-2 cursor-pointer transition-all',
-                    theme === 'system'
-                      ? 'border-primary-600 bg-primary-50 dark:bg-primary-600/20'
-                      : 'border-border-light hover:border-border-dark'
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <span className={cn('text-sm', theme === 'system' ? 'font-semibold' : '')}>跟随系统</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* 3. 任务设置 */}
+        {/* 2. 任务设置 */}
         <Card className="p-6 bg-surface-raised border border-border-light rounded-lg shadow-sm">
           <div className="flex items-center gap-3 mb-5">
             <Sliders className="w-5 h-5 text-text-secondary" />
@@ -417,7 +331,7 @@ export function Settings() {
           </div>
         </Card>
 
-        {/* 4. 文件设置 */}
+        {/* 3. 文件设置 */}
         <Card className="p-6 bg-surface-raised border border-border-light rounded-lg shadow-sm">
           <div className="flex items-center gap-3 mb-5">
             <Folder className="w-5 h-5 text-text-secondary" />
