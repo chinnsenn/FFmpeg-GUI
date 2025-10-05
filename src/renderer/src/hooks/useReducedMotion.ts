@@ -36,7 +36,7 @@ export function useReducedMotion(): boolean {
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener('change', handleChange);
     } else {
-      // @ts-ignore - 兼容旧浏览器
+      // @ts-expect-error - 兼容旧浏览器
       mediaQuery.addListener(handleChange);
     }
 
@@ -45,7 +45,7 @@ export function useReducedMotion(): boolean {
       if (mediaQuery.removeEventListener) {
         mediaQuery.removeEventListener('change', handleChange);
       } else {
-        // @ts-ignore - 兼容旧浏览器
+        // @ts-expect-error - 兼容旧浏览器
         mediaQuery.removeListener(handleChange);
       }
     };
