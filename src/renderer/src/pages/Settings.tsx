@@ -4,6 +4,7 @@ import { Card } from '@renderer/components/ui/card';
 import { Settings as SettingsIcon, Palette, Sliders, Folder, CheckCircle } from 'lucide-react';
 import { cn } from '@renderer/lib/utils';
 import { logger } from '@renderer/utils/logger';
+import { useTheme } from '@renderer/hooks/useTheme';
 import type { AppConfig } from '@shared/types';
 
 export function Settings() {
@@ -15,8 +16,19 @@ export function Settings() {
   const [ffmpegDetected, setFfmpegDetected] = useState(true);
   const [ffprobeDetected, _setFfprobeDetected] = useState(true); // TODO: Implement FFprobe detection
 
-  // 外观设置
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
+  // 外观设置 - 使用 useTheme hook
+  const { theme, setTheme } = useTheme();
+
+  // 处理主题切换 - 立即应用并保存
+  const handleThemeChange = async (newTheme: 'light' | 'dark' | 'system') => {
+    setTheme(newTheme);
+    try {
+      await window.electronAPI.setConfig({ theme: newTheme });
+      logger.info('Settings', '主题已切换', { theme: newTheme });
+    } catch (error) {
+      logger.errorFromCatch('Settings', '保存主题失败', error);
+    }
+  };
 
   // 任务设置
   const [maxConcurrent, setMaxConcurrent] = useState(2);
@@ -38,11 +50,10 @@ export function Settings() {
     try {
       const config = await window.electronAPI.getConfig();
 
-      // 从配置中加载设置
+      // 从配置中加载设置（主题已由 useTheme hook 处理）
       if (config.ffmpegPath) setFfmpegPath(config.ffmpegPath);
       if (config.ffprobePath) setFfprobePath(config.ffprobePath);
       if (config.outputPath) setOutputDir(config.outputPath);
-      if (config.theme) setTheme(config.theme);
       if (config.maxConcurrentTasks) setMaxConcurrent(config.maxConcurrentTasks);
       if (config.autoStartNext !== undefined) setAutoStart(config.autoStartNext);
       if (config.enableNotifications !== undefined) setNotification(config.enableNotifications);
@@ -284,7 +295,7 @@ export function Settings() {
               <div className="flex gap-4">
                 {/* 浅色 */}
                 <div
-                  onClick={() => setTheme('light')}
+                  onClick={() => handleThemeChange('light')}
                   className={cn(
                     'flex-1 flex items-center justify-center h-12 px-4 rounded-lg border-2 cursor-pointer transition-all',
                     theme === 'light'
@@ -302,7 +313,7 @@ export function Settings() {
 
                 {/* 深色 */}
                 <div
-                  onClick={() => setTheme('dark')}
+                  onClick={() => handleThemeChange('dark')}
                   className={cn(
                     'flex-1 flex items-center justify-center h-12 px-4 rounded-lg border-2 cursor-pointer transition-all',
                     theme === 'dark'
@@ -320,7 +331,7 @@ export function Settings() {
 
                 {/* 跟随系统 */}
                 <div
-                  onClick={() => setTheme('system')}
+                  onClick={() => handleThemeChange('system')}
                   className={cn(
                     'flex-1 flex items-center justify-center h-12 px-4 rounded-lg border-2 cursor-pointer transition-all',
                     theme === 'system'

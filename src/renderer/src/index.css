@@ -2,9 +2,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* Tailwind v4 Theme Configuration */
+/* Tailwind v4 Theme Configuration - 仅定义固定主题色 */
 @theme {
-  /* ============ 主色（Primary Blue） ============ */
+  /* ============ 主色（Primary Blue） - 在深色模式下会自动调亮 ============ */
   --color-primary-50: #EFF6FF;
   --color-primary-100: #DBEAFE;
   --color-primary-500: #3B82F6;
@@ -26,27 +26,6 @@
   --color-error-500: #EF4444;
   --color-error-600: #DC2626;
   --color-error-700: #B91C1C;
-
-  /* ============ 文本颜色 ============ */
-  --color-text-primary: #111827;
-  --color-text-secondary: #6B7280;
-  --color-text-tertiary: #9CA3AF;
-  --color-text-disabled: #D1D5DB;
-
-  /* ============ 背景颜色 ============ */
-  --color-background-primary: #FFFFFF;
-  --color-background-secondary: #F9FAFB;
-  --color-background-tertiary: #F3F4F6;
-  --color-background-elevated: #FFFFFF;
-
-  /* ============ 表面颜色 ============ */
-  --color-surface-base: #FFFFFF;
-  --color-surface-raised: #FFFFFF;
-
-  /* ============ 边框颜色 ============ */
-  --color-border-light: #E5E7EB;
-  --color-border-medium: #D1D5DB;
-  --color-border-dark: #9CA3AF;
 }
 
 @layer base {
