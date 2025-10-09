@@ -1,0 +1,177 @@
+{
+  "categories": [
+    {
+      "title": "## 🚀 新增功能 (Features)",
+      "labels": ["feature", "feat", "enhancement"]
+    },
+    {
+      "title": "## 🐛 Bug 修复 (Bug Fixes)",
+      "labels": ["bug", "fix", "bugfix"]
+    },
+    {
+      "title": "## 🔧 优化改进 (Improvements)",
+      "labels": ["improvement", "refactor", "perf", "performance"]
+    },
+    {
+      "title": "## 📚 文档更新 (Documentation)",
+      "labels": ["documentation", "docs"]
+    },
+    {
+      "title": "## 🏗️ 构建系统 (Build System)",
+      "labels": ["build", "ci", "cd"]
+    },
+    {
+      "title": "## 🧪 测试 (Tests)",
+      "labels": ["test", "tests"]
+    },
+    {
+      "title": "## 🎨 样式调整 (Styles)",
+      "labels": ["style", "ui", "ux"]
+    },
+    {
+      "title": "## ♻️ 重构 (Code Refactoring)",
+      "labels": ["refactoring"]
+    },
+    {
+      "title": "## 🔒 安全更新 (Security)",
+      "labels": ["security"]
+    },
+    {
+      "title": "## ⚠️ 破坏性变更 (Breaking Changes)",
+      "labels": ["breaking", "breaking-change"]
+    },
+    {
+      "title": "## 📦 依赖更新 (Dependencies)",
+      "labels": ["dependencies", "deps"]
+    },
+    {
+      "title": "## 🗑️ 废弃 (Deprecated)",
+      "labels": ["deprecated"]
+    },
+    {
+      "title": "## 🔥 移除 (Removed)",
+      "labels": ["removed"]
+    },
+    {
+      "title": "## 🚧 开发中 (Work in Progress)",
+      "labels": ["wip"]
+    },
+    {
+      "title": "## 📝 其他变更 (Other Changes)",
+      "labels": ["*"]
+    }
+  ],
+  "ignore_labels": [
+    "skip-changelog",
+    "no-changelog",
+    "ignore"
+  ],
+  "sort": {
+    "order": "ASC",
+    "on_property": "mergedAt"
+  },
+  "template": "#{{CHANGELOG}}\n\n## 📊 统计信息\n\n- **总计提交**: #{{UNCATEGORIZED_COUNT}} 个变更\n- **贡献者**: @#{{CONTRIBUTORS}}\n\n**完整变更日志**: https://github.com/$OWNER/$REPOSITORY/compare/#{{FROM_TAG}}...#{{TO_TAG}}",
+  "pr_template": "- #{{TITLE}} (#{{NUMBER}}) by @#{{AUTHOR}}",
+  "empty_template": "- 本次发布无重大变更",
+  "label_extractor": [
+    {
+      "method": "match",
+      "pattern": "^(feat|feature)(\\(.+\\))?:",
+      "target": "title",
+      "on_property": "title",
+      "flags": "gu"
+    },
+    {
+      "method": "match",
+      "pattern": "^(fix|bugfix)(\\(.+\\))?:",
+      "target": "title",
+      "on_property": "title",
+      "flags": "gu"
+    },
+    {
+      "method": "match",
+      "pattern": "^(docs|documentation)(\\(.+\\))?:",
+      "target": "title",
+      "on_property": "title",
+      "flags": "gu"
+    },
+    {
+      "method": "match",
+      "pattern": "^(style|ui|ux)(\\(.+\\))?:",
+      "target": "title",
+      "on_property": "title",
+      "flags": "gu"
+    },
+    {
+      "method": "match",
+      "pattern": "^(refactor|perf|performance)(\\(.+\\))?:",
+      "target": "title",
+      "on_property": "title",
+      "flags": "gu"
+    },
+    {
+      "method": "match",
+      "pattern": "^(test|tests)(\\(.+\\))?:",
+      "target": "title",
+      "on_property": "title",
+      "flags": "gu"
+    },
+    {
+      "method": "match",
+      "pattern": "^(build|ci|cd)(\\(.+\\))?:",
+      "target": "title",
+      "on_property": "title",
+      "flags": "gu"
+    },
+    {
+      "method": "match",
+      "pattern": "^(chore|deps|dependencies)(\\(.+\\))?:",
+      "target": "title",
+      "on_property": "title",
+      "flags": "gu"
+    }
+  ],
+  "duplicate_filter": {
+    "pattern": "\\[.+\\]",
+    "on_property": "title",
+    "method": "match"
+  },
+  "transformers": [
+    {
+      "pattern": "feat:",
+      "target": "feature"
+    },
+    {
+      "pattern": "fix:",
+      "target": "bug"
+    },
+    {
+      "pattern": "docs:",
+      "target": "documentation"
+    },
+    {
+      "pattern": "chore:",
+      "target": "dependencies"
+    }
+  ],
+  "max_tags_to_fetch": 200,
+  "max_pull_requests": 200,
+  "max_back_track_time_days": 365,
+  "exclude_merge_branches": [
+    "main",
+    "master",
+    "dev",
+    "develop"
+  ],
+  "tag_resolver": {
+    "method": "semver",
+    "filter": {
+      "pattern": "^v",
+      "flags": "gu"
+    }
+  },
+  "base_branches": [
+    "main",
+    "master"
+  ]
+}

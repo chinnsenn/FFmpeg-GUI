@@ -1,0 +1,104 @@
+name: PR Quick Check
+
+on:
+  pull_request:
+    branches: [main, dev]
+
+# 自动取消同一 PR 的旧运行
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  quick-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        id: lint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Type check
+        id: type-check
+        run: npm run type-check
+        continue-on-error: true
+
+      - name: Run tests (Ubuntu only)
+        id: tests
+        run: npm test -- --run --reporter=dot
+        env:
+          NODE_ENV: test
+        continue-on-error: true
+
+      - name: Build renderer (quick validation)
+        id: build
+        run: npm run build:renderer
+        continue-on-error: true
+
+      - name: Comment PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const getEmoji = (outcome) => {
+              if (outcome === 'success') return '✅';
+              if (outcome === 'failure') return '❌';
+              return '⚠️';
+            };
+
+            const lintEmoji = getEmoji('${{ steps.lint.outcome }}');
+            const typeCheckEmoji = getEmoji('${{ steps.type-check.outcome }}');
+            const testsEmoji = getEmoji('${{ steps.tests.outcome }}');
+            const buildEmoji = getEmoji('${{ steps.build.outcome }}');
+
+            const allPassed = '${{ steps.lint.outcome }}' === 'success' &&
+                             '${{ steps.type-check.outcome }}' === 'success' &&
+                             '${{ steps.tests.outcome }}' === 'success' &&
+                             '${{ steps.build.outcome }}' === 'success';
+
+            const statusEmoji = allPassed ? '✅' : '❌';
+            const statusText = allPassed ? 'All checks passed!' : 'Some checks failed';
+
+            const message = `## ${statusEmoji} Quick Check Results\n\n` +
+              `**Status:** ${statusText}\n\n` +
+              `| Check | Result |\n` +
+              `|-------|--------|\n` +
+              `| ${lintEmoji} Lint | ${{ steps.lint.outcome }} |\n` +
+              `| ${typeCheckEmoji} Type Check | ${{ steps.type-check.outcome }} |\n` +
+              `| ${testsEmoji} Tests (Ubuntu) | ${{ steps.tests.outcome }} |\n` +
+              `| ${buildEmoji} Build Renderer | ${{ steps.build.outcome }} |\n\n` +
+              `⏱️ **Duration:** ~${{ job.duration }} minutes\n\n` +
+              `💡 This is a quick check. Full cross-platform testing will run on merge.`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
+
+      - name: Fail if any check failed
+        if: |
+          steps.lint.outcome == 'failure' ||
+          steps.type-check.outcome == 'failure' ||
+          steps.tests.outcome == 'failure' ||
+          steps.build.outcome == 'failure'
+        run: exit 1

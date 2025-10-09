@@ -1,0 +1,39 @@
+name: Dependency Review
+
+on:
+  pull_request:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          # 失败条件：发现高危或严重漏洞
+          fail-on-severity: moderate
+          # 允许的许可证列表
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD
+          # 拒绝的许可证列表
+          deny-licenses: GPL-2.0, GPL-3.0, AGPL-3.0
+          # 显示依赖关系图
+          comment-summary-in-pr: always
+          # 检查 npm 注册表的漏洞
+          vulnerability-check: true
+          # 显示许可证合规性
+          license-check: true
+
+      - name: Upload SARIF report
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: dependency-review-results.sarif
+        continue-on-error: true

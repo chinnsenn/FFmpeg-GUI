@@ -3,7 +3,9 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*.*.*'           # 正式版本：v1.0.0
+      - 'v*.*.*-beta.*'    # Beta 版本：v1.0.0-beta.1
+      - 'v*.*.*-alpha.*'   # Alpha 版本：v1.0.0-alpha.1
 
 permissions:
   contents: write
@@ -11,8 +13,10 @@ permissions:
 jobs:
   release:
     runs-on: ${{ matrix.runs-on }}
+    timeout-minutes: 60
 
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos
@@ -37,12 +41,27 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史，用于分支检查
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
+
+      - name: Cache Electron
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+            ~/AppData/Local/electron/Cache
+            ~/Library/Caches/electron
+            ~/Library/Caches/electron-builder
+          key: ${{ runner.os }}-${{ matrix.arch }}-electron-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-electron-
 
       - name: Install dependencies
         run: npm ci
@@ -83,6 +102,7 @@ jobs:
             release/**/*.zip
             release/**/*.dmg.blockmap
             release/**/*.zip.blockmap
+          retention-days: 30
 
       - name: Upload artifacts (Windows)
         if: matrix.os == 'windows'
@@ -92,6 +112,7 @@ jobs:
           path: |
             release/**/*.exe
             release/**/*.exe.blockmap
+          retention-days: 30
 
       - name: Upload artifacts (Linux)
         if: matrix.os == 'linux'
@@ -102,6 +123,25 @@ jobs:
             release/**/*.AppImage
             release/**/*.deb
             release/**/*.AppImage.blockmap
+          retention-days: 30
+
+      - name: Check if tag is on main branch
+        id: check_branch
+        run: |
+          git fetch --all
+          BRANCHES=$(git branch -r --contains ${{ github.ref }})
+          echo "Branches containing this tag:"
+          echo "$BRANCHES"
+
+          if echo "$BRANCHES" | grep -q "origin/main"; then
+            echo "is_main=true" >> $GITHUB_OUTPUT
+            echo "✅ Tag is on main branch, will create release"
+          else
+            echo "is_main=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Tag is NOT on main branch, skipping release creation"
+            echo "💡 Artifacts are still available for download from Actions page"
+          fi
+        shell: bash
 
       - name: Extract version from tag
         if: startsWith(github.ref, 'refs/tags/')
@@ -109,8 +149,45 @@ jobs:
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
         shell: bash
 
-      - name: Create GitHub Release
+      - name: Detect version type
         if: startsWith(github.ref, 'refs/tags/')
+        id: version_type
+        run: |
+          if [[ "${{ github.ref_name }}" =~ alpha ]]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+            echo "draft=true" >> $GITHUB_OUTPUT
+            echo "type=alpha" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref_name }}" =~ beta ]]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+            echo "draft=false" >> $GITHUB_OUTPUT
+            echo "type=beta" >> $GITHUB_OUTPUT
+          else
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+            echo "draft=false" >> $GITHUB_OUTPUT
+            echo "type=stable" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: Generate CHANGELOG
+        if: startsWith(github.ref, 'refs/tags/')
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v4
+        with:
+          configuration: ".github/changelog-config.json"
+          # 从上一个 tag 到当前 tag 的变更
+          fromTag: ${{ github.event.before }}
+          toTag: ${{ github.ref_name }}
+          # 输出格式
+          outputFile: CHANGELOG.md
+          # 提交到 Release 描述
+          commitMode: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        if: |
+          startsWith(github.ref, 'refs/tags/') &&
+          steps.check_branch.outputs.is_main == 'true'
         uses: softprops/action-gh-release@v2
         with:
           files: |
@@ -123,9 +200,9 @@ jobs:
             release/**/FFmpeg-GUI-*.zip.blockmap
             release/**/FFmpeg-GUI-*.exe.blockmap
             release/**/FFmpeg-GUI-*.AppImage.blockmap
-          draft: false
-          prerelease: false
-          generate_release_notes: true
+          draft: ${{ steps.version_type.outputs.draft == 'true' }}
+          prerelease: ${{ steps.version_type.outputs.prerelease == 'true' }}
+          generate_release_notes: false
           body: |
             ## 📦 Download
 
@@ -174,5 +251,28 @@ jobs:
             ---
 
             ## 📝 What's Changed
+
+            ${{ steps.changelog.outputs.changelog }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify skipped release
+        if: |
+          startsWith(github.ref, 'refs/tags/') &&
+          steps.check_branch.outputs.is_main != 'true'
+        run: |
+          echo "=========================================="
+          echo "⚠️ RELEASE SKIPPED"
+          echo "=========================================="
+          echo "Tag: ${{ github.ref_name }}"
+          echo "Reason: Tag is not on main branch"
+          echo ""
+          echo "✅ Build artifacts have been created and uploaded"
+          echo "📥 You can download them from the Actions artifacts"
+          echo ""
+          echo "To create a release:"
+          echo "1. Merge to main branch"
+          echo "2. Create tag on main: git tag ${{ github.ref_name }}"
+          echo "3. Push tag: git push origin ${{ github.ref_name }}"
+          echo "=========================================="
+        shell: bash
