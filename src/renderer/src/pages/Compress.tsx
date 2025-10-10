@@ -103,6 +103,7 @@ export function Compress() {
           <CompressConfig
             inputFile={selectedFile?.file.path || undefined}
             fileName={selectedFile?.file.name}
+            mediaInfo={selectedFile?.mediaInfo}
             onCompress={handleCompress}
             disabled={compressing}
           />

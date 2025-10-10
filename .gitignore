@@ -286,3 +286,5 @@ debug/
 # (uncomment the ones you don't use)
 # yarn.lock
 # pnpm-lock.yaml
+
+.claude-trace/

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Zap, Sparkles, Scale, Smartphone, Globe } from 'lucide-react';
-import type { CompressOptions } from '@shared/types';
+import type { CompressOptions, MediaFileInfo } from '@shared/types';
 import { Card } from '../ui/card';
 import { Slider } from '../ui/slider';
 import { cn } from '@renderer/lib/utils';
@@ -10,6 +10,8 @@ interface CompressConfigProps {
   inputFile?: string;
   /** 文件名（用于生成默认输出路径） */
   fileName?: string;
+  /** 媒体文件信息（包含文件大小等元数据） */
+  mediaInfo?: MediaFileInfo;
   /** 开始压缩回调 */
   onCompress: (options: Omit<CompressOptions, 'input' | 'output'>) => void;
   /** 是否禁用 */
@@ -65,6 +67,7 @@ const COMPRESS_PRESETS = [
 export function CompressConfig({
   inputFile,
   fileName,
+  mediaInfo,
   onCompress,
   disabled = false,
 }: CompressConfigProps) {
@@ -80,8 +83,8 @@ export function CompressConfig({
   // 目标文件大小（MB）
   const [targetSize, setTargetSize] = useState<number>(100);
 
-  // 原始文件大小（用于预估计算，假设为 1200 MB）
-  const originalSize = 1200;
+  // 从 mediaInfo 获取原始文件大小（字节转 MB）
+  const originalSizeMB = mediaInfo?.size ? mediaInfo.size / (1024 * 1024) : 0;
 
   // 当选择预设时，更新 CRF 值
   const handlePresetClick = (presetId: string) => {
@@ -94,8 +97,13 @@ export function CompressConfig({
 
   // 计算预估大小和压缩比
   const getEstimate = () => {
+    // 如果没有文件大小信息，返回 null
+    if (!originalSizeMB || originalSizeMB <= 0) {
+      return null;
+    }
+
     if (mode === 'size') {
-      const ratio = ((originalSize - targetSize) / originalSize) * 100;
+      const ratio = ((originalSizeMB - targetSize) / originalSizeMB) * 100;
       return {
         size: targetSize,
         ratio: Math.round(ratio),
@@ -110,7 +118,7 @@ export function CompressConfig({
     };
 
     const ratio = compressionRatios[crf] || 0.38;
-    const compressedSize = Math.round(originalSize * (1 - ratio));
+    const compressedSize = Math.round(originalSizeMB * (1 - ratio));
     const compressionPercent = Math.round(ratio * 100);
 
     return {
@@ -119,7 +127,33 @@ export function CompressConfig({
     };
   };
 
+  // 计算合理的目标大小范围
+  const getSizeRange = () => {
+    if (!originalSizeMB || originalSizeMB <= 0) {
+      // 无文件信息时使用默认范围
+      return { min: 10, max: 500, default: 100 };
+    }
+
+    // 最小值：原文件的 10% 或 10 MB（取较大值）
+    const min = Math.max(10, Math.round(originalSizeMB * 0.1));
+
+    // 最大值：原文件的 90%（压缩不应增大文件）
+    const max = Math.round(originalSizeMB * 0.9);
+
+    // 默认值：原文件的 50%
+    const defaultSize = Math.round(originalSizeMB * 0.5);
+
+    return { min, max, default: defaultSize };
+  };
+
   const estimate = getEstimate();
+  const sizeRange = getSizeRange();
+
+  // 当文件变化时，重置 targetSize 到新的默认值
+  useEffect(() => {
+    const newRange = getSizeRange();
+    setTargetSize(newRange.default);
+  }, [mediaInfo?.size]); // 依赖文件大小变化
 
   const handleCompress = () => {
     if (!inputFile || !fileName) return;
@@ -293,34 +327,44 @@ export function CompressConfig({
           <Slider
             value={[targetSize]}
             onValueChange={(values) => setTargetSize(values[0])}
-            min={10}
-            max={500}
+            min={sizeRange.min}
+            max={sizeRange.max}
             step={10}
             className="mb-2"
             disabled={disabled}
           />
 
           <div className="flex justify-between px-1">
-            <div className="text-[11px] text-text-tertiary">10 MB</div>
-            <div className="text-[11px] text-text-tertiary">500 MB</div>
+            <div className="text-[11px] text-text-tertiary">{sizeRange.min} MB</div>
+            <div className="text-[11px] text-text-tertiary">{sizeRange.max} MB</div>
           </div>
         </div>
       )}
 
       {/* 4. 预估卡片 */}
       <div className="p-4 rounded-lg bg-background-secondary border border-border-light mb-5">
-        <div className="flex items-center justify-between h-8 mb-2">
-          <span className="text-sm text-text-secondary">预计大小</span>
-          <span className="text-base font-semibold text-primary-600">
-            ~{estimate.size} MB
-          </span>
-        </div>
-        <div className="flex items-center justify-between h-8">
-          <span className="text-sm text-text-secondary">压缩比</span>
-          <span className="text-base font-semibold text-success-600">
-            {estimate.ratio}%
-          </span>
-        </div>
+        {estimate ? (
+          <>
+            <div className="flex items-center justify-between h-8 mb-2">
+              <span className="text-sm text-text-secondary">预计大小</span>
+              <span className="text-base font-semibold text-primary-600">
+                ~{estimate.size} MB
+              </span>
+            </div>
+            <div className="flex items-center justify-between h-8">
+              <span className="text-sm text-text-secondary">压缩比</span>
+              <span className="text-base font-semibold text-success-600">
+                {estimate.ratio}%
+              </span>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-16">
+            <span className="text-sm text-text-tertiary">
+              选择文件后将显示预估信息
+            </span>
+          </div>
+        )}
       </div>
 
       {/* 5. 开始压缩按钮 */}
