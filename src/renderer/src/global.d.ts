@@ -30,6 +30,7 @@ export interface ElectronAPI {
   selectDirectory: () => Promise<string | null>;
   getFileInfo: (filePath: string) => Promise<FileInfo>;
   openFolder: (folderPath: string) => Promise<void>;
+  getPathForFile: (file: File) => string;
 
   // 配置相关
   getConfig: () => Promise<AppConfig>;

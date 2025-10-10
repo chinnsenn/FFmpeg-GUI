@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import { contextBridge, ipcRenderer, IpcRendererEvent, webUtils } from 'electron';
 import { IPC_CHANNELS } from '../shared/constants';
 import type {
   SystemInfo,
@@ -49,6 +49,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   openFolder: (folderPath: string): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.FILE_OPEN_FOLDER, folderPath),
+
+  // 获取拖拽文件的真实路径 (Electron webUtils)
+  getPathForFile: (file: File): string => webUtils.getPathForFile(file),
 
   // 配置相关
   getConfig: (): Promise<AppConfig> => ipcRenderer.invoke(IPC_CHANNELS.CONFIG_GET),

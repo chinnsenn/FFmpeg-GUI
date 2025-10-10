@@ -42,26 +42,37 @@ export function useFileManager() {
     // 异步获取媒体信息
     for (const fileItem of newFiles) {
       try {
-        // 检查是否是 FileInfo 类型（有 path 属性）- 这是 Electron 环境下的文件信息
+        let filePath: string;
+
+        // 检查 File 对象是否已经有 path 属性（由 FileUploader 的 getFilesFromEvent 附加）
         if ('path' in fileItem.file && fileItem.file.path) {
-          const mediaInfo = await window.electronAPI.ffmpeg.getMediaInfo(fileItem.file.path);
-
-          // 更新文件的媒体信息
-          setSelectedFiles((prev) =>
-            prev.map((item) =>
-              item.id === fileItem.id ? { ...item, mediaInfo } : item
-            )
-          );
-
-          // 如果这是当前选中的文件，也更新选中文件的媒体信息
-          setSelectedFile((current) =>
-            current?.id === fileItem.id ? { ...current, mediaInfo } : current
-          );
+          filePath = fileItem.file.path;
+          logger.info('useFileManager', `使用预附加的文件路径: ${filePath}`);
         } else {
-          logger.warn('useFileManager', `文件 ${fileItem.file.name} 没有 path 属性，跳过获取媒体信息`);
+          // 如果没有 path 属性，尝试使用 getPathForFile（回退方案）
+          logger.warn('useFileManager', `文件 ${fileItem.file.name} 没有预附加的 path，尝试调用 getPathForFile`);
+          filePath = window.electronAPI.getPathForFile(fileItem.file as File);
         }
+
+        const mediaInfo = await window.electronAPI.ffmpeg.getMediaInfo(filePath);
+
+        // 更新文件的媒体信息
+        setSelectedFiles((prev) =>
+          prev.map((item) =>
+            item.id === fileItem.id ? { ...item, mediaInfo } : item
+          )
+        );
+
+        // 如果这是当前选中的文件，也更新选中文件的媒体信息
+        setSelectedFile((current) =>
+          current?.id === fileItem.id ? { ...current, mediaInfo } : current
+        );
       } catch (error) {
-        logger.errorFromCatch('useFileManager', `获取文件 ${fileItem.file.name} 的媒体信息失败`, error);
+        logger.errorFromCatch(
+          'useFileManager',
+          `获取文件 ${fileItem.file.name} 的媒体信息失败`,
+          error
+        );
         // 即使失败也不影响文件列表显示
       }
     }

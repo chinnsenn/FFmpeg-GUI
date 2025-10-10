@@ -23,9 +23,76 @@ export function FileUploader({
     'audio/*': ['.mp3', '.wav', '.aac', '.flac', '.m4a', '.ogg'],
   },
   multiple = true,
-  maxSize = 1024 * 1024 * 1024 * 2, // 2GB
+  maxSize = 1024 * 1024 * 1024 * 10, // 10GB
   className,
 }: FileUploaderProps) {
+  /**
+   * 自定义文件获取函数
+   * 解决 Electron macOS 上 webUtils.getPathForFile 的已知问题
+   * 必须在 drop 事件期间同步调用 getPathForFile，而不是在 onDrop 回调中
+   */
+  const getFilesFromEvent = useCallback(
+    async (
+      event:
+        | React.DragEvent<HTMLElement>
+        | React.ChangeEvent<HTMLInputElement>
+        | DragEvent
+        | Event
+        | FileSystemFileHandle[]
+    ) => {
+      // 如果是 FileSystemFileHandle 数组，直接返回空（暂不支持）
+      if (Array.isArray(event)) {
+        return [];
+      }
+
+      // 从事件中获取文件列表
+      let fileList: FileList | null = null;
+
+      if ('dataTransfer' in event && event.dataTransfer) {
+        // DragEvent (拖放)
+        fileList = event.dataTransfer.files;
+      } else if ('target' in event && event.target) {
+        // ChangeEvent (input file)
+        const target = event.target as HTMLInputElement;
+        if (target.files) {
+          fileList = target.files;
+        }
+      }
+
+      if (!fileList) {
+        return [];
+      }
+
+      const files: File[] = [];
+
+      // 遍历文件列表，为每个文件附加真实路径
+      for (let i = 0; i < fileList.length; i++) {
+        const file = fileList[i];
+
+        try {
+          // 使用 webUtils.getPathForFile 获取真实路径
+          // 必须在事件处理期间同步调用，否则 File 对象会失去与文件系统的连接
+          const filePath = window.electronAPI.getPathForFile(file);
+
+          // 将路径附加到 File 对象（通过 defineProperty 使其可枚举）
+          Object.defineProperty(file, 'path', {
+            value: filePath,
+            writable: false,
+            enumerable: true,
+          });
+        } catch (error) {
+          logger.errorFromCatch('FileUploader', `获取文件 ${file.name} 的路径失败`, error);
+          // 即使失败也添加文件，useFileManager 会处理没有路径的情况
+        }
+
+        files.push(file);
+      }
+
+      return files;
+    },
+    []
+  );
+
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       if (acceptedFiles.length > 0) {
@@ -41,6 +108,7 @@ export function FileUploader({
     multiple,
     maxSize,
     noClick: true, // 禁用点击打开，我们使用自己的按钮
+    getFilesFromEvent, // 使用自定义文件获取函数
   });
 
   const handleSelectFromDialog = async () => {
@@ -95,7 +163,7 @@ export function FileUploader({
             <div className="text-center">
               <p className="text-base font-medium text-error-700">不支持的文件类型或文件过大</p>
               <p className="mt-1 text-sm text-error-600">
-                请上传视频或音频文件（最大 2GB）
+                请上传视频或音频文件（最大 10GB）
               </p>
             </div>
           </>
@@ -122,7 +190,7 @@ export function FileUploader({
             </Button>
             <div className="mt-6 space-y-1 text-center text-xs text-text-tertiary">
               <p>支持的格式：视频 (MP4, AVI, MKV, MOV 等) / 音频 (MP3, WAV, AAC 等)</p>
-              <p>最大文件大小：2GB</p>
+              <p>最大文件大小：10GB</p>
             </div>
           </>
         )}
