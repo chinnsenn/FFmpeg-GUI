@@ -12,7 +12,7 @@ import {
 
 interface ConvertConfigProps {
   inputFile?: { name: string; path?: string };
-  onConvert: (options: Partial<ConvertOptions>) => void;
+  onConvert: (options: Partial<ConvertOptions> & { format?: string }) => void;
   disabled?: boolean;
 }
 
@@ -49,22 +49,9 @@ export function ConvertConfig({
 
   // 转换处理
   const handleConvert = () => {
-    if (!inputFile?.path) return;
-
-    // 生成输出文件路径
-    const inputPath = inputFile.path;
-    const lastSlashIndex = inputPath.lastIndexOf('/');
-    const dirPath = lastSlashIndex > 0 ? inputPath.substring(0, lastSlashIndex) : '';
-    const fileName = inputFile.name;
-    const lastDotIndex = fileName.lastIndexOf('.');
-    const nameWithoutExt = lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
-
-    const outputPath = `${dirPath}/${nameWithoutExt}_converted.${outputFormat}`;
-
-    // 构建转换选项 (format is inferred from output file extension)
-    const options: Partial<ConvertOptions> = {
-      input: inputPath,
-      output: outputPath,
+    // 构建转换选项（不包含 input/output，由父组件处理批量文件）
+    const options: Partial<ConvertOptions> & { format?: string } = {
+      format: outputFormat,
       videoCodec: videoCodec || undefined,
       audioCodec: audioCodec || undefined,
       videoBitrate: videoBitrate || undefined,
