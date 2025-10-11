@@ -260,7 +260,7 @@ The app supports three theme modes managed by the `useTheme` hook:
 
 ## Current Status
 
-**Version:** 0.1.5
+**Version:** 0.1.6
 **Progress:** 21/22 tasks complete (95%)
 **Pending:** v1.0.0 release
 

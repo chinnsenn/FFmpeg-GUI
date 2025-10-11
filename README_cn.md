@@ -3,7 +3,7 @@
 <div align="center">
 
 ![FFmpeg GUI](https://img.shields.io/badge/FFmpeg-GUI-blue)
-![Version](https://img.shields.io/badge/version-0.1.5-green)
+![Version](https://img.shields.io/badge/version-0.1.6-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)
 

@@ -3,9 +3,9 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'           # 正式版本：v1.0.0
-      - 'v*.*.*-beta.*'    # Beta 版本：v1.0.0-beta.1
-      - 'v*.*.*-alpha.*'   # Alpha 版本：v1.0.0-alpha.1
+      - 'v*.*.*' # 正式版本：v1.0.0
+      - 'v*.*.*-beta.*' # Beta 版本：v1.0.0-beta.1
+      - 'v*.*.*-alpha.*' # Alpha 版本：v1.0.0-alpha.1
 
 permissions:
   contents: write
@@ -42,7 +42,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 获取完整历史，用于分支检查
+          fetch-depth: 0 # 获取完整历史，用于分支检查
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -168,19 +168,29 @@ jobs:
           fi
         shell: bash
 
+      - name: Get previous tag
+        if: startsWith(github.ref, 'refs/tags/')
+        id: previous_tag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            # If no previous tag exists, use the initial commit
+            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          echo "previous_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Generate CHANGELOG
         if: startsWith(github.ref, 'refs/tags/')
         id: changelog
         uses: mikepenz/release-changelog-builder-action@v4
         with:
-          configuration: ".github/changelog-config.json"
+          configuration: '.github/changelog-config.json'
           # 从上一个 tag 到当前 tag 的变更
-          fromTag: ${{ github.event.before }}
+          fromTag: ${{ steps.previous_tag.outputs.previous_tag }}
           toTag: ${{ github.ref_name }}
           # 输出格式
           outputFile: CHANGELOG.md
-          # 提交到 Release 描述
-          commitMode: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

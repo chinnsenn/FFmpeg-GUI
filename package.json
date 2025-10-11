@@ -1,6 +1,6 @@
 {
   "name": "ffmpeg-gui",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A powerful and user-friendly FFmpeg GUI application",
   "main": "dist-electron/index.js",
   "author": {

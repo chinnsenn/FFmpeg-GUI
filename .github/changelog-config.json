@@ -70,8 +70,10 @@
     "order": "ASC",
     "on_property": "mergedAt"
   },
-  "template": "#{{CHANGELOG}}\n\n## 📊 统计信息\n\n- **总计提交**: #{{UNCATEGORIZED_COUNT}} 个变更\n- **贡献者**: @#{{CONTRIBUTORS}}\n\n**完整变更日志**: https://github.com/$OWNER/$REPOSITORY/compare/#{{FROM_TAG}}...#{{TO_TAG}}",
+  "mode": "COMMIT",
+  "template": "#{{CHANGELOG}}\n\n## 📊 统计信息\n\n- **总计提交**: #{{COMMITS}} 个\n- **文件变更**: #{{CHANGED_FILES}} 个文件\n- **代码变更**: +#{{ADDITIONS}} / -#{{DELETIONS}} 行\n- **贡献者**: #{{CONTRIBUTORS}}\n\n**完整变更日志**: https://github.com/#{{OWNER}}/#{{REPO}}/compare/#{{FROM_TAG}}...#{{TO_TAG}}",
   "pr_template": "- #{{TITLE}} (#{{NUMBER}}) by @#{{AUTHOR}}",
+  "commit_template": "- #{{TITLE}} by @#{{AUTHOR}}",
   "empty_template": "- 本次发布无重大变更",
   "label_extractor": [
     {
