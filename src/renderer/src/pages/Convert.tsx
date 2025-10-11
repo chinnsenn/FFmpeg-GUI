@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { FileUploader } from '@renderer/components/FileUploader/FileUploader';
 import { FileList } from '@renderer/components/FileList/FileList';
 import { ConvertConfig } from '@renderer/components/ConvertConfig/ConvertConfig';
-import { useFileManager } from '@renderer/hooks/useFileManager';
+import { useConvertFileManager } from '@renderer/contexts/ConvertFileManagerContext';
 import { logger } from '@renderer/utils/logger';
 import type { ConvertOptions } from '@shared/types';
 
@@ -14,7 +14,7 @@ export function Convert() {
     handleFilesSelected,
     handleFilesFromDialog,
     handleRemoveFile,
-  } = useFileManager();
+  } = useConvertFileManager();
   const [converting, setConverting] = useState(false);
 
   const handleConvert = async (baseOptions: Partial<ConvertOptions> & { format?: string }) => {

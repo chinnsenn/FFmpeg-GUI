@@ -125,12 +125,18 @@ export function useFileManager() {
    * 移除文件
    */
   const handleRemoveFile = (id: string) => {
-    setSelectedFiles((prev) => prev.filter((item) => item.id !== id));
+    setSelectedFiles((prev) => {
+      const updatedFiles = prev.filter((item) => item.id !== id);
 
-    // 如果删除的是当前选中的文件，清除选中状态
-    if (selectedFile?.id === id) {
-      setSelectedFile(null);
-    }
+      // 如果删除的是当前选中的文件，自动选中第一个文件
+      if (selectedFile?.id === id && updatedFiles.length > 0) {
+        setSelectedFile(updatedFiles[0]);
+      } else if (updatedFiles.length === 0) {
+        setSelectedFile(null);
+      }
+
+      return updatedFiles;
+    });
   };
 
   /**

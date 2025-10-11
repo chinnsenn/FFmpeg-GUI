@@ -10,10 +10,12 @@ import type { FileInfo } from '@shared/types';
 
 interface FileListProps {
   files: FileListItem[];
+  selectedFileId?: string;
+  onSelectFile?: (file: FileListItem) => void;
   onRemove: (id: string) => void;
 }
 
-export function FileList({ files, onRemove }: FileListProps) {
+export function FileList({ files, selectedFileId, onSelectFile, onRemove }: FileListProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const getFileIcon = (file: File | FileInfo) => {
@@ -67,12 +69,19 @@ export function FileList({ files, onRemove }: FileListProps) {
         {files.map((item) => {
           const isExpanded = expandedIds.has(item.id);
           const hasMediaInfo = !!item.mediaInfo;
+          const isSelected = selectedFileId === item.id;
 
           return (
             <Card
               key={item.id}
               padding="none"
-              className="overflow-hidden transition-all duration-150 hover:shadow-md"
+              className={cn(
+                'overflow-hidden transition-all duration-150 cursor-pointer',
+                isSelected
+                  ? 'border-2 border-primary-600 bg-primary-50 dark:bg-primary-600/10 shadow-[0_0_0_3px_hsl(var(--primary-100))] dark:shadow-[0_0_0_3px_hsl(var(--primary-600)/0.2)]'
+                  : 'hover:shadow-md'
+              )}
+              onClick={() => onSelectFile?.(item)}
             >
               {/* 文件基本信息行 */}
               <div className="flex items-center gap-3 p-4 transition-colors hover:bg-background-secondary">
@@ -88,7 +97,10 @@ export function FileList({ files, onRemove }: FileListProps) {
                     <Button
                       variant="icon"
                       size="sm"
-                      onClick={() => toggleExpand(item.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleExpand(item.id);
+                      }}
                       className="shrink-0"
                       title={isExpanded ? '收起详情' : '展开详情'}
                     >
@@ -103,7 +115,10 @@ export function FileList({ files, onRemove }: FileListProps) {
                   <Button
                     variant="icon"
                     size="sm"
-                    onClick={() => onRemove(item.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemove(item.id);
+                    }}
                     className="shrink-0 text-text-tertiary hover:text-error-600"
                     title="删除文件"
                   >

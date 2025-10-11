@@ -180,6 +180,15 @@ export function CompressConfig({
 
   return (
     <Card className="p-6 bg-surface-raised border border-border-light rounded-lg shadow-sm">
+      {/* 配置面板标题 */}
+      {fileName && (
+        <div className="pb-4 mb-5 border-b border-border-light">
+          <h3 className="text-base font-semibold text-text-primary">
+            正在配置: {fileName}
+          </h3>
+        </div>
+      )}
+
       {/* 1. 压缩模式 */}
       <div className="mb-5">
         <label className="block text-sm font-medium text-text-primary mb-2">

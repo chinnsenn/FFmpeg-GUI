@@ -286,6 +286,12 @@
       box-shadow: var(--shadow-md);
     }
 
+    .file-item.selected {
+      border-color: var(--primary-600);
+      background: var(--primary-50);
+      box-shadow: 0 0 0 3px var(--primary-100);
+    }
+
     .file-item-header {
       display: flex;
       align-items: center;
@@ -411,6 +417,24 @@
       background: var(--surface-raised);
       border: 1px solid var(--border-light);
       box-shadow: var(--shadow-sm);
+    }
+
+    .config-panel-header {
+      padding-bottom: var(--space-4);
+      margin-bottom: var(--space-5);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .config-panel-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: var(--space-1);
+    }
+
+    .config-panel-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
     }
 
     .config-section {
@@ -731,23 +755,25 @@
 
           <!-- File List -->
           <div class="file-list" id="fileList" style="display: none;">
-            <h3 class="file-list-header">已选择文件 (1)</h3>
-            <div class="file-item">
+            <h3 class="file-list-header">已选择文件 (<span id="fileCount">3</span>)</h3>
+
+            <!-- File Item 1 -->
+            <div class="file-item selected" data-file-id="0" style="margin-bottom: 12px;" onclick="selectFile(0)">
               <div class="file-item-header">
                 <svg class="file-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
                 </svg>
                 <div class="file-info">
-                  <div class="file-name">video.mp4</div>
+                  <div class="file-name">video1.mp4</div>
                   <div class="file-size">1.2 GB</div>
                 </div>
                 <div class="file-actions">
-                  <button class="icon-btn" id="expandBtn">
+                  <button class="icon-btn expanded" onclick="toggleMediaInfo(0, event)">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                   </button>
-                  <button class="icon-btn" onclick="hideFileList()">
+                  <button class="icon-btn" onclick="removeFile(0, event)">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -755,8 +781,8 @@
                 </div>
               </div>
 
-              <!-- Media Info (hidden by default) -->
-              <div class="media-info" id="mediaInfo" style="display: none;">
+              <!-- Media Info -->
+              <div class="media-info" id="mediaInfo-0">
                 <div class="media-info-title">
                   <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -785,12 +811,127 @@
                 </div>
               </div>
             </div>
+
+            <!-- File Item 2 -->
+            <div class="file-item" data-file-id="1" style="margin-bottom: 12px;" onclick="selectFile(1)">
+              <div class="file-item-header">
+                <svg class="file-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+                </svg>
+                <div class="file-info">
+                  <div class="file-name">video2.mp4</div>
+                  <div class="file-size">800 MB</div>
+                </div>
+                <div class="file-actions">
+                  <button class="icon-btn" onclick="toggleMediaInfo(1, event)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </button>
+                  <button class="icon-btn" onclick="removeFile(1, event)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Media Info (hidden by default) -->
+              <div class="media-info" id="mediaInfo-1" style="display: none;">
+                <div class="media-info-title">
+                  <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  媒体信息
+                </div>
+                <div class="media-info-grid">
+                  <div class="media-label">分辨率</div>
+                  <div class="media-value">1280 × 720</div>
+                  <div class="media-label">时长</div>
+                  <div class="media-value">5:30</div>
+                  <div class="media-label">帧率</div>
+                  <div class="media-value">24 fps</div>
+                  <div class="media-label">视频编解码器</div>
+                  <div class="media-value">H.264 (AVC)</div>
+                  <div class="media-label">视频码率</div>
+                  <div class="media-value">5.2 Mbps</div>
+                  <div class="media-label">音频编解码器</div>
+                  <div class="media-value">AAC</div>
+                  <div class="media-label">音频码率</div>
+                  <div class="media-value">128 kbps</div>
+                  <div class="media-label">声道</div>
+                  <div class="media-value">立体声 (2.0)</div>
+                  <div class="media-label">采样率</div>
+                  <div class="media-value">48 kHz</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- File Item 3 -->
+            <div class="file-item" data-file-id="2" onclick="selectFile(2)">
+              <div class="file-item-header">
+                <svg class="file-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+                </svg>
+                <div class="file-info">
+                  <div class="file-name">video3.avi</div>
+                  <div class="file-size">2.5 GB</div>
+                </div>
+                <div class="file-actions">
+                  <button class="icon-btn" onclick="toggleMediaInfo(2, event)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </button>
+                  <button class="icon-btn" onclick="removeFile(2, event)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Media Info (hidden by default) -->
+              <div class="media-info" id="mediaInfo-2" style="display: none;">
+                <div class="media-info-title">
+                  <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  媒体信息
+                </div>
+                <div class="media-info-grid">
+                  <div class="media-label">分辨率</div>
+                  <div class="media-value">3840 × 2160</div>
+                  <div class="media-label">时长</div>
+                  <div class="media-value">15:42</div>
+                  <div class="media-label">帧率</div>
+                  <div class="media-value">60 fps</div>
+                  <div class="media-label">视频编解码器</div>
+                  <div class="media-value">MPEG-4</div>
+                  <div class="media-label">视频码率</div>
+                  <div class="media-value">25.0 Mbps</div>
+                  <div class="media-label">音频编解码器</div>
+                  <div class="media-value">MP3</div>
+                  <div class="media-label">音频码率</div>
+                  <div class="media-value">320 kbps</div>
+                  <div class="media-label">声道</div>
+                  <div class="media-value">立体声 (2.0)</div>
+                  <div class="media-label">采样率</div>
+                  <div class="media-value">44.1 kHz</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Right Column: Compress Config -->
         <div>
           <div class="config-panel">
+            <!-- Config Panel Header -->
+            <div class="config-panel-header">
+              <div class="config-panel-title" id="configPanelTitle">正在配置: video1.mp4</div>
+            </div>
+
             <!-- Compression Mode -->
             <div class="config-section">
               <label class="config-label">压缩模式</label>
@@ -882,7 +1023,9 @@
 
             <!-- Start Button -->
             <div style="margin-top: 32px;">
-              <button class="btn btn-primary btn-large">开始压缩</button>
+              <button class="btn btn-primary btn-large" id="startCompressBtn" onclick="startCompress()">
+                开始压缩
+              </button>
             </div>
           </div>
         </div>
@@ -891,7 +1034,168 @@
   </div>
 
   <script>
-    // File uploader interaction
+    // ============================================
+    // Data Management
+    // ============================================
+    let files = [
+      {
+        id: 0,
+        name: 'video1.mp4',
+        size: '1.2 GB',
+        mediaInfoExpanded: true,
+        mediaInfo: {
+          resolution: '1920 × 1080',
+          duration: '10:24',
+          fps: '30 fps',
+          videoCodec: 'H.264 (AVC)',
+          videoBitrate: '8.5 Mbps',
+          audioCodec: 'AAC',
+          audioBitrate: '192 kbps',
+          channels: '立体声 (2.0)',
+          sampleRate: '48 kHz'
+        }
+      },
+      {
+        id: 1,
+        name: 'video2.mp4',
+        size: '800 MB',
+        mediaInfoExpanded: false,
+        mediaInfo: {
+          resolution: '1280 × 720',
+          duration: '5:30',
+          fps: '24 fps',
+          videoCodec: 'H.264 (AVC)',
+          videoBitrate: '5.2 Mbps',
+          audioCodec: 'AAC',
+          audioBitrate: '128 kbps',
+          channels: '立体声 (2.0)',
+          sampleRate: '48 kHz'
+        }
+      },
+      {
+        id: 2,
+        name: 'video3.avi',
+        size: '2.5 GB',
+        mediaInfoExpanded: false,
+        mediaInfo: {
+          resolution: '3840 × 2160',
+          duration: '15:42',
+          fps: '60 fps',
+          videoCodec: 'MPEG-4',
+          videoBitrate: '25.0 Mbps',
+          audioCodec: 'MP3',
+          audioBitrate: '320 kbps',
+          channels: '立体声 (2.0)',
+          sampleRate: '44.1 kHz'
+        }
+      }
+    ];
+
+    let currentSelectedFileId = 0; // Currently selected file for configuration
+
+    // ============================================
+    // File Selection
+    // ============================================
+
+    function selectFile(fileId) {
+      if (currentSelectedFileId === fileId) return; // Already selected
+
+      currentSelectedFileId = fileId;
+      updateUI();
+    }
+
+    function toggleMediaInfo(fileId, event) {
+      event.stopPropagation();
+      const file = files.find(f => f.id === fileId);
+      if (file) {
+        file.mediaInfoExpanded = !file.mediaInfoExpanded;
+        updateMediaInfoDisplay(fileId);
+      }
+    }
+
+    function updateMediaInfoDisplay(fileId) {
+      const file = files.find(f => f.id === fileId);
+      const mediaInfoEl = document.getElementById(`mediaInfo-${fileId}`);
+      const expandBtnEl = document.querySelector(`[data-file-id="${fileId}"] .icon-btn`);
+
+      if (mediaInfoEl && expandBtnEl) {
+        mediaInfoEl.style.display = file.mediaInfoExpanded ? 'block' : 'none';
+        if (file.mediaInfoExpanded) {
+          expandBtnEl.classList.add('expanded');
+        } else {
+          expandBtnEl.classList.remove('expanded');
+        }
+      }
+    }
+
+    function removeFile(fileId, event) {
+      event.stopPropagation();
+      files = files.filter(f => f.id !== fileId);
+
+      // If removed file was selected, switch to first file
+      if (currentSelectedFileId === fileId && files.length > 0) {
+        currentSelectedFileId = files[0].id;
+      }
+
+      // If no files left, show uploader
+      if (files.length === 0) {
+        hideFileList();
+      } else {
+        updateUI();
+        renderFileList();
+      }
+    }
+
+    // ============================================
+    // UI Update
+    // ============================================
+
+    function updateUI() {
+      updateFileItemStates();
+      updateFileCount();
+      updateConfigPanelHeader();
+    }
+
+    function updateFileItemStates() {
+      files.forEach(file => {
+        const fileItemEl = document.querySelector(`[data-file-id="${file.id}"]`);
+        if (fileItemEl) {
+          // Update selected state
+          if (file.id === currentSelectedFileId) {
+            fileItemEl.classList.add('selected');
+          } else {
+            fileItemEl.classList.remove('selected');
+          }
+        }
+      });
+    }
+
+    function updateFileCount() {
+      const fileCountEl = document.getElementById('fileCount');
+      if (fileCountEl) {
+        fileCountEl.textContent = files.length;
+      }
+    }
+
+    function updateConfigPanelHeader() {
+      const titleEl = document.getElementById('configPanelTitle');
+      const currentFile = files.find(f => f.id === currentSelectedFileId);
+
+      if (titleEl && currentFile) {
+        titleEl.textContent = `正在配置: ${currentFile.name}`;
+      }
+    }
+
+    function renderFileList() {
+      // This would dynamically render the file list in a real implementation
+      // For demo purposes, we're using static HTML
+      console.log('Rendering file list:', files);
+    }
+
+    // ============================================
+    // File Uploader
+    // ============================================
+
     const fileUploader = document.getElementById('fileUploader');
     const fileList = document.getElementById('fileList');
 
@@ -905,23 +1209,9 @@
       fileUploader.style.display = 'flex';
     }
 
-    // Media info toggle
-    const expandBtn = document.getElementById('expandBtn');
-    const mediaInfo = document.getElementById('mediaInfo');
-    let isExpanded = false;
-
-    expandBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      isExpanded = !isExpanded;
-
-      if (isExpanded) {
-        mediaInfo.style.display = 'block';
-        expandBtn.classList.add('expanded');
-      } else {
-        mediaInfo.style.display = 'none';
-        expandBtn.classList.remove('expanded');
-      }
-    });
+    // ============================================
+    // Compression Config
+    // ============================================
 
     // Radio mode selection
     function selectMode(mode) {
@@ -1003,8 +1293,36 @@
       isDragging = false;
     });
 
+    // ============================================
+    // Start Compress
+    // ============================================
+
+    function startCompress() {
+      const currentFile = files.find(f => f.id === currentSelectedFileId);
+
+      if (!currentFile) {
+        alert('请先选择一个文件');
+        return;
+      }
+
+      console.log('添加压缩任务:', currentFile.name);
+      console.log('压缩配置:', {
+        preset: selectedPreset,
+        crf: currentCRF
+      });
+
+      alert(`将压缩文件: ${currentFile.name}\nCRF: ${currentCRF}\n预设: ${selectedPreset}`);
+
+      // In real implementation, this would add the task to queue
+      // addCompressTask(currentFile, compressionConfig);
+    }
+
+    // ============================================
     // Initialize
+    // ============================================
+
     updateSlider(23);
+    updateUI();
   </script>
 </body>
 </html>
