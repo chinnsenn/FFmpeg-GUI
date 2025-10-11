@@ -263,6 +263,10 @@ jobs:
             ## 📝 What's Changed
 
             ${{ steps.changelog.outputs.changelog }}
+
+            ## 📊 统计信息
+
+            **完整变更日志**: https://github.com/${{ github.repository }}/compare/${{ steps.previous_tag.outputs.previous_tag }}...${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
